@@ -9,7 +9,17 @@ public class CampusApiClient : MonoBehaviour
 {
     [SerializeField] private string m_BaseUrl = "http://192.168.1.4:8000";
 
-    public string BaseUrl => (m_BaseUrl ?? string.Empty).Trim().TrimEnd('/');
+    public string BaseUrl
+    {
+        get
+        {
+            // Try to get URL from AppController first
+            if (AppController.Instance != null && !string.IsNullOrEmpty(AppController.Instance.BaseUrl))
+                return AppController.Instance.BaseUrl.Trim().TrimEnd('/');
+            
+            return (m_BaseUrl ?? string.Empty).Trim().TrimEnd('/');
+        }
+    }
 
     public void SetBaseUrl(string baseUrl)
     {
@@ -78,15 +88,22 @@ public class CampusApiClient : MonoBehaviour
 
     public IEnumerator FetchLocations(Action<List<LocationData>> onSuccess, Action<string> onError)
     {
-        using UnityWebRequest request = UnityWebRequest.Get($"{BaseUrl}/locations");
+        string url = $"{BaseUrl}/locations";
+        Debug.Log($"[CampusApiClient] Fetching locations from: {url}");
+        
+        using UnityWebRequest request = UnityWebRequest.Get(url);
+        request.timeout = 10; // 10 second timeout to prevent app freeze
         yield return request.SendWebRequest();
 
         if (request.result != UnityWebRequest.Result.Success)
         {
-            onError?.Invoke(GetErrorMessage(request, "Could not load campus locations."));
+            string errorMsg = GetErrorMessage(request, "Could not load campus locations.");
+            Debug.LogError($"[CampusApiClient] FetchLocations failed: {errorMsg}");
+            onError?.Invoke(errorMsg);
             yield break;
         }
 
+        Debug.Log($"[CampusApiClient] FetchLocations success: {request.downloadHandler.text}");
         LocationsResponseWrapper response = JsonUtility.FromJson<LocationsResponseWrapper>(request.downloadHandler.text);
         onSuccess?.Invoke(response?.locations ?? new List<LocationData>());
     }
@@ -143,6 +160,7 @@ public class CampusApiClient : MonoBehaviour
         request.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(json));
         request.downloadHandler = new DownloadHandlerBuffer();
         request.SetRequestHeader("Content-Type", "application/json");
+        request.timeout = 10; // 10 second timeout to prevent app freeze
 
         yield return request.SendWebRequest();
 

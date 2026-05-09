@@ -101,10 +101,14 @@ public class ChatManager : MonoBehaviour
         HorizontalLayoutGroup rowLayout = row.AddComponent<HorizontalLayoutGroup>();
         rowLayout.childAlignment = isUser ? TextAnchor.MiddleRight : TextAnchor.MiddleLeft;
         rowLayout.childForceExpandWidth = false;
+        rowLayout.childForceExpandHeight = false;
+        rowLayout.childControlWidth = true;
+        rowLayout.childControlHeight = true;
         rowLayout.padding = new RectOffset(12, 12, 6, 6);
 
         ContentSizeFitter rowFitter = row.AddComponent<ContentSizeFitter>();
         rowFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+        rowFitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
 
         GameObject bubble = new GameObject("Bubble");
         bubble.transform.SetParent(row.transform, false);
@@ -113,8 +117,12 @@ public class ChatManager : MonoBehaviour
             ? new Color(0.0f, 0.66f, 0.72f, 0.96f)
             : new Color(0.1f, 0.12f, 0.18f, 0.98f);
 
-        LayoutElement layoutElement = bubble.AddComponent<LayoutElement>();
-        layoutElement.preferredWidth = Mathf.Min(Mathf.Max(260f, text.Length * 12f), 760f);
+        // Use layout group to pad the text inside the bubble
+        VerticalLayoutGroup bubbleLayout = bubble.AddComponent<VerticalLayoutGroup>();
+        bubbleLayout.padding = new RectOffset(18, 18, 12, 12);
+        bubbleLayout.childAlignment = TextAnchor.MiddleCenter;
+        bubbleLayout.childControlWidth = true;
+        bubbleLayout.childControlHeight = true;
 
         ContentSizeFitter bubbleFitter = bubble.AddComponent<ContentSizeFitter>();
         bubbleFitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
@@ -122,20 +130,16 @@ public class ChatManager : MonoBehaviour
 
         GameObject textGO = new GameObject("Text");
         textGO.transform.SetParent(bubble.transform, false);
-        RectTransform textRT = textGO.AddComponent<RectTransform>();
-        textRT.anchorMin = Vector2.zero;
-        textRT.anchorMax = Vector2.one;
-        textRT.offsetMin = new Vector2(18, 12);
-        textRT.offsetMax = new Vector2(-18, -12);
-
+        
         TextMeshProUGUI tmp = textGO.AddComponent<TextMeshProUGUI>();
         tmp.text = text;
         tmp.fontSize = 26;
         tmp.color = Color.white;
         tmp.alignment = isUser ? TextAlignmentOptions.Right : TextAlignmentOptions.Left;
         tmp.enableWordWrapping = true;
-
-        ContentSizeFitter textFitter = textGO.AddComponent<ContentSizeFitter>();
-        textFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+        
+        // Prevent bubble from getting endlessly wide
+        LayoutElement textLayout = textGO.AddComponent<LayoutElement>();
+        textLayout.preferredWidth = Mathf.Min(text.Length * 14f, 600f);
     }
 }

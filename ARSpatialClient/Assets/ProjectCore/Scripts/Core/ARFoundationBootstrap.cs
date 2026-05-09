@@ -64,6 +64,10 @@ public class ARFoundationBootstrap : MonoBehaviour
         {
             mainCamera.gameObject.AddComponent<ARCameraManager>();
             mainCamera.gameObject.AddComponent<ARCameraBackground>();
+            
+            // CRITICAL: The camera needs a pose driver to actually move with the device in the physical world!
+            // Using ARPoseDriver is required for AR Foundation 5.x with the new Input System.
+            mainCamera.gameObject.AddComponent<UnityEngine.XR.ARFoundation.ARPoseDriver>();
         }
         
         // Set camera to clear solid color for AR
@@ -76,7 +80,29 @@ public class ARFoundationBootstrap : MonoBehaviour
         xrOrigin.Camera = mainCamera;
         xrOrigin.CameraFloorOffsetObject = cameraOffset;
         
-        Debug.Log("[ARFoundationBootstrap] Created XR Origin with camera");
+        // Add ARPlaneManager for surface detection
+        ARPlaneManager planeManager = xrOriginGO.AddComponent<ARPlaneManager>();
+        planeManager.requestedDetectionMode = UnityEngine.XR.ARSubsystems.PlaneDetectionMode.Horizontal;
+        
+        // Try to load plane prefab from Resources
+        GameObject planePrefab = Resources.Load<GameObject>("Prefabs/ARFeatheredPlane");
+        if (planePrefab == null)
+        {
+            // Create a simple plane prefab at runtime
+            planePrefab = CreateSimplePlanePrefab();
+            Debug.Log("[ARFoundationBootstrap] Created runtime plane prefab");
+        }
+        else
+        {
+            Debug.Log("[ARFoundationBootstrap] Loaded plane prefab from Resources");
+        }
+        
+        planeManager.planePrefab = planePrefab;
+        
+        // Add ARRaycastManager for placing objects
+        xrOriginGO.AddComponent<ARRaycastManager>();
+        
+        Debug.Log("[ARFoundationBootstrap] Created XR Origin with camera, plane detection, and raycast");
 #endif
     }
 
@@ -95,6 +121,110 @@ public class ARFoundationBootstrap : MonoBehaviour
         ARSession session = sessionGO.AddComponent<ARSession>();
         
         Debug.Log("[ARFoundationBootstrap] Created ARSession");
+#endif
+    }
+    
+    private GameObject CreateSimplePlanePrefab()
+    {
+#if UNITY_ANDROID || UNITY_IOS
+        // Create a simple plane visualization
+        GameObject planePrefab = new GameObject("SimplePlane");
+        
+        // Add ARPlane component (required)
+        planePrefab.AddComponent<ARPlane>();
+        
+        // Add ARPlaneMeshVisualizer (CRITICAL: updates the mesh to match the physical plane)
+        planePrefab.AddComponent<ARPlaneMeshVisualizer>();
+        
+        // Add MeshFilter and MeshRenderer for visualization
+        MeshFilter meshFilter = planePrefab.AddComponent<MeshFilter>();
+        MeshRenderer meshRenderer = planePrefab.AddComponent<MeshRenderer>();
+        
+        // Create a simple quad mesh
+        Mesh mesh = new Mesh();
+        mesh.vertices = new Vector3[]
+        {
+            new Vector3(-0.5f, 0, -0.5f),
+            new Vector3(0.5f, 0, -0.5f),
+            new Vector3(-0.5f, 0, 0.5f),
+            new Vector3(0.5f, 0, 0.5f)
+        };
+        mesh.triangles = new int[] { 0, 2, 1, 2, 3, 1 };
+        mesh.normals = new Vector3[]
+        {
+            Vector3.up, Vector3.up, Vector3.up, Vector3.up
+        };
+        mesh.uv = new Vector2[]
+        {
+            new Vector2(0, 0),
+            new Vector2(1, 0),
+            new Vector2(0, 1),
+            new Vector2(1, 1)
+        };
+        meshFilter.mesh = mesh;
+        
+        // Create semi-transparent cyan material with shader fallback
+        Shader shader = Shader.Find("Universal Render Pipeline/Lit");
+        if (shader == null)
+        {
+            shader = Shader.Find("Standard");
+            Debug.LogWarning("[ARFoundationBootstrap] URP shader not found, using Standard");
+        }
+        if (shader == null)
+        {
+            shader = Shader.Find("Unlit/Color");
+            Debug.LogWarning("[ARFoundationBootstrap] Standard shader not found, using Unlit/Color");
+        }
+        if (shader == null)
+        {
+            shader = Shader.Find("Sprites/Default"); // Last resort
+            Debug.LogWarning("[ARFoundationBootstrap] Using Sprites/Default shader as last resort");
+        }
+        
+        Material planeMaterial = new Material(shader);
+        planeMaterial.color = new Color(0f, 0.83f, 0.88f, 0.3f); // Semi-transparent cyan
+        
+        // Only set URP-specific properties if using URP shader
+        if (shader != null && shader.name.Contains("Universal Render Pipeline"))
+        {
+            planeMaterial.SetFloat("_Surface", 1); // Transparent
+            planeMaterial.SetFloat("_Blend", 0); // Alpha blend
+        }
+        else if (shader != null && shader.name == "Standard")
+        {
+            // Standard shader transparency setup
+            planeMaterial.SetFloat("_Mode", 3); // Transparent mode
+            planeMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            planeMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            planeMaterial.SetInt("_ZWrite", 0);
+            planeMaterial.DisableKeyword("_ALPHATEST_ON");
+            planeMaterial.EnableKeyword("_ALPHABLEND_ON");
+            planeMaterial.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+        }
+        
+        planeMaterial.renderQueue = 3000; // Transparent queue
+        meshRenderer.material = planeMaterial;
+        
+        Debug.Log($"[ARFoundationBootstrap] Created plane prefab with shader: {shader?.name ?? "NULL"}");
+        
+        // Add LineRenderer for plane boundary (optional but nice)
+        LineRenderer lineRenderer = planePrefab.AddComponent<LineRenderer>();
+        lineRenderer.startWidth = 0.01f;
+        lineRenderer.endWidth = 0.01f;
+        
+        // Use same shader for line renderer
+        Material lineMaterial = new Material(shader);
+        lineMaterial.color = new Color(0f, 0.83f, 0.88f, 0.8f); // Brighter cyan for border
+        lineRenderer.material = lineMaterial;
+        lineRenderer.positionCount = 0;
+        lineRenderer.useWorldSpace = false;
+        
+        // Make it inactive (ARPlaneManager will activate instances)
+        planePrefab.SetActive(false);
+        
+        return planePrefab;
+#else
+        return null;
 #endif
     }
 }

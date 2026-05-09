@@ -126,58 +126,15 @@ public class CampusRuntimeInstaller : MonoBehaviour
         }
 
         modeManager.Initialize(ui, pathVisualizer);
-        qrScanner.WireUI(ui.ScannerPanel, ui.ScannerStatusText, ui.ScannerLocationText, ui.ScannerPreview, modeManager);
+        qrScanner.WireUI(ui.RootCanvas.transform, modeManager);
         chatManager.Configure(apiClient, navigationFlow, ui.ChatInput, ui.ChatContent, ui.StatusText, ui.ChatScrollRect);
         navigationFlow.Configure(apiClient, locationRegistry, qrLocationManager, pathVisualizer, ui, runtimeValidator);
 
         BindUI(ui, modeManager, navigationFlow, chatManager, qrScanner);
-        
-        // Store UI reference and start continuous enabler
         m_UI = ui;
-        StartCoroutine(ContinuouslyEnableButtons());
-        
         navigationFlow.BeginLoad();
     }
     
-    private System.Collections.IEnumerator ContinuouslyEnableButtons()
-    {
-        // Enable buttons every frame for 5 seconds to override any disabling
-        for (int i = 0; i < 300; i++)
-        {
-            yield return null;
-            if (m_UI != null)
-            {
-                m_UI.MenuButton.interactable = true;
-                m_UI.QRButton.interactable = true;
-                m_UI.ChatButton.interactable = true;
-                m_UI.NavigateButton.interactable = true;
-                m_UI.SendButton.interactable = true;
-                m_UI.ScannerCloseButton.interactable = true;
-                m_UI.ChatCloseButton.interactable = true;
-                m_UI.BuildingDropdown.interactable = true;
-                m_UI.FloorDropdown.interactable = true;
-                m_UI.RoomDropdown.interactable = true;
-            }
-        }
-        Debug.Log("[CampusRuntimeInstaller] Stopped continuous button enabling");
-    }
-    
-    private System.Collections.IEnumerator ForceEnableButtonsDelayed(CampusRuntimeUI ui)
-    {
-        yield return null;
-        ui.MenuButton.interactable = true;
-        ui.QRButton.interactable = true;
-        ui.ChatButton.interactable = true;
-        ui.NavigateButton.interactable = true;
-        ui.SendButton.interactable = true;
-        ui.ScannerCloseButton.interactable = true;
-        ui.ChatCloseButton.interactable = true;
-        ui.BuildingDropdown.interactable = true;
-        ui.FloorDropdown.interactable = true;
-        ui.RoomDropdown.interactable = true;
-        Debug.Log("[CampusRuntimeInstaller] All buttons force-enabled after delay");
-    }
-
     private void BindUI(
         CampusRuntimeUI ui,
         ModeManager modeManager,
@@ -185,29 +142,18 @@ public class CampusRuntimeInstaller : MonoBehaviour
         ChatManager chatManager,
         QRScanner qrScanner)
     {
-        Debug.Log("[CampusRuntimeInstaller] Binding UI buttons...");
-        
-        // Force enable all buttons
+        // These two should ALWAYS be interactable
         ui.MenuButton.interactable = true;
         ui.QRButton.interactable = true;
-        ui.ChatButton.interactable = true;
-        ui.NavigateButton.interactable = true;
-        ui.SendButton.interactable = true;
-        ui.ScannerCloseButton.interactable = true;
-        ui.ChatCloseButton.interactable = true;
-        Debug.Log("[CampusRuntimeInstaller] All buttons set to interactable");
-        
+
         ui.MenuButton.onClick.RemoveAllListeners();
         ui.MenuButton.onClick.AddListener(modeManager.ToggleMenu);
-        Debug.Log("[CampusRuntimeInstaller] Menu button bound");
 
         ui.QRButton.onClick.RemoveAllListeners();
         ui.QRButton.onClick.AddListener(qrScanner.OpenScanner);
-        Debug.Log("[CampusRuntimeInstaller] QR button bound");
 
         ui.ChatButton.onClick.RemoveAllListeners();
         ui.ChatButton.onClick.AddListener(modeManager.ToggleChat);
-        Debug.Log("[CampusRuntimeInstaller] Chat button bound");
 
         ui.NavigateButton.onClick.RemoveAllListeners();
         ui.NavigateButton.onClick.AddListener(navigationFlow.HandleNavigatePressed);
@@ -215,19 +161,34 @@ public class CampusRuntimeInstaller : MonoBehaviour
         ui.SendButton.onClick.RemoveAllListeners();
         ui.SendButton.onClick.AddListener(() => chatManager.SendChatMessage(ui.ChatInput.text));
 
-        ui.ScannerCloseButton.onClick.RemoveAllListeners();
-        ui.ScannerCloseButton.onClick.AddListener(qrScanner.CloseScanner);
+        // Enter key also sends chat message
+        ui.ChatInput.onSubmit.RemoveAllListeners();
+        ui.ChatInput.onSubmit.AddListener(text => chatManager.SendChatMessage(text));
 
         ui.ChatCloseButton.onClick.RemoveAllListeners();
         ui.ChatCloseButton.onClick.AddListener(modeManager.CloseChat);
+
+        ui.RetryButton.onClick.RemoveAllListeners();
+        ui.RetryButton.onClick.AddListener(() =>
+        {
+            ui.ShowStatus("Retrying connection...");
+            navigationFlow.BeginLoad();
+        });
+
+        // Tapping the dim overlay behind the menu closes it
+        if (ui.MenuOverlayButton != null)
+        {
+            ui.MenuOverlayButton.onClick.RemoveAllListeners();
+            ui.MenuOverlayButton.onClick.AddListener(modeManager.ToggleMenu);
+        }
 
         ui.BuildingDropdown.onValueChanged.RemoveAllListeners();
         ui.BuildingDropdown.onValueChanged.AddListener(navigationFlow.HandleBuildingChanged);
 
         ui.FloorDropdown.onValueChanged.RemoveAllListeners();
         ui.FloorDropdown.onValueChanged.AddListener(navigationFlow.HandleFloorChanged);
-        
-        Debug.Log("[CampusRuntimeInstaller] All UI buttons bound successfully");
+
+        Debug.Log("[CampusRuntimeInstaller] All UI bound");
     }
 
     private T GetOrCreateComponent<T>(GameObject target) where T : Component

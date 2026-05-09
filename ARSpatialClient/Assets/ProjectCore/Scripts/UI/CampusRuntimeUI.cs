@@ -13,10 +13,10 @@ using UnityEngine.UI;
 public class CampusRuntimeUI : MonoBehaviour
 {
     private readonly Dictionary<string, Sprite> m_IconCache = new Dictionary<string, Sprite>();
+    private GameObject m_MenuOverlay; // Invisible overlay to dismiss menu on outside tap
 
     public Canvas RootCanvas { get; private set; }
     public GameObject NavigationChrome { get; private set; }
-    public GameObject ScannerPanel { get; private set; }
     public GameObject MenuPanel { get; private set; }
     public GameObject ChatPanel { get; private set; }
 
@@ -25,8 +25,8 @@ public class CampusRuntimeUI : MonoBehaviour
     public Button ChatButton { get; private set; }
     public Button NavigateButton { get; private set; }
     public Button SendButton { get; private set; }
-    public Button ScannerCloseButton { get; private set; }
     public Button ChatCloseButton { get; private set; }
+    public Button RetryButton { get; private set; }
 
     public TMP_Dropdown BuildingDropdown { get; private set; }
     public TMP_Dropdown FloorDropdown { get; private set; }
@@ -37,9 +37,6 @@ public class CampusRuntimeUI : MonoBehaviour
 
     public TextMeshProUGUI StatusText { get; private set; }
     public TextMeshProUGUI DirectionText { get; private set; }
-    public TextMeshProUGUI ScannerStatusText { get; private set; }
-    public TextMeshProUGUI ScannerLocationText { get; private set; }
-    public RawImage ScannerPreview { get; private set; }
 
     private bool m_Built;
 
@@ -61,8 +58,13 @@ public class CampusRuntimeUI : MonoBehaviour
     }
 
     public void SetNavigationChromeVisible(bool visible) => NavigationChrome.SetActive(visible);
-    public void SetScannerVisible(bool visible) => ScannerPanel.SetActive(visible);
-    public void SetMenuVisible(bool visible) => MenuPanel.SetActive(visible);
+    public void SetMenuVisible(bool visible)
+    {
+        MenuPanel.SetActive(visible);
+        // Show/hide the invisible overlay behind the menu for outside-tap dismissal
+        if (m_MenuOverlay != null)
+            m_MenuOverlay.SetActive(visible);
+    }
     
     public void SetChatVisible(bool visible)
     {
@@ -80,6 +82,21 @@ public class CampusRuntimeUI : MonoBehaviour
     {
         if (StatusText != null)
             StatusText.text = message ?? string.Empty;
+        
+        // Show/hide retry button based on message
+        if (RetryButton != null)
+        {
+            bool showRetry = message != null && 
+                (message.Contains("offline") || 
+                 message.Contains("timeout") || 
+                 message.Contains("failed") ||
+                 message.Contains("Cannot connect"));
+            RetryButton.gameObject.SetActive(showRetry);
+            
+            // If backend is offline, hide the Chat Button entirely to avoid confusion, since it won't work anyway
+            if (ChatButton != null)
+                ChatButton.gameObject.SetActive(!showRetry);
+        }
     }
 
     public void ShowDirections(IList<string> directions)
@@ -113,13 +130,10 @@ public class CampusRuntimeUI : MonoBehaviour
         
         GameObject canvasGO = new GameObject("CampusCanvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
         canvasGO.transform.SetParent(transform, false);
-        Debug.Log("[CampusRuntimeUI] Canvas GameObject created");
 
         RootCanvas = canvasGO.GetComponent<Canvas>();
         RootCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
         RootCanvas.sortingOrder = 500;
-        
-        // CRITICAL: For AR builds, ensure canvas renders on top
         RootCanvas.planeDistance = 1f;
 
         CanvasScaler scaler = canvasGO.GetComponent<CanvasScaler>();
@@ -128,23 +142,72 @@ public class CampusRuntimeUI : MonoBehaviour
         scaler.matchWidthOrHeight = 0.5f;
         scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
 
+        // Safe area container — insets UI away from notches and nav bars
         NavigationChrome = new GameObject("NavigationChrome", typeof(RectTransform));
         NavigationChrome.transform.SetParent(canvasGO.transform, false);
         RectTransform chromeRT = NavigationChrome.GetComponent<RectTransform>();
         chromeRT.anchorMin = Vector2.zero;
         chromeRT.anchorMax = Vector2.one;
-        chromeRT.offsetMin = Vector2.zero;
-        chromeRT.offsetMax = Vector2.zero;
+        ApplySafeArea(chromeRT);
 
         BuildTopBar();
+        BuildMenuOverlay();
         BuildMenuPanel();
         BuildBottomBar();
         BuildChatPanel();
-        BuildScannerPanel(canvasGO.transform);
 
         SetMenuVisible(false);
         SetChatVisible(false);
-        SetScannerVisible(false);
+    }
+
+    private void ApplySafeArea(RectTransform rt)
+    {
+        Rect safeArea = Screen.safeArea;
+        float screenW = Mathf.Max(1, Screen.width);
+        float screenH = Mathf.Max(1, Screen.height);
+        
+        Vector2 anchorMin = safeArea.position;
+        Vector2 anchorMax = safeArea.position + safeArea.size;
+        
+        anchorMin.x /= screenW;
+        anchorMin.y /= screenH;
+        anchorMax.x /= screenW;
+        anchorMax.y /= screenH;
+        
+        rt.anchorMin = anchorMin;
+        rt.anchorMax = anchorMax;
+        rt.offsetMin = Vector2.zero;
+        rt.offsetMax = Vector2.zero;
+    }
+
+    /// <summary>
+    /// Invisible full-screen overlay behind the menu panel.
+    /// Tapping it closes the menu.
+    /// </summary>
+    private void BuildMenuOverlay()
+    {
+        m_MenuOverlay = new GameObject("MenuOverlay", typeof(RectTransform), typeof(Image));
+        m_MenuOverlay.transform.SetParent(NavigationChrome.transform, false);
+        RectTransform rt = m_MenuOverlay.GetComponent<RectTransform>();
+        rt.anchorMin = Vector2.zero;
+        rt.anchorMax = Vector2.one;
+        rt.offsetMin = Vector2.zero;
+        rt.offsetMax = Vector2.zero;
+        Image img = m_MenuOverlay.GetComponent<Image>();
+        img.color = new Color(0, 0, 0, 0.3f); // Dim overlay
+        Button overlayBtn = m_MenuOverlay.AddComponent<Button>();
+        overlayBtn.transition = Selectable.Transition.None;
+        // onClick is wired in CampusRuntimeInstaller
+        m_MenuOverlay.SetActive(false);
+    }
+
+    public Button MenuOverlayButton
+    {
+        get
+        {
+            if (m_MenuOverlay == null) return null;
+            return m_MenuOverlay.GetComponent<Button>();
+        }
     }
 
     private void BuildTopBar()
@@ -208,68 +271,77 @@ public class CampusRuntimeUI : MonoBehaviour
 
     private void BuildBottomBar()
     {
-        GameObject bottomBar = CreatePanel("BottomBar", NavigationChrome.transform, new Color(0.04f, 0.05f, 0.08f, 0.9f));
+        GameObject bottomBar = CreatePanel("BottomBar", NavigationChrome.transform, new Color(0.04f, 0.05f, 0.08f, 0.93f));
         RectTransform rt = bottomBar.GetComponent<RectTransform>();
         rt.anchorMin = new Vector2(0, 0);
         rt.anchorMax = new Vector2(1, 0);
         rt.pivot = new Vector2(0.5f, 0f);
         rt.anchoredPosition = Vector2.zero;
-        rt.sizeDelta = new Vector2(0, 240);
+        rt.sizeDelta = new Vector2(0, 280);
 
-        // Chat button FIRST (rendered on top)
-        ChatButton = CreateButton(bottomBar.transform, "ChatButton", "CHAT");
+        // Chat button at top of bar
+        ChatButton = CreateButton(bottomBar.transform, "ChatButton", "ASK AI");
         RectTransform chatRT = ChatButton.GetComponent<RectTransform>();
         chatRT.anchorMin = new Vector2(0.5f, 1f);
         chatRT.anchorMax = new Vector2(0.5f, 1f);
         chatRT.pivot = new Vector2(0.5f, 1f);
-        chatRT.anchoredPosition = new Vector2(0, -10);
-        chatRT.sizeDelta = new Vector2(300, 80);
+        chatRT.anchoredPosition = new Vector2(0, -12);
+        chatRT.sizeDelta = new Vector2(320, 70);
 
-        // Direction text
+        // Direction text — scrollable area below chat button
         GameObject dirGO = new GameObject("DirectionText", typeof(RectTransform), typeof(TextMeshProUGUI));
         dirGO.transform.SetParent(bottomBar.transform, false);
         RectTransform dirRT = dirGO.GetComponent<RectTransform>();
-        dirRT.anchorMin = new Vector2(0, 0);
-        dirRT.anchorMax = new Vector2(1, 0);
-        dirRT.pivot = new Vector2(0.5f, 0f);
-        dirRT.anchoredPosition = new Vector2(0, 120);
-        dirRT.sizeDelta = new Vector2(-48, 60);
+        dirRT.anchorMin = new Vector2(0, 0.35f);
+        dirRT.anchorMax = new Vector2(1, 0.7f);
+        dirRT.offsetMin = new Vector2(24, 0);
+        dirRT.offsetMax = new Vector2(-24, 0);
         DirectionText = dirGO.GetComponent<TextMeshProUGUI>();
         DirectionText.text = string.Empty;
         DirectionText.fontSize = 24;
         DirectionText.alignment = TextAlignmentOptions.Center;
         DirectionText.color = Color.white;
         DirectionText.enableWordWrapping = true;
+        DirectionText.overflowMode = TextOverflowModes.Ellipsis;
 
         // Status text at bottom
         GameObject statusGO = new GameObject("StatusText", typeof(RectTransform), typeof(TextMeshProUGUI));
         statusGO.transform.SetParent(bottomBar.transform, false);
         RectTransform statusRT = statusGO.GetComponent<RectTransform>();
         statusRT.anchorMin = new Vector2(0, 0);
-        statusRT.anchorMax = new Vector2(1, 0);
-        statusRT.pivot = new Vector2(0.5f, 0f);
-        statusRT.anchoredPosition = new Vector2(0, 20);
-        statusRT.sizeDelta = new Vector2(-48, 50);
+        statusRT.anchorMax = new Vector2(1, 0.35f);
+        statusRT.offsetMin = new Vector2(24, 8);
+        statusRT.offsetMax = new Vector2(-24, -4);
         StatusText = statusGO.GetComponent<TextMeshProUGUI>();
         StatusText.text = "Loading campus map...";
         StatusText.fontSize = 26;
         StatusText.alignment = TextAlignmentOptions.Center;
         StatusText.color = Color.white;
         StatusText.enableWordWrapping = true;
+
+        // Retry button (hidden by default)
+        RetryButton = CreateButton(bottomBar.transform, "RetryButton", "RETRY");
+        RectTransform retryRT = RetryButton.GetComponent<RectTransform>();
+        retryRT.anchorMin = new Vector2(0.5f, 0.5f);
+        retryRT.anchorMax = new Vector2(0.5f, 0.5f);
+        retryRT.pivot = new Vector2(0.5f, 0.5f);
+        retryRT.anchoredPosition = Vector2.zero;
+        retryRT.sizeDelta = new Vector2(280, 70);
+        RetryButton.gameObject.SetActive(false);
     }
 
     private void BuildChatPanel()
     {
-        ChatPanel = CreatePanel("ChatPanel", NavigationChrome.transform, new Color(0.03f, 0.04f, 0.07f, 0.98f));
+        ChatPanel = CreatePanel("ChatPanel", NavigationChrome.transform, new Color(0.03f, 0.04f, 0.07f, 1f));
         RectTransform rt = ChatPanel.GetComponent<RectTransform>();
         rt.anchorMin = new Vector2(0, 0);
         rt.anchorMax = new Vector2(1, 1);
-        rt.offsetMin = new Vector2(0, 240);
+        rt.offsetMin = Vector2.zero;
         rt.offsetMax = Vector2.zero;
 
         CreateLabel(ChatPanel.transform, "ChatTitle", "AI Navigation Assistant", 40, TextAlignmentOptions.Left, new Vector2(24, -24), new Vector2(-140, -80));
 
-        ChatCloseButton = CreateButton(ChatPanel.transform, "ChatCloseButton", "X", "Icons/close");
+        ChatCloseButton = CreateButton(ChatPanel.transform, "ChatCloseButton", "X", null);
         RectTransform closeRT = ChatCloseButton.GetComponent<RectTransform>();
         closeRT.anchorMin = new Vector2(1, 1);
         closeRT.anchorMax = new Vector2(1, 1);
@@ -287,7 +359,9 @@ public class CampusRuntimeUI : MonoBehaviour
         ChatScrollRect = scrollGO.AddComponent<ScrollRect>();
         ChatScrollRect.horizontal = false;
 
-        GameObject viewport = CreatePanel("Viewport", scrollGO.transform, new Color(0, 0, 0, 0));
+        // Viewport needs a solid color (alpha > 0) for the Mask component to work properly!
+        // showMaskGraphic = false will hide this image, but its alpha must be > 0 to create the stencil mask.
+        GameObject viewport = CreatePanel("Viewport", scrollGO.transform, new Color(1, 1, 1, 1));
         RectTransform viewportRT = viewport.GetComponent<RectTransform>();
         viewportRT.anchorMin = Vector2.zero;
         viewportRT.anchorMax = Vector2.one;
@@ -328,7 +402,7 @@ public class CampusRuntimeUI : MonoBehaviour
         inputFieldRT.offsetMin = new Vector2(18, 10);
         inputFieldRT.offsetMax = new Vector2(-180, -10);
 
-        SendButton = CreateButton(inputRow.transform, "SendButton", "SEND", "Icons/send");
+        SendButton = CreateButton(inputRow.transform, "SendButton", "SEND", null);
         RectTransform sendRT = SendButton.GetComponent<RectTransform>();
         sendRT.anchorMin = new Vector2(1, 0);
         sendRT.anchorMax = new Vector2(1, 1);
@@ -337,68 +411,7 @@ public class CampusRuntimeUI : MonoBehaviour
         sendRT.sizeDelta = new Vector2(140, 0);
     }
 
-    private void BuildScannerPanel(Transform parent)
-    {
-        ScannerPanel = CreatePanel("ScannerPanel", parent, new Color(0.02f, 0.02f, 0.04f, 0.98f));
-        RectTransform rt = ScannerPanel.GetComponent<RectTransform>();
-        rt.anchorMin = Vector2.zero;
-        rt.anchorMax = Vector2.one;
-        rt.offsetMin = Vector2.zero;
-        rt.offsetMax = Vector2.zero;
 
-        // Preview constrained to center frame area
-        GameObject preview = new GameObject("Preview", typeof(RectTransform));
-        preview.transform.SetParent(ScannerPanel.transform, false);
-        RectTransform previewRT = preview.GetComponent<RectTransform>();
-        previewRT.anchorMin = new Vector2(0.5f, 0.5f);
-        previewRT.anchorMax = new Vector2(0.5f, 0.5f);
-        previewRT.pivot = new Vector2(0.5f, 0.5f);
-        previewRT.anchoredPosition = new Vector2(0, -40);
-        previewRT.sizeDelta = new Vector2(560, 560);
-        ScannerPreview = preview.AddComponent<RawImage>();
-        ScannerPreview.color = Color.white;
-
-        CreateLabel(ScannerPanel.transform, "ScannerTitle", "Scan Campus QR", 44, TextAlignmentOptions.Center, new Vector2(24, -36), new Vector2(-24, -100));
-        ScannerStatusText = CreateLabel(ScannerPanel.transform, "ScannerStatus", "Point the camera at a campus QR code", 28, TextAlignmentOptions.Center, new Vector2(24, -110), new Vector2(-24, -154));
-        ScannerLocationText = CreateLabel(ScannerPanel.transform, "ScannerLocation", string.Empty, 26, TextAlignmentOptions.Center, new Vector2(24, -160), new Vector2(-24, -230));
-
-        ScannerCloseButton = CreateButton(ScannerPanel.transform, "ScannerCloseButton", "X", "Icons/close");
-        RectTransform closeRT = ScannerCloseButton.GetComponent<RectTransform>();
-        closeRT.anchorMin = new Vector2(1, 1);
-        closeRT.anchorMax = new Vector2(1, 1);
-        closeRT.pivot = new Vector2(1, 1);
-        closeRT.anchoredPosition = new Vector2(-24, -24);
-        closeRT.sizeDelta = new Vector2(84, 84);
-
-        GameObject frame = CreatePanel("ScannerFrame", ScannerPanel.transform, new Color(1f, 1f, 1f, 0.05f));
-        RectTransform frameRT = frame.GetComponent<RectTransform>();
-        frameRT.anchorMin = new Vector2(0.5f, 0.5f);
-        frameRT.anchorMax = new Vector2(0.5f, 0.5f);
-        frameRT.pivot = new Vector2(0.5f, 0.5f);
-        frameRT.anchoredPosition = new Vector2(0, -40);
-        frameRT.sizeDelta = new Vector2(560, 560);
-
-        CreateFrameBorder(frame.transform, new Color(0f, 0.83f, 0.88f, 0.95f));
-    }
-
-    private void CreateFrameBorder(Transform parent, Color color)
-    {
-        CreateBorderLine(parent, "Top", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(0, 0), new Vector2(560, 6), color);
-        CreateBorderLine(parent, "Bottom", new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(0, 0), new Vector2(560, 6), color);
-        CreateBorderLine(parent, "Left", new Vector2(0f, 0.5f), new Vector2(0f, 0.5f), new Vector2(0, 0), new Vector2(6, 560), color);
-        CreateBorderLine(parent, "Right", new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(0, 0), new Vector2(6, 560), color);
-    }
-
-    private void CreateBorderLine(Transform parent, string name, Vector2 anchorMin, Vector2 anchorMax, Vector2 anchoredPosition, Vector2 size, Color color)
-    {
-        GameObject go = CreatePanel(name, parent, color);
-        RectTransform rt = go.GetComponent<RectTransform>();
-        rt.anchorMin = anchorMin;
-        rt.anchorMax = anchorMax;
-        rt.pivot = anchorMin;
-        rt.anchoredPosition = anchoredPosition;
-        rt.sizeDelta = size;
-    }
 
     private GameObject CreatePanel(string name, Transform parent, Color color)
     {
@@ -439,6 +452,7 @@ public class CampusRuntimeUI : MonoBehaviour
             iconImage.sprite = icon;
             iconImage.preserveAspect = true;
             iconImage.color = Color.white;
+            iconImage.raycastTarget = false; // Don't block button clicks
 
             if (!string.IsNullOrEmpty(label) && label.Length > 1)
             {
@@ -471,7 +485,7 @@ public class CampusRuntimeUI : MonoBehaviour
 
         TextMeshProUGUI buttonTMP = buttonTextGO.GetComponent<TextMeshProUGUI>();
         buttonTMP.text = label;
-        buttonTMP.fontSize = 28;
+        buttonTMP.fontSize = (label != null && label.Length == 1) ? 52 : 28;
         buttonTMP.alignment = TextAlignmentOptions.Center;
         buttonTMP.color = Color.white;
         buttonTMP.fontStyle = FontStyles.Bold;
@@ -488,7 +502,6 @@ public class CampusRuntimeUI : MonoBehaviour
         Image background = go.GetComponent<Image>();
         button.targetGraphic = background;
 
-        // Add hover effect
         ColorBlock colors = button.colors;
         colors.normalColor = new Color(0.0f, 0.66f, 0.72f, 0.96f);
         colors.highlightedColor = new Color(0.0f, 0.76f, 0.82f, 1f);
@@ -499,15 +512,14 @@ public class CampusRuntimeUI : MonoBehaviour
         for (int i = 0; i < 3; i++)
         {
             GameObject line = CreatePanel($"Line{i}", go.transform, Color.white);
+            line.GetComponent<Image>().raycastTarget = false; // Don't block button clicks
             RectTransform lineRT = line.GetComponent<RectTransform>();
             lineRT.anchorMin = new Vector2(0.2f, 0.5f);
             lineRT.anchorMax = new Vector2(0.8f, 0.5f);
             lineRT.pivot = new Vector2(0.5f, 0.5f);
-            
-            // Position lines vertically
-            float yOffset = (i - 1) * 22f; // -22, 0, +22
+            float yOffset = (i - 1) * 22f;
             lineRT.anchoredPosition = new Vector2(0, yOffset);
-            lineRT.sizeDelta = new Vector2(0, 8); // 8px height
+            lineRT.sizeDelta = new Vector2(0, 8);
         }
 
         return button;
@@ -522,14 +534,12 @@ public class CampusRuntimeUI : MonoBehaviour
         Image background = go.GetComponent<Image>();
         button.targetGraphic = background;
 
-        // Add hover effect
         ColorBlock colors = button.colors;
         colors.normalColor = new Color(0.0f, 0.66f, 0.72f, 0.96f);
         colors.highlightedColor = new Color(0.0f, 0.76f, 0.82f, 1f);
         colors.pressedColor = new Color(0.0f, 0.56f, 0.62f, 1f);
         button.colors = colors;
 
-        // Load and display icon
         Sprite icon = LoadIcon(iconResourcePath);
         if (icon != null)
         {
@@ -545,6 +555,7 @@ public class CampusRuntimeUI : MonoBehaviour
             iconImage.sprite = icon;
             iconImage.preserveAspect = true;
             iconImage.color = Color.white;
+            iconImage.raycastTarget = false; // Don't block button clicks
         }
 
         return button;
@@ -588,7 +599,10 @@ public class CampusRuntimeUI : MonoBehaviour
 
         TMP_Dropdown dropdown = go.AddComponent<TMP_Dropdown>();
         dropdown.interactable = true;
-        dropdown.targetGraphic = go.GetComponent<Image>();
+        
+        // CRITICAL: Set target graphic to the background image
+        Image bgImage = go.GetComponent<Image>();
+        dropdown.targetGraphic = bgImage;
 
         GameObject labelGO = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
         labelGO.transform.SetParent(go.transform, false);
@@ -601,6 +615,7 @@ public class CampusRuntimeUI : MonoBehaviour
         label.fontSize = 28;
         label.color = Color.white;
         label.alignment = TextAlignmentOptions.Left;
+        label.raycastTarget = false; // Don't block dropdown clicks
 
         GameObject arrowGO = new GameObject("Arrow", typeof(RectTransform), typeof(TextMeshProUGUI));
         arrowGO.transform.SetParent(go.transform, false);
@@ -611,30 +626,49 @@ public class CampusRuntimeUI : MonoBehaviour
         arrowRT.anchoredPosition = new Vector2(-16, 0);
         arrowRT.sizeDelta = new Vector2(24, 24);
         TextMeshProUGUI arrow = arrowGO.GetComponent<TextMeshProUGUI>();
-        arrow.text = "v";
-        arrow.fontSize = 30;
+        arrow.text = "▼";
+        arrow.fontSize = 24;
         arrow.color = Color.white;
         arrow.alignment = TextAlignmentOptions.Center;
+        arrow.raycastTarget = false; // Don't block dropdown clicks
 
-        GameObject template = CreatePanel("Template", go.transform, new Color(0.08f, 0.09f, 0.14f, 1f));
+        // Create template as child of dropdown (will be repositioned by Unity)
+        GameObject template = CreatePanel("Template", go.transform, new Color(0.08f, 0.09f, 0.14f, 0.98f));
         RectTransform templateRT = template.GetComponent<RectTransform>();
+        // Position template BELOW the dropdown button
         templateRT.anchorMin = new Vector2(0, 0);
         templateRT.anchorMax = new Vector2(1, 0);
         templateRT.pivot = new Vector2(0.5f, 1f);
-        templateRT.anchoredPosition = Vector2.zero;
-        templateRT.sizeDelta = new Vector2(0, 240);
+        templateRT.anchoredPosition = new Vector2(0, -2); // 2px below button
+        templateRT.sizeDelta = new Vector2(0, 400); // Height only, width matches parent
         template.SetActive(false);
+        
+        // CRITICAL: Add Canvas to template for proper sorting above everything
+        Canvas templateCanvas = template.AddComponent<Canvas>();
+        templateCanvas.overrideSorting = true;
+        templateCanvas.sortingOrder = 1000; // Render on top of everything
+        
+        // Add GraphicRaycaster for click detection
+        template.AddComponent<GraphicRaycaster>();
+        
+        // Add Canvas Group for proper fade
+        CanvasGroup templateCanvasGroup = template.AddComponent<CanvasGroup>();
+        templateCanvasGroup.alpha = 1f;
+        templateCanvasGroup.blocksRaycasts = true;
 
         ScrollRect scrollRect = template.AddComponent<ScrollRect>();
         scrollRect.horizontal = false;
+        scrollRect.vertical = true;
+        scrollRect.scrollSensitivity = 20f;
 
         GameObject viewport = CreatePanel("Viewport", template.transform, new Color(0, 0, 0, 0));
         RectTransform viewportRT = viewport.GetComponent<RectTransform>();
         viewportRT.anchorMin = Vector2.zero;
         viewportRT.anchorMax = Vector2.one;
-        viewportRT.offsetMin = Vector2.zero;
-        viewportRT.offsetMax = Vector2.zero;
-        viewport.AddComponent<Mask>().showMaskGraphic = false;
+        viewportRT.offsetMin = new Vector2(4, 4);
+        viewportRT.offsetMax = new Vector2(-4, -4);
+        Mask viewportMask = viewport.AddComponent<Mask>();
+        viewportMask.showMaskGraphic = false;
         scrollRect.viewport = viewportRT;
 
         GameObject content = CreatePanel("Content", viewport.transform, new Color(0, 0, 0, 0));
@@ -642,33 +676,61 @@ public class CampusRuntimeUI : MonoBehaviour
         contentRT.anchorMin = new Vector2(0, 1);
         contentRT.anchorMax = new Vector2(1, 1);
         contentRT.pivot = new Vector2(0.5f, 1f);
-        contentRT.sizeDelta = Vector2.zero;
+        contentRT.sizeDelta = new Vector2(0, 0);
+        
+        // Add VerticalLayoutGroup for proper item layout
+        VerticalLayoutGroup contentLayout = content.AddComponent<VerticalLayoutGroup>();
+        contentLayout.spacing = 2;
+        contentLayout.childForceExpandWidth = true;
+        contentLayout.childControlHeight = true;
+        
+        // Add ContentSizeFitter
+        ContentSizeFitter contentFitter = content.AddComponent<ContentSizeFitter>();
+        contentFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+        
         scrollRect.content = contentRT;
 
         GameObject item = CreatePanel("Item", content.transform, new Color(0.12f, 0.14f, 0.2f, 1f));
         RectTransform itemRT = item.GetComponent<RectTransform>();
-        itemRT.anchorMin = new Vector2(0, 0.5f);
-        itemRT.anchorMax = new Vector2(1, 0.5f);
-        itemRT.sizeDelta = new Vector2(0, 64);
+        itemRT.sizeDelta = new Vector2(0, 70);
+        
+        // Add LayoutElement for proper sizing
+        LayoutElement itemLayout = item.AddComponent<LayoutElement>();
+        itemLayout.minHeight = 70;
+        itemLayout.preferredHeight = 70;
+        
         Toggle toggle = item.AddComponent<Toggle>();
-        toggle.targetGraphic = item.GetComponent<Image>();
-        toggle.graphic = item.GetComponent<Image>();
+        Image itemBg = item.GetComponent<Image>();
+        toggle.targetGraphic = itemBg;
+        toggle.graphic = null; // No checkmark — selection shown via color only
+        
+        // Set toggle colors
+        ColorBlock toggleColors = toggle.colors;
+        toggleColors.normalColor = new Color(0.12f, 0.14f, 0.2f, 1f);
+        toggleColors.highlightedColor = new Color(0.0f, 0.66f, 0.72f, 0.5f);
+        toggleColors.pressedColor = new Color(0.0f, 0.66f, 0.72f, 0.8f);
+        toggleColors.selectedColor = new Color(0.0f, 0.66f, 0.72f, 0.6f);
+        toggle.colors = toggleColors;
 
         GameObject itemLabelGO = new GameObject("Item Label", typeof(RectTransform), typeof(TextMeshProUGUI));
         itemLabelGO.transform.SetParent(item.transform, false);
         RectTransform itemLabelRT = itemLabelGO.GetComponent<RectTransform>();
         itemLabelRT.anchorMin = Vector2.zero;
         itemLabelRT.anchorMax = Vector2.one;
-        itemLabelRT.offsetMin = new Vector2(14, 0);
-        itemLabelRT.offsetMax = new Vector2(-14, 0);
+        itemLabelRT.offsetMin = new Vector2(20, 10);
+        itemLabelRT.offsetMax = new Vector2(-20, -10);
         TextMeshProUGUI itemLabel = itemLabelGO.GetComponent<TextMeshProUGUI>();
-        itemLabel.fontSize = 28;
+        itemLabel.fontSize = 30;
         itemLabel.color = Color.white;
         itemLabel.alignment = TextAlignmentOptions.Left;
+        itemLabel.raycastTarget = false; // Don't block toggle clicks
 
         dropdown.captionText = label;
         dropdown.template = templateRT;
         dropdown.itemText = itemLabel;
+        
+        Debug.Log($"[CampusRuntimeUI] Created dropdown: {name}");
+        
         return dropdown;
     }
 
@@ -786,3 +848,4 @@ public class CampusRuntimeUI : MonoBehaviour
         rt.offsetMax = new Vector2(-right, height);
     }
 }
+

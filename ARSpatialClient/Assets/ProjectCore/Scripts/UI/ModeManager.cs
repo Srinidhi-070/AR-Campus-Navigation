@@ -7,6 +7,7 @@ public class ModeManager : MonoBehaviour
     private PathVisualizer m_PathVisualizer;
     private bool m_ChatOpen;
     private bool m_MenuOpen;
+    private bool m_ScannerOpen;
 
     public void Initialize(CampusRuntimeUI ui, PathVisualizer pathVisualizer)
     {
@@ -19,12 +20,12 @@ public class ModeManager : MonoBehaviour
     {
         if (m_UI == null) return;
 
+        m_ScannerOpen = true;
         m_ChatOpen = false;
         m_MenuOpen = false;
         m_UI.SetMenuVisible(false);
         m_UI.SetChatVisible(false);
         m_UI.SetNavigationChromeVisible(false);
-        m_UI.SetScannerVisible(true);
 
         if (m_PathVisualizer != null)
             m_PathVisualizer.gameObject.SetActive(false);
@@ -34,7 +35,7 @@ public class ModeManager : MonoBehaviour
     {
         if (m_UI == null) return;
 
-        m_UI.SetScannerVisible(false);
+        m_ScannerOpen = false;
         m_UI.SetNavigationChromeVisible(true);
         m_UI.SetMenuVisible(m_MenuOpen);
         m_UI.SetChatVisible(m_ChatOpen);
@@ -45,7 +46,7 @@ public class ModeManager : MonoBehaviour
 
     public void ToggleMenu()
     {
-        if (m_UI == null || m_UI.ScannerPanel.activeSelf) return;
+        if (m_UI == null || m_ScannerOpen) return;
 
         m_MenuOpen = !m_MenuOpen;
         if (m_MenuOpen)
@@ -65,20 +66,24 @@ public class ModeManager : MonoBehaviour
             return;
         }
         
-        if (m_UI.ScannerPanel.activeSelf)
+        if (m_ScannerOpen)
         {
             Debug.Log("[ModeManager] Scanner is open, ignoring chat toggle");
             return;
         }
 
         m_ChatOpen = !m_ChatOpen;
-        Debug.Log($"[ModeManager] Chat open: {m_ChatOpen}");
+        Debug.Log($"[ModeManager] Chat state toggled to: {m_ChatOpen}");
         
         if (m_ChatOpen)
+        {
             m_MenuOpen = false;
+            Debug.Log("[ModeManager] Closing menu because chat is opening");
+        }
 
         m_UI.SetMenuVisible(m_MenuOpen);
         m_UI.SetChatVisible(m_ChatOpen);
+        Debug.Log($"[ModeManager] UI updated - Menu: {m_MenuOpen}, Chat: {m_ChatOpen}");
         
         if (m_ChatOpen && m_UI.ChatInput != null)
         {

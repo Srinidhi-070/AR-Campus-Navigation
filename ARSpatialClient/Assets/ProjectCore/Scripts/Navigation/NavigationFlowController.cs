@@ -37,21 +37,26 @@ public class NavigationFlowController : MonoBehaviour
         if (m_QRLocationManager != null)
             m_QRLocationManager.OnLocationChanged += HandleQrLocationChanged;
 
-        if (AppController.Instance?.UI != null)
-            AppController.Instance.UI.SetTextTargets(ui.DirectionText, ui.StatusText);
-
         RefreshControls();
     }
 
     public void BeginLoad()
     {
+        Debug.Log("[NavigationFlowController] BeginLoad called");
+        
         if (m_ApiClient == null || m_LocationRegistry == null || m_UI == null)
+        {
+            Debug.LogError($"[NavigationFlowController] Missing dependencies: ApiClient={m_ApiClient != null}, LocationRegistry={m_LocationRegistry != null}, UI={m_UI != null}");
             return;
+        }
 
         m_UI.ShowStatus("Loading campus map...");
         RefreshControls();
+        
+        Debug.Log($"[NavigationFlowController] Fetching from: {m_ApiClient.BaseUrl}");
         StartCoroutine(m_ApiClient.FetchLocations(HandleLocationsLoaded, HandleLocationsError));
     }
+
 
     public void HandleBuildingChanged(int index)
     {
@@ -152,8 +157,28 @@ public class NavigationFlowController : MonoBehaviour
 
     private void HandleLocationsLoaded(List<LocationData> locations)
     {
+        Debug.Log($"[NavigationFlowController] HandleLocationsLoaded called with {locations?.Count ?? 0} locations");
+        
         m_LocationRegistry.SetLocations(locations);
+        
+        // Debug: Log all loaded locations
+        if (locations != null)
+        {
+            foreach (var loc in locations)
+            {
+                Debug.Log($"[NavigationFlowController] Loaded: {loc.id} | {loc.displayName} | Type: {loc.type} | Building: {loc.building} | Floor: {loc.floor}");
+            }
+        }
+        
         PopulateBuildingOptions();
+        
+        // Debug: Log building options
+        Debug.Log($"[NavigationFlowController] Building options count: {m_BuildingOptions.Count}");
+        foreach (var building in m_BuildingOptions)
+        {
+            Debug.Log($"[NavigationFlowController] Building option: {building}");
+        }
+        
         RefreshControls();
 
         if (locations == null || locations.Count == 0)
@@ -169,8 +194,18 @@ public class NavigationFlowController : MonoBehaviour
     {
         m_LocationRegistry.Clear();
         PopulateBuildingOptions();
-        RefreshControls();
-        m_UI.ShowStatus($"Could not load campus data. {error}");
+        
+        // Show user-friendly error message
+        m_UI.ShowStatus("Backend offline. Use QR to navigate.");
+        
+        // Enable basic functionality even when backend is down
+        if (m_UI != null)
+        {
+            m_UI.QRButton.interactable = true;  // Always allow QR scanning
+            m_UI.MenuButton.interactable = true; // Always allow menu access
+        }
+        
+        Debug.LogWarning($"[NavigationFlowController] Backend error: {error}");
     }
 
     private void HandlePathResponse(CampusApiClient.PathResponsePayload response)
@@ -188,6 +223,25 @@ public class NavigationFlowController : MonoBehaviour
         foreach (CampusApiClient.PathPointPayload point in response.path)
             worldPath.Add(new Vector3(point.x, point.y, point.z));
 
+        // --- CRITICAL AR ALIGNMENT ---
+        // The backend returns coordinates in the map's absolute space (e.g. 10, 0, 5)
+        // but the AR Camera could be anywhere in Unity's world space depending on where the app launched.
+        // Since the user just scanned the QR code, we assume they are physically at worldPath[0].
+        // We shift the entire path so the start node aligns perfectly with the user's feet!
+        if (Camera.main != null && worldPath.Count > 0)
+        {
+            Vector3 camPos = Camera.main.transform.position;
+            Vector3 mapStart = worldPath[0];
+            
+            // Offset X and Z exactly to the camera. Offset Y to place arrows slightly below eye level (on the floor).
+            Vector3 offset = new Vector3(camPos.x - mapStart.x, (camPos.y - 1.2f) - mapStart.y, camPos.z - mapStart.z);
+
+            for (int i = 0; i < worldPath.Count; i++)
+            {
+                worldPath[i] += offset;
+            }
+        }
+
         m_PathVisualizer.ClearPath();
         m_PathVisualizer.DrawPath(worldPath);
         m_UI.ShowDirections(response.directions ?? new List<string>());
@@ -197,7 +251,7 @@ public class NavigationFlowController : MonoBehaviour
 
     private IEnumerable<LocationData> GetDestinationLocations()
     {
-        return m_LocationRegistry.GetAllLocations().Where(location =>
+        var destinations = m_LocationRegistry.GetAllLocations().Where(location =>
             location != null &&
             !string.IsNullOrEmpty(location.id) &&
             location.type != "corridor" &&
@@ -205,6 +259,9 @@ public class NavigationFlowController : MonoBehaviour
             location.type != "staircase" &&
             location.type != "lift" &&
             location.type != "wall");
+        
+        Debug.Log($"[NavigationFlowController] GetDestinationLocations found {destinations.Count()} destinations");
+        return destinations;
     }
 
     private void PopulateBuildingOptions()
@@ -245,6 +302,13 @@ public class NavigationFlowController : MonoBehaviour
     private void HandleQrLocationChanged(string nodeId)
     {
         RefreshControls();
+
+        if (m_UI != null && !string.IsNullOrEmpty(nodeId))
+        {
+            LocationData loc = m_LocationRegistry != null ? m_LocationRegistry.GetLocation(nodeId) : null;
+            string name = loc != null ? loc.displayName : nodeId;
+            m_UI.ShowStatus($"📍 Location: {name}");
+        }
     }
 
     private void RefreshControls()

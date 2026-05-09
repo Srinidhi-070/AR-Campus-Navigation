@@ -6,7 +6,10 @@
         },
         {
             "buildingName": "House",
-            "maps": []
+            "maps": [
+                "Floor_1",
+                "Floor_2"
+            ]
         }
     ]
 }

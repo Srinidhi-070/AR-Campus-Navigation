@@ -1,3 +1,136 @@
 {
-  "nodes": []
+    "nodes": [
+        {
+            "id": "TOILET_2",
+            "displayName": "Toilet 2",
+            "type": "room",
+            "building": "House",
+            "floor": 1,
+            "x": 6.0,
+            "y": 4.0,
+            "z": 5.0,
+            "qr_point": true,
+            "description": "Toilet 2 on floor 1 of House.",
+            "neighbors": [
+                "BATHROOM_1",
+                "KITCHEN_1",
+                "HOUSE_ENTRANCE_1"
+            ]
+        },
+        {
+            "id": "BATHROOM_1",
+            "displayName": "Bathroom 1",
+            "type": "room",
+            "building": "House",
+            "floor": 1,
+            "x": 8.0,
+            "y": 4.0,
+            "z": 4.0,
+            "qr_point": true,
+            "description": "Bathroom 1 on floor 1 of House.",
+            "neighbors": [
+                "TOILET_2",
+                "KITCHEN_1",
+                "HOUSE_ENTRANCE_1"
+            ]
+        },
+        {
+            "id": "KITCHEN_1",
+            "displayName": "Kitchen 1",
+            "type": "room",
+            "building": "House",
+            "floor": 1,
+            "x": 11.0,
+            "y": 4.0,
+            "z": 4.0,
+            "qr_point": true,
+            "description": "Kitchen 1 on floor 1 of House.",
+            "neighbors": [
+                "TOILET_2",
+                "BATHROOM_1",
+                "HOUSE_ENTRANCE_1"
+            ]
+        },
+        {
+            "id": "HOUSE_ENTRANCE_1",
+            "displayName": "House Entrance 1",
+            "type": "entrance",
+            "building": "House",
+            "floor": 1,
+            "x": 20.0,
+            "y": 4.0,
+            "z": 1.0,
+            "qr_point": true,
+            "description": "House Entrance 1 on floor 1 of House.",
+            "neighbors": [
+                "TOILET_2",
+                "BATHROOM_1",
+                "KITCHEN_1"
+            ]
+        },
+        {
+            "id": "LATRIN_1",
+            "displayName": "Latrin 1",
+            "type": "room",
+            "building": "House",
+            "floor": 2,
+            "x": 8.0,
+            "y": 8.0,
+            "z": 6.0,
+            "qr_point": true,
+            "description": "Latrin 1 on floor 2 of House.",
+            "neighbors": [
+                "ROOM_2"
+            ]
+        },
+        {
+            "id": "ROOM_2",
+            "displayName": "Room 2",
+            "type": "room",
+            "building": "House",
+            "floor": 2,
+            "x": 13.0,
+            "y": 8.0,
+            "z": 6.0,
+            "qr_point": true,
+            "description": "Room 2 on floor 2 of House.",
+            "neighbors": [
+                "LATRIN_1",
+                "HOUSE_ENTRANCE_2",
+                "ROOM_1"
+            ]
+        },
+        {
+            "id": "HOUSE_ENTRANCE_2",
+            "displayName": "House Entrance 2",
+            "type": "entrance",
+            "building": "House",
+            "floor": 2,
+            "x": 17.0,
+            "y": 8.0,
+            "z": 2.0,
+            "qr_point": true,
+            "description": "House Entrance 2 on floor 2 of House.",
+            "neighbors": [
+                "ROOM_2",
+                "ROOM_1"
+            ]
+        },
+        {
+            "id": "ROOM_1",
+            "displayName": "Room 1",
+            "type": "room",
+            "building": "House",
+            "floor": 2,
+            "x": 18.0,
+            "y": 8.0,
+            "z": 3.0,
+            "qr_point": true,
+            "description": "Room 1 on floor 2 of House.",
+            "neighbors": [
+                "ROOM_2",
+                "HOUSE_ENTRANCE_2"
+            ]
+        }
+    ]
 }

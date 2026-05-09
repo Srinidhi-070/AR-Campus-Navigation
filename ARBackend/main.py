@@ -33,8 +33,12 @@ OLLAMA_MODEL = "llama3.2"
 NODES_PATH = Path(__file__).resolve().parent / "nodes.json"
 
 graph_service = GraphService(NODES_PATH)
-# Disable chat service to avoid AI model loading issues
-chat_service = None  # ChatService(graph_service, OLLAMA_URL, OLLAMA_MODEL)
+try:
+    chat_service = ChatService(graph_service, OLLAMA_URL, OLLAMA_MODEL)
+    print("Chat service initialized (LLM + semantic matching)")
+except Exception as e:
+    chat_service = None
+    print(f"Chat service disabled (optional deps missing): {e}")
 
 
 @app.get("/")
@@ -74,13 +78,15 @@ def get_path(req: PathRequest) -> PathResponse:
 
 @app.post("/chat", response_model=ChatResponse)
 async def chat(req: ChatRequest) -> ChatResponse:
-    # Chat service disabled - return simple response
-    return ChatResponse(
-        answer="Chat feature is currently disabled. Please use the menu to navigate.",
-        destination=None,
-        confidence=0.0,
-        source="system"
-    )
+    if chat_service is None:
+        return ChatResponse(
+            answer="AI chat is starting up. Please use the menu to select your destination.",
+            destination=None,
+            confidence=0.0,
+            source="fallback",
+        )
+    result = await chat_service.resolve_destination(req.query, req.messages)
+    return ChatResponse(**result)
 
 
 @app.post("/ask", response_model=ChatResponse)

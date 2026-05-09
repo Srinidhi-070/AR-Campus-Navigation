@@ -70,8 +70,9 @@ public class QRLocationManager : MonoBehaviour
 
             if (registry == null || !registry.IsLoaded)
             {
-                Debug.LogWarning("[QRLocationManager] Location registry is not loaded yet.");
-                return false;
+                Debug.LogWarning("[QRLocationManager] Location registry is not loaded. Bypassing graph validation.");
+                SetLocation(payload.node_id, payload.building, payload.floor);
+                return true;
             }
 
             LocationData location = registry.GetLocation(payload.node_id);
