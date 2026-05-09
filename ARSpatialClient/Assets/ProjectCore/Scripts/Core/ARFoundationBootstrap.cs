@@ -140,7 +140,7 @@ public class ARFoundationBootstrap : MonoBehaviour
         MeshFilter meshFilter = planePrefab.AddComponent<MeshFilter>();
         MeshRenderer meshRenderer = planePrefab.AddComponent<MeshRenderer>();
         
-        // Create a simple quad mesh
+        // Create a simple quad mesh (ARPlaneMeshVisualizer will replace this)
         Mesh mesh = new Mesh();
         mesh.vertices = new Vector3[]
         {
@@ -163,58 +163,34 @@ public class ARFoundationBootstrap : MonoBehaviour
         };
         meshFilter.mesh = mesh;
         
-        // Create semi-transparent cyan material with shader fallback
-        Shader shader = Shader.Find("Universal Render Pipeline/Lit");
+        // Use Sprites/Default shader — it reliably supports transparency on ALL platforms.
+        // Runtime-created URP/Lit transparent materials are fragile and often fail.
+        Shader shader = Shader.Find("Sprites/Default");
+        if (shader == null)
+        {
+            shader = Shader.Find("Unlit/Transparent");
+            Debug.LogWarning("[ARFoundationBootstrap] Sprites/Default not found, trying Unlit/Transparent");
+        }
         if (shader == null)
         {
             shader = Shader.Find("Standard");
-            Debug.LogWarning("[ARFoundationBootstrap] URP shader not found, using Standard");
-        }
-        if (shader == null)
-        {
-            shader = Shader.Find("Unlit/Color");
-            Debug.LogWarning("[ARFoundationBootstrap] Standard shader not found, using Unlit/Color");
-        }
-        if (shader == null)
-        {
-            shader = Shader.Find("Sprites/Default"); // Last resort
-            Debug.LogWarning("[ARFoundationBootstrap] Using Sprites/Default shader as last resort");
+            Debug.LogWarning("[ARFoundationBootstrap] Fallback to Standard shader");
         }
         
         Material planeMaterial = new Material(shader);
-        planeMaterial.color = new Color(0f, 0.83f, 0.88f, 0.3f); // Semi-transparent cyan
-        
-        // Only set URP-specific properties if using URP shader
-        if (shader != null && shader.name.Contains("Universal Render Pipeline"))
-        {
-            planeMaterial.SetFloat("_Surface", 1); // Transparent
-            planeMaterial.SetFloat("_Blend", 0); // Alpha blend
-        }
-        else if (shader != null && shader.name == "Standard")
-        {
-            // Standard shader transparency setup
-            planeMaterial.SetFloat("_Mode", 3); // Transparent mode
-            planeMaterial.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
-            planeMaterial.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-            planeMaterial.SetInt("_ZWrite", 0);
-            planeMaterial.DisableKeyword("_ALPHATEST_ON");
-            planeMaterial.EnableKeyword("_ALPHABLEND_ON");
-            planeMaterial.DisableKeyword("_ALPHAPREMULTIPLY_ON");
-        }
-        
+        planeMaterial.color = new Color(0f, 0.83f, 0.88f, 0.35f); // Semi-transparent cyan
         planeMaterial.renderQueue = 3000; // Transparent queue
         meshRenderer.material = planeMaterial;
         
         Debug.Log($"[ARFoundationBootstrap] Created plane prefab with shader: {shader?.name ?? "NULL"}");
         
-        // Add LineRenderer for plane boundary (optional but nice)
+        // Add LineRenderer for plane boundary
         LineRenderer lineRenderer = planePrefab.AddComponent<LineRenderer>();
-        lineRenderer.startWidth = 0.01f;
-        lineRenderer.endWidth = 0.01f;
+        lineRenderer.startWidth = 0.02f;
+        lineRenderer.endWidth = 0.02f;
         
-        // Use same shader for line renderer
         Material lineMaterial = new Material(shader);
-        lineMaterial.color = new Color(0f, 0.83f, 0.88f, 0.8f); // Brighter cyan for border
+        lineMaterial.color = new Color(0f, 0.95f, 1f, 0.9f); // Bright cyan border
         lineRenderer.material = lineMaterial;
         lineRenderer.positionCount = 0;
         lineRenderer.useWorldSpace = false;

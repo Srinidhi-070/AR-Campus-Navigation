@@ -44,7 +44,7 @@ public class QRScannerUI : MonoBehaviour
         m_OnQRDetected = onQRDetected;
         m_OnClose = onClose;
 
-        // ── Full-screen dark panel ──
+        // ── Full-screen panel — TRANSPARENT so AR camera passthrough is visible ──
         m_ScannerPanel = new GameObject("QRScannerPanel");
         m_ScannerPanel.transform.SetParent(parent, false);
 
@@ -54,69 +54,53 @@ public class QRScannerUI : MonoBehaviour
         panelRT.offsetMin = Vector2.zero;
         panelRT.offsetMax = Vector2.zero;
 
+        // Semi-transparent dark overlay — lets AR camera show through
         Image panelBg = m_ScannerPanel.AddComponent<Image>();
-        panelBg.color = new Color(0.02f, 0.02f, 0.04f, 1f);
+        panelBg.color = new Color(0f, 0f, 0f, 0.55f);
 
-        // ── Camera feed container (handles rotation + aspect) ──
-        GameObject feedContainer = new GameObject("FeedContainer");
-        feedContainer.transform.SetParent(m_ScannerPanel.transform, false);
-        RectTransform containerRT = feedContainer.AddComponent<RectTransform>();
-        containerRT.anchorMin = Vector2.zero;
-        containerRT.anchorMax = Vector2.one;
-        containerRT.offsetMin = Vector2.zero;
-        containerRT.offsetMax = Vector2.zero;
-
-        // Camera feed RawImage inside the container
+        // Camera feed RawImage — hidden because AR camera renders the real world behind this panel
         GameObject feedObj = new GameObject("CameraFeed");
-        feedObj.transform.SetParent(feedContainer.transform, false);
+        feedObj.transform.SetParent(m_ScannerPanel.transform, false);
         RectTransform feedRT = feedObj.AddComponent<RectTransform>();
-        feedRT.anchorMin = new Vector2(0.5f, 0.5f);
-        feedRT.anchorMax = new Vector2(0.5f, 0.5f);
-        feedRT.pivot = new Vector2(0.5f, 0.5f);
-        feedRT.anchoredPosition = Vector2.zero;
-        // Start large; will be resized once camera starts
-        feedRT.sizeDelta = new Vector2(Screen.width, Screen.height);
-
+        feedRT.anchorMin = Vector2.zero;
+        feedRT.anchorMax = Vector2.one;
+        feedRT.offsetMin = Vector2.zero;
+        feedRT.offsetMax = Vector2.zero;
         m_CameraFeed = feedObj.AddComponent<RawImage>();
         m_CameraFeed.color = Color.white;
-
-        // ── Semi-transparent overlay around scanning box ──
-        CreateDimOverlay(m_ScannerPanel.transform);
+        m_CameraFeed.gameObject.SetActive(false); // Hidden — AR camera passthrough is our "feed"
 
         // ── Scanning Box (proper box with animated corners) ──
         m_ScanningBox = CreateScanningBox(m_ScannerPanel.transform);
 
-        // ── Title at top ──
-        m_TitleText = CreateText(m_ScannerPanel.transform, "Title", "Scan QR Code", 48,
-            new Vector2(0, 1), new Vector2(1, 1), new Vector2(20, -60), new Vector2(-20, -20));
+        // ── Title — positioned below notch/front camera safe area ──
+        m_TitleText = CreateText(m_ScannerPanel.transform, "Title", "Scan QR Code", 44,
+            new Vector2(0, 1), new Vector2(1, 1), new Vector2(20, -140), new Vector2(-20, -90));
         m_TitleText.alignment = TextAlignmentOptions.Center;
         m_TitleText.fontStyle = FontStyles.Bold;
 
         // ── Instructions below title ──
         m_InstructionText = CreateText(m_ScannerPanel.transform, "Instructions",
-            "Point camera at QR code", 30,
-            new Vector2(0, 1), new Vector2(1, 1), new Vector2(20, -120), new Vector2(-20, -70));
+            "Point camera at QR code", 28,
+            new Vector2(0, 1), new Vector2(1, 1), new Vector2(20, -190), new Vector2(-20, -145));
         m_InstructionText.alignment = TextAlignmentOptions.Center;
-        m_InstructionText.color = new Color(0.75f, 0.75f, 0.75f, 1f);
+        m_InstructionText.color = new Color(0.85f, 0.85f, 0.85f, 1f);
 
         // ── Result text at bottom ──
         m_ResultText = CreateText(m_ScannerPanel.transform, "Result", "", 34,
-            new Vector2(0, 0), new Vector2(1, 0), new Vector2(20, 80), new Vector2(-20, 160));
+            new Vector2(0, 0), new Vector2(1, 0), new Vector2(20, 100), new Vector2(-20, 180));
         m_ResultText.alignment = TextAlignmentOptions.Center;
         m_ResultText.color = new Color(0.2f, 1f, 0.4f, 1f);
 
-        // ── Close button — top right ──
+        // ── Close button — top right, below notch ──
         m_CloseButton = CreateCloseButton(m_ScannerPanel.transform);
 
         m_ScannerPanel.SetActive(false);
     }
 
-    // ── Dim overlay to highlight scanning area ──
-    private void CreateDimOverlay(Transform parent)
-    {
-        // We don't need a complex cutout — the scanning box corner brackets
-        // are drawn on top and the camera feed is visible through the dark BG.
-    }
+    // ── Dim overlay is now the panel background itself (semi-transparent) ──
+    // The scanning box corner brackets are drawn on top and the AR camera
+    // passthrough is visible through the semi-transparent panel.
 
     // ── Scanning Box with 4 solid corner brackets ──
     private GameObject CreateScanningBox(Transform parent)
@@ -200,7 +184,7 @@ public class QRScannerUI : MonoBehaviour
         btnRT.anchorMin = new Vector2(1, 1);
         btnRT.anchorMax = new Vector2(1, 1);
         btnRT.pivot = new Vector2(1, 1);
-        btnRT.anchoredPosition = new Vector2(-20, -40);
+        btnRT.anchoredPosition = new Vector2(-20, -100); // Lower to avoid notch/front camera
         btnRT.sizeDelta = new Vector2(90, 90);
 
         Image btnImg = btnObj.AddComponent<Image>();
@@ -326,12 +310,12 @@ public class QRScannerUI : MonoBehaviour
     {
         Debug.Log("[QRScannerUI] Starting AR screen capture mode...");
 
-        // NO MORE WEBCAMTEXTURE!
-        // We will just let the AR Camera render the real world in the background,
-        // and we will capture the center of the screen directly.
-        // This permanently prevents any Android camera hardware locks or ARCore crashes!
+        // The AR Camera renders the real world behind our transparent scanner panel.
+        // We capture frames via XRCpuImage for QR decoding — no WebCamTexture needed!
+        // This prevents Android camera hardware locks and ARCore crashes.
         
-        m_CameraFeed.gameObject.SetActive(false); // Hide the black raw image so we see the AR background
+        if (m_CameraFeed != null)
+            m_CameraFeed.gameObject.SetActive(false); // Already hidden — AR passthrough is our feed
         
         // Initialize barcode reader
         m_Reader = new BarcodeReaderGeneric();
