@@ -339,16 +339,61 @@ public class QRScannerUI : MonoBehaviour
 
     private IEnumerator ScanLoop()
     {
-        int scanCount = 0;
+        // ── Wait for ARCameraManager to be available ──
+        // On app startup, AR components may not be ready immediately.
+        UnityEngine.XR.ARFoundation.ARCameraManager cameraManager = null;
+        float waitStart = Time.time;
+        float maxWait = 8f; // Wait up to 8 seconds for AR to initialize
         
-        var cameraManager = UnityEngine.Object.FindObjectOfType<UnityEngine.XR.ARFoundation.ARCameraManager>();
+        Debug.Log("[QRScannerUI] Looking for ARCameraManager...");
+        
+        while (cameraManager == null && (Time.time - waitStart) < maxWait)
+        {
+            cameraManager = UnityEngine.Object.FindObjectOfType<UnityEngine.XR.ARFoundation.ARCameraManager>();
+            if (cameraManager == null)
+            {
+                yield return new WaitForSeconds(0.5f);
+            }
+        }
+        
         if (cameraManager == null)
         {
-            m_InstructionText.text = "AR Camera not found";
+            Debug.LogError("[QRScannerUI] ARCameraManager not found after waiting!");
+            if (m_InstructionText != null)
+                m_InstructionText.text = "AR Camera not available";
             yield break;
         }
+        
+        Debug.Log($"[QRScannerUI] ARCameraManager found: {cameraManager.gameObject.name}");
+        
+        // ── Wait for AR session to be ready ──
+        var arSession = UnityEngine.Object.FindObjectOfType<UnityEngine.XR.ARFoundation.ARSession>();
+        if (arSession != null)
+        {
+            Debug.Log("[QRScannerUI] Waiting for AR session to be ready...");
+            float sessionWait = Time.time;
+            while ((Time.time - sessionWait) < 5f)
+            {
+                if (UnityEngine.XR.ARFoundation.ARSession.state == UnityEngine.XR.ARFoundation.ARSessionState.SessionTracking)
+                {
+                    Debug.Log("[QRScannerUI] AR session is tracking!");
+                    break;
+                }
+                yield return new WaitForSeconds(0.3f);
+            }
+            Debug.Log($"[QRScannerUI] AR session state: {UnityEngine.XR.ARFoundation.ARSession.state}");
+        }
+        
+        // ── Warm-up: wait for first CPU image ──
+        Debug.Log("[QRScannerUI] Warming up camera...");
+        yield return new WaitForSeconds(0.5f);
 
         Texture2D conversionTexture = null;
+        int scanCount = 0;
+        int successfulCaptures = 0;
+        int failedCaptures = 0;
+
+        Debug.Log("[QRScannerUI] Starting scan loop...");
 
         while (m_IsScanning)
         {
@@ -356,9 +401,11 @@ public class QRScannerUI : MonoBehaviour
 
             try
             {
-                // Acquire the raw CPU image directly from ARCore! No hardware locks, no UI scaling issues.
+                // Acquire the raw CPU image directly from ARCore
                 if (cameraManager.TryAcquireLatestCpuImage(out UnityEngine.XR.ARSubsystems.XRCpuImage image))
                 {
+                    successfulCaptures++;
+                    
                     // Downscale the image to speed up ZXing decode
                     int targetWidth = image.width / 2;
                     int targetHeight = image.height / 2;
@@ -375,6 +422,7 @@ public class QRScannerUI : MonoBehaviour
                     {
                         if (conversionTexture != null) Destroy(conversionTexture);
                         conversionTexture = new Texture2D(targetWidth, targetHeight, TextureFormat.RGBA32, false);
+                        Debug.Log($"[QRScannerUI] Created conversion texture: {targetWidth}x{targetHeight}");
                     }
 
                     var rawTextureData = conversionTexture.GetRawTextureData<byte>();
@@ -391,8 +439,11 @@ public class QRScannerUI : MonoBehaviour
                     {
                         Debug.Log($"[QRScannerUI] ✅ QR detected: {result.Text}");
                         m_IsScanning = false;
-                        m_InstructionText.text = "QR Code Detected!";
-                        m_ResultText.text = "Processing...";
+                        
+                        if (m_InstructionText != null)
+                            m_InstructionText.text = "QR Code Detected!";
+                        if (m_ResultText != null)
+                            m_ResultText.text = "Processing...";
 
                         if (m_CornerImages != null)
                         {
@@ -405,21 +456,29 @@ public class QRScannerUI : MonoBehaviour
                         break;
                     }
                 }
+                else
+                {
+                    failedCaptures++;
+                    if (failedCaptures == 1 || failedCaptures % 20 == 0)
+                        Debug.Log($"[QRScannerUI] TryAcquireLatestCpuImage returned false (attempt {failedCaptures})");
+                }
             }
             catch (System.Exception ex)
             {
-                if (scanCount % 30 == 0)
-                    Debug.LogWarning($"[QRScannerUI] Decode error: {ex.Message}");
+                Debug.LogWarning($"[QRScannerUI] Frame {scanCount} error: {ex.GetType().Name}: {ex.Message}");
             }
 
-            // Yield a fraction of a second to prevent CPU overload
+            // Log progress periodically
+            if (scanCount % 30 == 0)
+                Debug.Log($"[QRScannerUI] Scanning... frames={scanCount}, captures={successfulCaptures}, fails={failedCaptures}");
+
             yield return new WaitForSeconds(0.15f);
         }
 
         if (conversionTexture != null)
             Destroy(conversionTexture);
 
-        Debug.Log("[QRScannerUI] Scan loop ended");
+        Debug.Log($"[QRScannerUI] Scan loop ended. Total frames={scanCount}, captures={successfulCaptures}, fails={failedCaptures}");
     }
 
     private void StopCamera()
