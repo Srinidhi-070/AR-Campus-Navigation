@@ -632,83 +632,97 @@ public class CampusRuntimeUI : MonoBehaviour
         arrow.alignment = TextAlignmentOptions.Center;
         arrow.raycastTarget = false; // Don't block dropdown clicks
 
-        // Create template as child of dropdown (will be repositioned by Unity)
-        GameObject template = CreatePanel("Template", go.transform, new Color(0.06f, 0.07f, 0.12f, 0.99f));
+        // ── Dropdown popup template ──────────────────────────────────────────
+        // When the user clicks the dropdown button, TMP_Dropdown clones
+        // this template, fills it with option items, and shows it.
+        
+        GameObject template = new GameObject("Template", typeof(RectTransform), typeof(Image));
+        template.transform.SetParent(go.transform, false);
         RectTransform templateRT = template.GetComponent<RectTransform>();
-        // Position template BELOW the dropdown button
+        
+        // Position template BELOW the dropdown button, full width
         templateRT.anchorMin = new Vector2(0, 0);
         templateRT.anchorMax = new Vector2(1, 0);
         templateRT.pivot = new Vector2(0.5f, 1f);
-        templateRT.anchoredPosition = new Vector2(0, -2); // 2px below button
-        templateRT.sizeDelta = new Vector2(0, 400); // Height only, width matches parent
+        templateRT.anchoredPosition = new Vector2(0, 2);
+        templateRT.sizeDelta = new Vector2(0, 300);
+        
+        // Template background — distinctly lighter than menu panel so it's visible
+        Image templateBg = template.GetComponent<Image>();
+        templateBg.color = new Color(0.10f, 0.12f, 0.18f, 1f);
         template.SetActive(false);
         
-        // CRITICAL: Add Canvas to template for proper sorting above everything
+        // Add visible border outline so dropdown popup is clearly separate
+        Outline templateOutline = template.AddComponent<Outline>();
+        templateOutline.effectColor = new Color(0.0f, 0.66f, 0.72f, 0.6f);
+        templateOutline.effectDistance = new Vector2(2, 2);
+        
+        // Canvas override for sorting — ensures popup renders above everything
         Canvas templateCanvas = template.AddComponent<Canvas>();
         templateCanvas.overrideSorting = true;
-        templateCanvas.sortingOrder = 1000; // Render on top of everything
-        
-        // Add GraphicRaycaster for click detection
+        templateCanvas.sortingOrder = 30000;
         template.AddComponent<GraphicRaycaster>();
 
+        // ScrollRect for scrollable item list
         ScrollRect scrollRect = template.AddComponent<ScrollRect>();
         scrollRect.horizontal = false;
         scrollRect.vertical = true;
-        scrollRect.scrollSensitivity = 20f;
+        scrollRect.scrollSensitivity = 30f;
         scrollRect.movementType = ScrollRect.MovementType.Clamped;
 
-        // Use RectMask2D instead of Mask — RectMask2D clips by rect bounds,
-        // not by Image alpha, so it works even without a visible Image.
-        GameObject viewport = new GameObject("Viewport", typeof(RectTransform));
+        // Viewport — visible white background so Mask works correctly
+        GameObject viewport = new GameObject("Viewport", typeof(RectTransform), typeof(Image));
         viewport.transform.SetParent(template.transform, false);
         RectTransform viewportRT = viewport.GetComponent<RectTransform>();
         viewportRT.anchorMin = Vector2.zero;
         viewportRT.anchorMax = Vector2.one;
-        viewportRT.offsetMin = Vector2.zero;
-        viewportRT.offsetMax = Vector2.zero;
-        viewport.AddComponent<RectMask2D>();
+        viewportRT.offsetMin = new Vector2(2, 2);
+        viewportRT.offsetMax = new Vector2(-2, -2);
+        Image viewportImage = viewport.GetComponent<Image>();
+        viewportImage.color = new Color(0.08f, 0.09f, 0.14f, 1f); // Opaque dark bg
+        Mask viewportMask = viewport.AddComponent<Mask>();
+        viewportMask.showMaskGraphic = true; // Show the dark background
         scrollRect.viewport = viewportRT;
 
+        // Content container — grows with items via ContentSizeFitter
         GameObject content = new GameObject("Content", typeof(RectTransform));
         content.transform.SetParent(viewport.transform, false);
         RectTransform contentRT = content.GetComponent<RectTransform>();
         contentRT.anchorMin = new Vector2(0, 1);
         contentRT.anchorMax = new Vector2(1, 1);
         contentRT.pivot = new Vector2(0.5f, 1f);
-        contentRT.sizeDelta = new Vector2(0, 28);
+        contentRT.sizeDelta = new Vector2(0, 80);
         
-        // Add VerticalLayoutGroup for proper item layout
         VerticalLayoutGroup contentLayout = content.AddComponent<VerticalLayoutGroup>();
         contentLayout.spacing = 2;
-        contentLayout.padding = new RectOffset(0, 0, 4, 4);
+        contentLayout.padding = new RectOffset(4, 4, 4, 4);
         contentLayout.childForceExpandWidth = true;
         contentLayout.childForceExpandHeight = false;
         contentLayout.childControlWidth = true;
         contentLayout.childControlHeight = true;
+        contentLayout.childAlignment = TextAnchor.UpperLeft;
         
-        // Add ContentSizeFitter
         ContentSizeFitter contentFitter = content.AddComponent<ContentSizeFitter>();
         contentFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
         
         scrollRect.content = contentRT;
 
-        // Item template — each dropdown option clones this
+        // ── Item template (each dropdown option clones this) ─────────────
         GameObject item = new GameObject("Item", typeof(RectTransform), typeof(Image));
         item.transform.SetParent(content.transform, false);
         RectTransform itemRT = item.GetComponent<RectTransform>();
-        itemRT.sizeDelta = new Vector2(0, 70);
+        itemRT.sizeDelta = new Vector2(0, 80);
         Image itemBg = item.GetComponent<Image>();
-        itemBg.color = new Color(0.14f, 0.16f, 0.24f, 1f);
+        itemBg.color = new Color(0.16f, 0.18f, 0.28f, 1f); // Clearly lighter than template bg
         
-        // Add LayoutElement for proper sizing
         LayoutElement itemLayout = item.AddComponent<LayoutElement>();
-        itemLayout.minHeight = 70;
-        itemLayout.preferredHeight = 70;
+        itemLayout.minHeight = 80;
+        itemLayout.preferredHeight = 80;
         
         Toggle toggle = item.AddComponent<Toggle>();
         toggle.targetGraphic = itemBg;
         
-        // Create a checkmark/highlight graphic for the toggle
+        // Selection highlight overlay
         GameObject checkmark = new GameObject("Item Checkmark", typeof(RectTransform), typeof(Image));
         checkmark.transform.SetParent(item.transform, false);
         RectTransform checkRT = checkmark.GetComponent<RectTransform>();
@@ -717,30 +731,31 @@ public class CampusRuntimeUI : MonoBehaviour
         checkRT.offsetMin = Vector2.zero;
         checkRT.offsetMax = Vector2.zero;
         Image checkImg = checkmark.GetComponent<Image>();
-        checkImg.color = new Color(0.0f, 0.66f, 0.72f, 0.25f);
+        checkImg.color = new Color(0.0f, 0.66f, 0.72f, 0.35f); // Teal highlight
         checkImg.raycastTarget = false;
         toggle.graphic = checkImg;
         
-        // Set toggle colors
         ColorBlock toggleColors = toggle.colors;
-        toggleColors.normalColor = new Color(0.14f, 0.16f, 0.24f, 1f);
-        toggleColors.highlightedColor = new Color(0.0f, 0.66f, 0.72f, 0.4f);
-        toggleColors.pressedColor = new Color(0.0f, 0.66f, 0.72f, 0.7f);
-        toggleColors.selectedColor = new Color(0.0f, 0.66f, 0.72f, 0.5f);
+        toggleColors.normalColor = Color.white;
+        toggleColors.highlightedColor = new Color(0.8f, 0.95f, 0.97f, 1f);
+        toggleColors.pressedColor = new Color(0.6f, 0.9f, 0.92f, 1f);
+        toggleColors.selectedColor = new Color(0.7f, 0.93f, 0.95f, 1f);
+        toggleColors.colorMultiplier = 1f;
         toggle.colors = toggleColors;
 
+        // Item label — large, bright text
         GameObject itemLabelGO = new GameObject("Item Label", typeof(RectTransform), typeof(TextMeshProUGUI));
         itemLabelGO.transform.SetParent(item.transform, false);
         RectTransform itemLabelRT = itemLabelGO.GetComponent<RectTransform>();
         itemLabelRT.anchorMin = Vector2.zero;
         itemLabelRT.anchorMax = Vector2.one;
-        itemLabelRT.offsetMin = new Vector2(20, 4);
-        itemLabelRT.offsetMax = new Vector2(-20, -4);
+        itemLabelRT.offsetMin = new Vector2(16, 4);
+        itemLabelRT.offsetMax = new Vector2(-16, -4);
         TextMeshProUGUI itemLabel = itemLabelGO.GetComponent<TextMeshProUGUI>();
-        itemLabel.fontSize = 30;
+        itemLabel.fontSize = 32;
         itemLabel.color = Color.white;
         itemLabel.alignment = TextAlignmentOptions.MidlineLeft;
-        itemLabel.raycastTarget = false; // Don't block toggle clicks
+        itemLabel.raycastTarget = false;
 
         dropdown.captionText = label;
         dropdown.template = templateRT;
