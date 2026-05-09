@@ -633,7 +633,7 @@ public class CampusRuntimeUI : MonoBehaviour
         arrow.raycastTarget = false; // Don't block dropdown clicks
 
         // Create template as child of dropdown (will be repositioned by Unity)
-        GameObject template = CreatePanel("Template", go.transform, new Color(0.08f, 0.09f, 0.14f, 0.98f));
+        GameObject template = CreatePanel("Template", go.transform, new Color(0.06f, 0.07f, 0.12f, 0.99f));
         RectTransform templateRT = template.GetComponent<RectTransform>();
         // Position template BELOW the dropdown button
         templateRT.anchorMin = new Vector2(0, 0);
@@ -650,38 +650,40 @@ public class CampusRuntimeUI : MonoBehaviour
         
         // Add GraphicRaycaster for click detection
         template.AddComponent<GraphicRaycaster>();
-        
-        // Add Canvas Group for proper fade
-        CanvasGroup templateCanvasGroup = template.AddComponent<CanvasGroup>();
-        templateCanvasGroup.alpha = 1f;
-        templateCanvasGroup.blocksRaycasts = true;
 
         ScrollRect scrollRect = template.AddComponent<ScrollRect>();
         scrollRect.horizontal = false;
         scrollRect.vertical = true;
         scrollRect.scrollSensitivity = 20f;
+        scrollRect.movementType = ScrollRect.MovementType.Clamped;
 
-        GameObject viewport = CreatePanel("Viewport", template.transform, new Color(0, 0, 0, 0));
+        // Use RectMask2D instead of Mask — RectMask2D clips by rect bounds,
+        // not by Image alpha, so it works even without a visible Image.
+        GameObject viewport = new GameObject("Viewport", typeof(RectTransform));
+        viewport.transform.SetParent(template.transform, false);
         RectTransform viewportRT = viewport.GetComponent<RectTransform>();
         viewportRT.anchorMin = Vector2.zero;
         viewportRT.anchorMax = Vector2.one;
-        viewportRT.offsetMin = new Vector2(4, 4);
-        viewportRT.offsetMax = new Vector2(-4, -4);
-        Mask viewportMask = viewport.AddComponent<Mask>();
-        viewportMask.showMaskGraphic = false;
+        viewportRT.offsetMin = Vector2.zero;
+        viewportRT.offsetMax = Vector2.zero;
+        viewport.AddComponent<RectMask2D>();
         scrollRect.viewport = viewportRT;
 
-        GameObject content = CreatePanel("Content", viewport.transform, new Color(0, 0, 0, 0));
+        GameObject content = new GameObject("Content", typeof(RectTransform));
+        content.transform.SetParent(viewport.transform, false);
         RectTransform contentRT = content.GetComponent<RectTransform>();
         contentRT.anchorMin = new Vector2(0, 1);
         contentRT.anchorMax = new Vector2(1, 1);
         contentRT.pivot = new Vector2(0.5f, 1f);
-        contentRT.sizeDelta = new Vector2(0, 0);
+        contentRT.sizeDelta = new Vector2(0, 28);
         
         // Add VerticalLayoutGroup for proper item layout
         VerticalLayoutGroup contentLayout = content.AddComponent<VerticalLayoutGroup>();
         contentLayout.spacing = 2;
+        contentLayout.padding = new RectOffset(0, 0, 4, 4);
         contentLayout.childForceExpandWidth = true;
+        contentLayout.childForceExpandHeight = false;
+        contentLayout.childControlWidth = true;
         contentLayout.childControlHeight = true;
         
         // Add ContentSizeFitter
@@ -690,9 +692,13 @@ public class CampusRuntimeUI : MonoBehaviour
         
         scrollRect.content = contentRT;
 
-        GameObject item = CreatePanel("Item", content.transform, new Color(0.12f, 0.14f, 0.2f, 1f));
+        // Item template — each dropdown option clones this
+        GameObject item = new GameObject("Item", typeof(RectTransform), typeof(Image));
+        item.transform.SetParent(content.transform, false);
         RectTransform itemRT = item.GetComponent<RectTransform>();
         itemRT.sizeDelta = new Vector2(0, 70);
+        Image itemBg = item.GetComponent<Image>();
+        itemBg.color = new Color(0.14f, 0.16f, 0.24f, 1f);
         
         // Add LayoutElement for proper sizing
         LayoutElement itemLayout = item.AddComponent<LayoutElement>();
@@ -700,16 +706,27 @@ public class CampusRuntimeUI : MonoBehaviour
         itemLayout.preferredHeight = 70;
         
         Toggle toggle = item.AddComponent<Toggle>();
-        Image itemBg = item.GetComponent<Image>();
         toggle.targetGraphic = itemBg;
-        toggle.graphic = null; // No checkmark — selection shown via color only
+        
+        // Create a checkmark/highlight graphic for the toggle
+        GameObject checkmark = new GameObject("Item Checkmark", typeof(RectTransform), typeof(Image));
+        checkmark.transform.SetParent(item.transform, false);
+        RectTransform checkRT = checkmark.GetComponent<RectTransform>();
+        checkRT.anchorMin = Vector2.zero;
+        checkRT.anchorMax = Vector2.one;
+        checkRT.offsetMin = Vector2.zero;
+        checkRT.offsetMax = Vector2.zero;
+        Image checkImg = checkmark.GetComponent<Image>();
+        checkImg.color = new Color(0.0f, 0.66f, 0.72f, 0.25f);
+        checkImg.raycastTarget = false;
+        toggle.graphic = checkImg;
         
         // Set toggle colors
         ColorBlock toggleColors = toggle.colors;
-        toggleColors.normalColor = new Color(0.12f, 0.14f, 0.2f, 1f);
-        toggleColors.highlightedColor = new Color(0.0f, 0.66f, 0.72f, 0.5f);
-        toggleColors.pressedColor = new Color(0.0f, 0.66f, 0.72f, 0.8f);
-        toggleColors.selectedColor = new Color(0.0f, 0.66f, 0.72f, 0.6f);
+        toggleColors.normalColor = new Color(0.14f, 0.16f, 0.24f, 1f);
+        toggleColors.highlightedColor = new Color(0.0f, 0.66f, 0.72f, 0.4f);
+        toggleColors.pressedColor = new Color(0.0f, 0.66f, 0.72f, 0.7f);
+        toggleColors.selectedColor = new Color(0.0f, 0.66f, 0.72f, 0.5f);
         toggle.colors = toggleColors;
 
         GameObject itemLabelGO = new GameObject("Item Label", typeof(RectTransform), typeof(TextMeshProUGUI));
@@ -717,12 +734,12 @@ public class CampusRuntimeUI : MonoBehaviour
         RectTransform itemLabelRT = itemLabelGO.GetComponent<RectTransform>();
         itemLabelRT.anchorMin = Vector2.zero;
         itemLabelRT.anchorMax = Vector2.one;
-        itemLabelRT.offsetMin = new Vector2(20, 10);
-        itemLabelRT.offsetMax = new Vector2(-20, -10);
+        itemLabelRT.offsetMin = new Vector2(20, 4);
+        itemLabelRT.offsetMax = new Vector2(-20, -4);
         TextMeshProUGUI itemLabel = itemLabelGO.GetComponent<TextMeshProUGUI>();
         itemLabel.fontSize = 30;
         itemLabel.color = Color.white;
-        itemLabel.alignment = TextAlignmentOptions.Left;
+        itemLabel.alignment = TextAlignmentOptions.MidlineLeft;
         itemLabel.raycastTarget = false; // Don't block toggle clicks
 
         dropdown.captionText = label;

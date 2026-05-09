@@ -77,6 +77,7 @@ public class NavigationFlowController : MonoBehaviour
             ? new List<string> { "No Floors" }
             : m_FloorOptions.Select(floor => floor == 0 ? "Ground Floor" : $"Floor {floor}").ToList();
         m_UI.FloorDropdown.AddOptions(floorLabels);
+        m_UI.FloorDropdown.RefreshShownValue();
 
         HandleFloorChanged(0);
     }
@@ -277,6 +278,7 @@ public class NavigationFlowController : MonoBehaviour
         m_UI.BuildingDropdown.ClearOptions();
         m_UI.BuildingDropdown.AddOptions(m_BuildingOptions.Count == 0 ? new List<string> { "No Buildings" } : m_BuildingOptions);
         m_UI.BuildingDropdown.value = 0;
+        m_UI.BuildingDropdown.RefreshShownValue();
 
         HandleBuildingChanged(0);
     }
@@ -296,6 +298,7 @@ public class NavigationFlowController : MonoBehaviour
             : m_RoomOptions.Select(location => location.displayName).ToList();
         m_UI.RoomDropdown.AddOptions(options);
         m_UI.RoomDropdown.value = 0;
+        m_UI.RoomDropdown.RefreshShownValue();
         RefreshControls();
     }
 
