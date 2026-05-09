@@ -80,9 +80,10 @@ public class ARFoundationBootstrap : MonoBehaviour
         xrOrigin.Camera = mainCamera;
         xrOrigin.CameraFloorOffsetObject = cameraOffset;
         
-        // Add ARPlaneManager for surface detection
+        // Add ARPlaneManager for surface detection (horizontal + vertical)
         ARPlaneManager planeManager = xrOriginGO.AddComponent<ARPlaneManager>();
-        planeManager.requestedDetectionMode = UnityEngine.XR.ARSubsystems.PlaneDetectionMode.Horizontal;
+        planeManager.requestedDetectionMode = UnityEngine.XR.ARSubsystems.PlaneDetectionMode.Horizontal
+                                            | UnityEngine.XR.ARSubsystems.PlaneDetectionMode.Vertical;
         
         // Try to load plane prefab from Resources
         GameObject planePrefab = Resources.Load<GameObject>("Prefabs/ARFeatheredPlane");
@@ -99,10 +100,16 @@ public class ARFoundationBootstrap : MonoBehaviour
         
         planeManager.planePrefab = planePrefab;
         
+        // Add ARPointCloudManager for feature point visualization (white dots)
+        ARPointCloudManager pointCloudManager = xrOriginGO.AddComponent<ARPointCloudManager>();
+        GameObject pointCloudPrefab = CreatePointCloudPrefab();
+        pointCloudManager.pointCloudPrefab = pointCloudPrefab;
+        Debug.Log("[ARFoundationBootstrap] Added ARPointCloudManager for feature point visualization");
+        
         // Add ARRaycastManager for placing objects
         xrOriginGO.AddComponent<ARRaycastManager>();
         
-        Debug.Log("[ARFoundationBootstrap] Created XR Origin with camera, plane detection, and raycast");
+        Debug.Log("[ARFoundationBootstrap] Created XR Origin with camera, plane detection, point cloud, and raycast");
 #endif
     }
 
@@ -199,6 +206,64 @@ public class ARFoundationBootstrap : MonoBehaviour
         planePrefab.SetActive(false);
         
         return planePrefab;
+#else
+        return null;
+#endif
+    }
+    
+    private GameObject CreatePointCloudPrefab()
+    {
+#if UNITY_ANDROID || UNITY_IOS
+        GameObject prefab = new GameObject("ARPointCloud");
+        
+        // ARPointCloud component is REQUIRED — it feeds feature point data to the visualizer
+        prefab.AddComponent<ARPointCloud>();
+        
+        // ARPointCloudParticleVisualizer renders each feature point as a particle
+        prefab.AddComponent<ARPointCloudParticleVisualizer>();
+        
+        // ParticleSystem — required by ARPointCloudParticleVisualizer
+        ParticleSystem ps = prefab.GetComponent<ParticleSystem>();
+        if (ps == null)
+            ps = prefab.AddComponent<ParticleSystem>();
+        
+        // Configure particle system for small white dots
+        var main = ps.main;
+        main.loop = false;
+        main.playOnAwake = false;
+        main.startSize = 0.02f;
+        main.startColor = new Color(1f, 1f, 1f, 0.85f); // White with slight transparency
+        main.startLifetime = float.MaxValue;
+        main.maxParticles = 5000;
+        main.simulationSpace = ParticleSystemSimulationSpace.World;
+        
+        // Disable emission (ARPointCloudParticleVisualizer sets particles manually)
+        var emission = ps.emission;
+        emission.enabled = false;
+        
+        // Disable shape
+        var shape = ps.shape;
+        shape.enabled = false;
+        
+        // Configure renderer for small dots
+        ParticleSystemRenderer psRenderer = prefab.GetComponent<ParticleSystemRenderer>();
+        if (psRenderer != null)
+        {
+            // Use the default particle material
+            Shader particleShader = Shader.Find("Sprites/Default");
+            if (particleShader == null) particleShader = Shader.Find("Particles/Standard Unlit");
+            if (particleShader != null)
+            {
+                Material particleMat = new Material(particleShader);
+                particleMat.color = new Color(1f, 1f, 1f, 0.85f);
+                psRenderer.material = particleMat;
+            }
+        }
+        
+        prefab.SetActive(false);
+        
+        Debug.Log("[ARFoundationBootstrap] Created point cloud prefab with ParticleSystem");
+        return prefab;
 #else
         return null;
 #endif
