@@ -46,8 +46,12 @@ public class PathVisualizer : MonoBehaviour
         shaft.transform.localRotation = Quaternion.Euler(90, 0, 0);
         shaft.transform.localScale = new Vector3(0.05f, 0.1f, 0.05f);
         
-        // Set bright cyan color
-        Material arrowMat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+        // Use reliable shader that works on all platforms
+        Shader shader = Shader.Find("Sprites/Default");
+        if (shader == null) shader = Shader.Find("Universal Render Pipeline/Lit");
+        if (shader == null) shader = Shader.Find("Standard");
+        
+        Material arrowMat = new Material(shader);
         arrowMat.color = new Color(0f, 0.83f, 0.88f, 1f); // Cyan
         cone.GetComponent<Renderer>().material = arrowMat;
         shaft.GetComponent<Renderer>().material = arrowMat;
@@ -92,6 +96,8 @@ public class PathVisualizer : MonoBehaviour
             return;
         }
 
+        Debug.Log($"[PathVisualizer] Drawing path with {worldPath.Count} waypoints, spacing={spacing}");
+
         for (int i = 0; i < worldPath.Count - 1; i++)
         {
             Vector3 start = worldPath[i];
@@ -102,16 +108,22 @@ public class PathVisualizer : MonoBehaviour
             for (int j = 0; j < steps; j++)
             {
                 Vector3 pos = Vector3.Lerp(start, end, j / (float)steps);
-                spawnedArrows.Add(Instantiate(arrowPrefab, pos, Quaternion.LookRotation(dir), transform));
+                GameObject arrowInstance = Instantiate(arrowPrefab, pos, Quaternion.LookRotation(dir), transform);
+                arrowInstance.SetActive(true); // Ensure arrow is visible
+                spawnedArrows.Add(arrowInstance);
             }
         }
 
         Vector3 lastDir = (worldPath[worldPath.Count - 1] - worldPath[worldPath.Count - 2]).normalized;
-        spawnedArrows.Add(Instantiate(
+        GameObject lastArrow = Instantiate(
             arrowPrefab,
             worldPath[worldPath.Count - 1],
             Quaternion.LookRotation(lastDir),
-            transform));
+            transform);
+        lastArrow.SetActive(true);
+        spawnedArrows.Add(lastArrow);
+        
+        Debug.Log($"[PathVisualizer] ✅ Spawned {spawnedArrows.Count} arrows along path");
     }
 
     public void ClearPath()
