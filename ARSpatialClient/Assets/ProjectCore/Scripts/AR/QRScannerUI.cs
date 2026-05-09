@@ -406,9 +406,17 @@ public class QRScannerUI : MonoBehaviour
                 {
                     successfulCaptures++;
                     
-                    // Downscale the image to speed up ZXing decode
-                    int targetWidth = image.width / 2;
-                    int targetHeight = image.height / 2;
+                    // Use higher resolution for reliable QR detection
+                    // 320x240 was too low — QR codes need ~640px minimum to decode
+                    int targetWidth = image.width;
+                    int targetHeight = image.height;
+                    
+                    // Only downscale if very large (saves CPU while keeping QR readable)
+                    if (image.width > 1280)
+                    {
+                        targetWidth = image.width * 3 / 4;
+                        targetHeight = image.height * 3 / 4;
+                    }
 
                     var conversionParams = new UnityEngine.XR.ARSubsystems.XRCpuImage.ConversionParams
                     {

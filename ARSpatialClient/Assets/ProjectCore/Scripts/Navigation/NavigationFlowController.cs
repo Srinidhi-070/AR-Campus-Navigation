@@ -100,14 +100,18 @@ public class NavigationFlowController : MonoBehaviour
 
     public void HandleNavigatePressed()
     {
+        Debug.Log("[NavigationFlowController] HandleNavigatePressed called");
+        
         if (m_RoomOptions.Count == 0)
         {
+            Debug.Log("[NavigationFlowController] No room options available");
             m_UI.ShowStatus("No destination available.");
             RefreshControls();
             return;
         }
 
         int roomIndex = Mathf.Clamp(m_UI.RoomDropdown.value, 0, m_RoomOptions.Count - 1);
+        Debug.Log($"[NavigationFlowController] Selected room: {m_RoomOptions[roomIndex].id} ({m_RoomOptions[roomIndex].displayName})");
         NavigateToDestination(m_RoomOptions[roomIndex].id, m_RoomOptions[roomIndex].displayName);
     }
 
@@ -126,6 +130,7 @@ public class NavigationFlowController : MonoBehaviour
                 out LocationData destination,
                 out string validationMessage))
         {
+            Debug.LogWarning($"[NavigationFlowController] Validation failed: {validationMessage}");
             m_UI.ShowStatus(validationMessage);
             RefreshControls();
             return;
