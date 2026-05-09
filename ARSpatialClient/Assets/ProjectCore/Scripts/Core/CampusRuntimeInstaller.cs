@@ -76,10 +76,8 @@ public class CampusRuntimeInstaller : MonoBehaviour
 
     private void DisableLegacyRuntimeComponents()
     {
-        DisableIfPresent<AIManager>();
         DisableIfPresent<IndoorNavigationBridge>();
         DisableIfPresent<IndoorPathfinding>();
-        DisableIfPresent<ModernUIBuilder>();
         DisableIfPresent<NavigationManager>();
         DisableIfPresent<PathfindingManager>();
     }
