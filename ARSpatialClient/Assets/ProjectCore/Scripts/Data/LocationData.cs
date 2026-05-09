@@ -9,6 +9,7 @@ public class LocationData
     public float    x;
     public float    y;
     public float    z;
+    public float    rotation_y;
     public bool     qr_point;
     public string   description;
     public string[] neighbors;

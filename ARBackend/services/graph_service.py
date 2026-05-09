@@ -84,6 +84,7 @@ class GraphService:
                     x=node.x,
                     y=node.y,
                     z=node.z,
+                    rotation_y=getattr(node, 'rotation_y', 0.0),
                     building=node.building,
                     floor=node.floor,
                 )

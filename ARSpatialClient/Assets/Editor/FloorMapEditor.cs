@@ -902,6 +902,10 @@ public class FloorMapEditor : EditorWindow
                     en.gridX       = x;
                     en.gridY       = y;
                     en.mapName     = mapName;
+                    
+                    // Note: In a 2D grid we default rotation to 0. 
+                    // This can be modified manually in nodes.json for precise AR alignment.
+                    en.rotation_y  = 0f;
 
                     exportNodes.Add(en);
                 }
@@ -940,6 +944,7 @@ public class FloorMapEditor : EditorWindow
             jn.x           = en.gridX * cellSize;
             jn.y           = en.floor * floorHeight;
             jn.z           = en.gridY * cellSize;
+            jn.rotation_y  = en.rotation_y;
             jn.qr_point    = en.qr_point;
             jn.description = en.description;
             jn.neighbors   = en.neighbors.ToArray();
@@ -1084,6 +1089,7 @@ public class FloorMapEditor : EditorWindow
         public int          gridX;
         public int          gridY;
         public string       mapName;
+        public float        rotation_y;
         public List<string> neighbors = new List<string>();
     }
 
@@ -1104,6 +1110,7 @@ public class FloorMapEditor : EditorWindow
         public float    x;
         public float    y;
         public float    z;
+        public float    rotation_y;
         public bool     qr_point;
         public string   description;
         public string[] neighbors;

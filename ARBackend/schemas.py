@@ -12,6 +12,7 @@ class LocationNode(BaseModel):
     x: float
     y: float
     z: float
+    rotation_y: float = 0.0
     qr_point: bool = False
     description: str = ""
     neighbors: List[str] = Field(default_factory=list)
@@ -48,6 +49,7 @@ class PathPoint(BaseModel):
     x: float
     y: float
     z: float
+    rotation_y: float = 0.0
     building: str
     floor: int
 

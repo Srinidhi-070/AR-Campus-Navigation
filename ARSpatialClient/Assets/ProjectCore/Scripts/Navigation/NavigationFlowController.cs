@@ -229,22 +229,40 @@ public class NavigationFlowController : MonoBehaviour
         foreach (CampusApiClient.PathPointPayload point in response.path)
             worldPath.Add(new Vector3(point.x, point.y, point.z));
 
-        // --- CRITICAL AR ALIGNMENT ---
-        // The backend returns coordinates in the map's absolute space (e.g. 10, 0, 5)
-        // but the AR Camera could be anywhere in Unity's world space depending on where the app launched.
-        // Since the user just scanned the QR code, we assume they are physically at worldPath[0].
-        // We shift the entire path so the start node aligns perfectly with the user's feet!
+        // --- CRITICAL AR ALIGNMENT (Position + Rotation) ---
+        // The backend returns coordinates in the map's absolute space.
+        // We must align both the POSITION and ROTATION of the path to the physical world.
         if (Camera.main != null && worldPath.Count > 0)
         {
             Vector3 camPos = Camera.main.transform.position;
             Vector3 mapStart = worldPath[0];
             
-            // Offset X and Z exactly to the camera. Offset Y to place arrows slightly below eye level (on the floor).
-            Vector3 offset = new Vector3(camPos.x - mapStart.x, (camPos.y - 1.2f) - mapStart.y, camPos.z - mapStart.z);
+            // Calculate rotation offset: how much did the user turn compared to the map's forward direction?
+            float mapStartRotY = response.path[0].rotation_y;
+            float scanCamRotY = m_QRLocationManager != null ? m_QRLocationManager.ScanCameraRotationY : Camera.main.transform.eulerAngles.y;
+            float rotationDiff = scanCamRotY - mapStartRotY;
+            Quaternion rotationOffset = Quaternion.Euler(0, rotationDiff, 0);
+            
+            Debug.Log($"[NavigationFlowController] Aligning AR Path. MapRotY={mapStartRotY}, CamRotY={scanCamRotY}, Offset={rotationDiff}");
 
             for (int i = 0; i < worldPath.Count; i++)
             {
-                worldPath[i] += offset;
+                Vector3 point = worldPath[i];
+                
+                // 1. Center around start node
+                Vector3 localPoint = point - mapStart;
+                
+                // 2. Rotate to match camera's heading at scan time
+                localPoint = rotationOffset * localPoint;
+                
+                // 3. Move to physical camera position (X/Z), and place on floor (Y)
+                Vector3 finalPos = new Vector3(
+                    camPos.x + localPoint.x,
+                    (camPos.y - 1.2f) + (point.y - mapStart.y),
+                    camPos.z + localPoint.z
+                );
+                
+                worldPath[i] = finalPos;
             }
         }
 
