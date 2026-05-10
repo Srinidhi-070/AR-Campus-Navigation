@@ -2,7 +2,10 @@ using UnityEngine;
 using UnityEngine.XR.ARFoundation;
 
 #if UNITY_ANDROID || UNITY_IOS
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.XR;
 using UnityEngine.XR.ARSubsystems;
+using UnityEngine.XR.Management;
 using Unity.XR.CoreUtils;
 #endif
 
@@ -15,10 +18,39 @@ public class ARFoundationBootstrap : MonoBehaviour
     void Awake()
     {
 #if UNITY_ANDROID || UNITY_IOS
+        EnsureXRLoaderRunning();
         SetupXROrigin();
         SetupARSession();
 #else
         Debug.Log("[ARFoundationBootstrap] Skipping AR setup in Editor");
+#endif
+    }
+
+    private void EnsureXRLoaderRunning()
+    {
+#if UNITY_ANDROID || UNITY_IOS
+        XRGeneralSettings settings = XRGeneralSettings.Instance;
+        if (settings == null || settings.Manager == null)
+        {
+            Debug.LogError("[ARFoundationBootstrap] XRGeneralSettings is missing. Check XR Plug-in Management preloaded assets.");
+            return;
+        }
+
+        XRManagerSettings manager = settings.Manager;
+        if (manager.activeLoader == null)
+        {
+            Debug.Log("[ARFoundationBootstrap] Initializing XR loader");
+            manager.InitializeLoaderSync();
+        }
+
+        if (manager.activeLoader == null)
+        {
+            Debug.LogError("[ARFoundationBootstrap] XR loader did not initialize. AR camera background and tracking will not run.");
+            return;
+        }
+
+        manager.StartSubsystems();
+        Debug.Log($"[ARFoundationBootstrap] XR loader active: {manager.activeLoader.name}");
 #endif
     }
 
@@ -40,6 +72,8 @@ public class ARFoundationBootstrap : MonoBehaviour
             return;
         }
 
+        EnsureTrackedPoseDriver(mainCamera);
+
         // Create XR Origin
         GameObject xrOriginGO = new GameObject("XR Origin");
         xrOriginGO.transform.SetParent(transform, false);
@@ -59,20 +93,16 @@ public class ARFoundationBootstrap : MonoBehaviour
         mainCamera.transform.localPosition = Vector3.zero;
         mainCamera.transform.localRotation = Quaternion.identity;
         
-        // Add AR components to camera
         if (mainCamera.GetComponent<ARCameraManager>() == null)
-        {
             mainCamera.gameObject.AddComponent<ARCameraManager>();
+        if (mainCamera.GetComponent<ARCameraBackground>() == null)
             mainCamera.gameObject.AddComponent<ARCameraBackground>();
-            
-            // CRITICAL: The camera needs a pose driver to actually move with the device in the physical world!
-            // Using ARPoseDriver is required for AR Foundation 5.x with the new Input System.
-            mainCamera.gameObject.AddComponent<UnityEngine.XR.ARFoundation.ARPoseDriver>();
-        }
         
         // Set camera to clear solid color for AR
+        mainCamera.orthographic = false;
         mainCamera.clearFlags = CameraClearFlags.SolidColor;
         mainCamera.backgroundColor = Color.black;
+        mainCamera.fieldOfView = 60f;
         mainCamera.nearClipPlane = 0.1f;
         mainCamera.farClipPlane = 20f;
         
@@ -113,6 +143,32 @@ public class ARFoundationBootstrap : MonoBehaviour
 #endif
     }
 
+    private void EnsureTrackedPoseDriver(Camera mainCamera)
+    {
+#if UNITY_ANDROID || UNITY_IOS
+        TrackedPoseDriver poseDriver = mainCamera.GetComponent<TrackedPoseDriver>();
+        if (poseDriver == null)
+            poseDriver = mainCamera.gameObject.AddComponent<TrackedPoseDriver>();
+
+        poseDriver.trackingStateInput = new InputActionProperty(new InputAction(
+            "HMD Tracking State",
+            InputActionType.PassThrough,
+            "<XRHMD>/trackingState",
+            expectedControlType: "Integer"));
+        poseDriver.positionInput = new InputActionProperty(new InputAction(
+            "HMD Position",
+            InputActionType.PassThrough,
+            "<XRHMD>/centerEyePosition",
+            expectedControlType: "Vector3"));
+        poseDriver.rotationInput = new InputActionProperty(new InputAction(
+            "HMD Rotation",
+            InputActionType.PassThrough,
+            "<XRHMD>/centerEyeRotation",
+            expectedControlType: "Quaternion"));
+        poseDriver.updateType = TrackedPoseDriver.UpdateType.UpdateAndBeforeRender;
+#endif
+    }
+
     private void SetupARSession()
     {
 #if UNITY_ANDROID || UNITY_IOS
@@ -125,7 +181,8 @@ public class ARFoundationBootstrap : MonoBehaviour
 
         GameObject sessionGO = new GameObject("AR Session");
         sessionGO.transform.SetParent(transform, false);
-        ARSession session = sessionGO.AddComponent<ARSession>();
+        sessionGO.AddComponent<ARSession>();
+        sessionGO.AddComponent<ARInputManager>();
         
         Debug.Log("[ARFoundationBootstrap] Created ARSession");
 #endif

@@ -10,7 +10,11 @@ public class AppController : MonoBehaviour
     public static AppController Instance { get; private set; }
 
     [Header("Backend Configuration")]
-    [SerializeField] private string m_BaseUrl = "http://192.168.1.4:8000";
+    [SerializeField] private string m_BaseUrl = "http://127.0.0.1:8000";
+
+    // Optional override so you can quickly switch backend URLs after deploying
+    // (you can set this from code later, or via PlayerSettings in a debug workflow).
+    private const string BaseUrlPlayerPrefsKey = "backend_base_url";
 
     private LocationRegistry m_LocationRegistry;
     private QRLocationManager m_QRLocationManager;
@@ -22,6 +26,17 @@ public class AppController : MonoBehaviour
     void Awake()
     {
         Debug.Log("[AppController] Awake called");
+
+        // If previously set, override inspector default.
+        if (PlayerPrefs.HasKey(BaseUrlPlayerPrefsKey))
+        {
+            string savedUrl = PlayerPrefs.GetString(BaseUrlPlayerPrefsKey);
+            if (!string.IsNullOrWhiteSpace(savedUrl))
+            {
+                m_BaseUrl = savedUrl.Trim();
+                Debug.Log($"[AppController] Base URL overridden from PlayerPrefs: {m_BaseUrl}");
+            }
+        }
         
         if (Instance != null && Instance != this)
         {
@@ -68,6 +83,8 @@ public class AppController : MonoBehaviour
     public void SetBaseUrl(string url)
     {
         m_BaseUrl = url;
+        PlayerPrefs.SetString(BaseUrlPlayerPrefsKey, m_BaseUrl);
+        PlayerPrefs.Save();
         Debug.Log($"[AppController] Base URL set to: {m_BaseUrl}");
     }
 }

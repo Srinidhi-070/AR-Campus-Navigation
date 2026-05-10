@@ -28,8 +28,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-OLLAMA_URL = "http://localhost:11434/api/generate"
-OLLAMA_MODEL = "llama3.2"
+OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434/api/generate")
+OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "llama3.2")
 NODES_PATH = Path(__file__).resolve().parent / "nodes.json"
 
 graph_service = GraphService(NODES_PATH)
