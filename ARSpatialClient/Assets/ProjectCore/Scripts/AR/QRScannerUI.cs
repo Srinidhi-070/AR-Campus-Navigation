@@ -445,14 +445,15 @@ public class QRScannerUI : MonoBehaviour
                 // Acquire the raw CPU image directly from ARCore
                 if (cameraManager.TryAcquireLatestCpuImage(out UnityEngine.XR.ARSubsystems.XRCpuImage image))
                 {
+                    int targetWidth = image.width;
+                    int targetHeight = image.height;
+
                     using (image) // GUARANTEES image is disposed even if an exception occurs below
                     {
                         successfulCaptures++;
                         
                         // Use higher resolution for reliable QR detection
                         // 320x240 was too low — QR codes need ~640px minimum to decode
-                        int targetWidth = image.width;
-                        int targetHeight = image.height;
                         
                         // Only downscale if very large (saves CPU while keeping QR readable)
                         if (image.width > 1280)
