@@ -119,13 +119,9 @@ public class CampusRuntimeInstaller : MonoBehaviour
         {
             GameObject pathRoot = new GameObject("PathVisualizer");
 
-            // Anchor visual arrows under ARSessionOrigin if it exists,
-            // so the path truly lives in world-space and doesn't inherit UI/camera-relative transforms.
-            var sessionOrigin = FindObjectOfType<UnityEngine.XR.ARFoundation.ARSessionOrigin>();
-            if (sessionOrigin != null)
-                pathRoot.transform.SetParent(sessionOrigin.transform, false);
-            else
-                pathRoot.transform.SetParent(transform, false);
+            // Anchor visual arrows in the scene root so they live in true world-space
+            // and don't accidentally inherit UI or camera transforms.
+            pathRoot.transform.SetParent(null);
 
             pathVisualizer = pathRoot.AddComponent<PathVisualizer>();
         }

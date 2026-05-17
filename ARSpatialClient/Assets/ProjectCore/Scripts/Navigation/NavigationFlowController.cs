@@ -14,9 +14,11 @@ public class NavigationFlowController : MonoBehaviour
     private CampusRuntimeUI m_UI;
     private CampusRuntimeValidator m_Validator;
 
-    // Scale factor: 1.0 means 1 grid unit = 1 meter. Adjust if floor map grid
-    // cells don't correspond to real-world meters (e.g., 0.5 = half scale).
+    // Scale factor: 1.0 means 1 grid unit = 1 meter.
     private float m_MetersPerGridUnit = 1.0f;
+
+    private List<Vector3> m_ActiveWorldPath;
+    private float m_PathUpdateTimer = 0f;
 
     private readonly List<string> m_BuildingOptions = new List<string>();
     private readonly List<int> m_FloorOptions = new List<int>();
@@ -37,6 +39,7 @@ public class NavigationFlowController : MonoBehaviour
         CampusRuntimeUI ui,
         CampusRuntimeValidator validator)
     {
+        m_ActiveWorldPath = null;
         if (m_QRLocationManager != null)
             m_QRLocationManager.OnLocationChanged -= HandleQrLocationChanged;
 
@@ -158,6 +161,7 @@ public class NavigationFlowController : MonoBehaviour
 
         if (destination.id.ToUpper() == m_QRLocationManager.CurrentNodeId)
         {
+            m_ActiveWorldPath = null;
             m_PathVisualizer.ClearPath();
             m_UI.ShowStatus("You are already at the destination.");
             m_UI.ShowDirections(new List<string> { "Destination Reached" });
@@ -165,6 +169,7 @@ public class NavigationFlowController : MonoBehaviour
             return;
         }
 
+        m_ActiveWorldPath = null;
         string label = string.IsNullOrEmpty(displayName) ? destination.displayName : displayName;
         m_UI.ShowStatus($"Calculating path to {label}...");
 
@@ -295,6 +300,8 @@ public class NavigationFlowController : MonoBehaviour
 
     private void HandlePathResponse(CampusApiClient.PathResponsePayload response)
     {
+        m_ActiveWorldPath = null;
+
         if (response == null || response.path == null || response.path.Count < 2)
         {
             m_PathVisualizer.ClearPath();
@@ -390,11 +397,64 @@ public class NavigationFlowController : MonoBehaviour
             }
         }
 
+        m_ActiveWorldPath = worldPath; // Store for live dynamic updating
+
         m_PathVisualizer.ClearPath();
         m_PathVisualizer.DrawPath(worldPath);
         m_UI.ShowDirections(response.directions ?? new List<string>());
         m_UI.ShowStatus("Navigation active.");
         RefreshControls();
+    }
+
+    void Update()
+    {
+        if (m_ActiveWorldPath == null || m_ActiveWorldPath.Count < 2)
+            return;
+
+        m_PathUpdateTimer += Time.deltaTime;
+        if (m_PathUpdateTimer < 0.5f) // Update route twice a second
+            return;
+        m_PathUpdateTimer = 0f;
+
+        Transform cam = Camera.main != null ? Camera.main.transform : null;
+        if (cam == null) return;
+
+        Vector3 userPos = cam.position;
+        int closestIndex = 0;
+        float minDistance = float.MaxValue;
+
+        // Look ahead up to 5 waypoints to see if user has reached them
+        int searchLimit = Mathf.Min(m_ActiveWorldPath.Count, 5);
+        for (int i = 0; i < searchLimit; i++)
+        {
+            // Measure distance on the XZ floor plane
+            float dist = Vector2.Distance(
+                new Vector2(userPos.x, userPos.z), 
+                new Vector2(m_ActiveWorldPath[i].x, m_ActiveWorldPath[i].z));
+                
+            if (dist < minDistance)
+            {
+                minDistance = dist;
+                closestIndex = i;
+            }
+        }
+
+        // If the user has walked past previous waypoints and is within 1.5m of a new one, trim the path
+        if (closestIndex > 0 && minDistance < 1.5f)
+        {
+            m_ActiveWorldPath.RemoveRange(0, closestIndex);
+            
+            if (m_ActiveWorldPath.Count < 2)
+            {
+                m_PathVisualizer.ClearPath();
+                m_UI.ShowStatus("Destination Reached!");
+                m_ActiveWorldPath = null;
+            }
+            else
+            {
+                m_PathVisualizer.DrawPath(m_ActiveWorldPath);
+            }
+        }
     }
 
     private bool IsValidPathResponse(CampusApiClient.PathResponsePayload response)
