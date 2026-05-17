@@ -147,21 +147,29 @@ public class ARFoundationBootstrap : MonoBehaviour
         if (poseDriver == null)
             poseDriver = mainCamera.gameObject.AddComponent<TrackedPoseDriver>();
 
-        poseDriver.trackingStateInput = new InputActionProperty(new InputAction(
+        var trackingStateAction = new InputAction(
             "HMD Tracking State",
             InputActionType.PassThrough,
             "<XRHMD>/trackingState",
-            expectedControlType: "Integer"));
-        poseDriver.positionInput = new InputActionProperty(new InputAction(
+            expectedControlType: "Integer");
+        trackingStateAction.Enable();
+        poseDriver.trackingStateInput = new InputActionProperty(trackingStateAction);
+
+        var positionAction = new InputAction(
             "HMD Position",
             InputActionType.PassThrough,
             "<XRHMD>/centerEyePosition",
-            expectedControlType: "Vector3"));
-        poseDriver.rotationInput = new InputActionProperty(new InputAction(
+            expectedControlType: "Vector3");
+        positionAction.Enable();
+        poseDriver.positionInput = new InputActionProperty(positionAction);
+
+        var rotationAction = new InputAction(
             "HMD Rotation",
             InputActionType.PassThrough,
             "<XRHMD>/centerEyeRotation",
-            expectedControlType: "Quaternion"));
+            expectedControlType: "Quaternion");
+        rotationAction.Enable();
+        poseDriver.rotationInput = new InputActionProperty(rotationAction);
         poseDriver.updateType = TrackedPoseDriver.UpdateType.UpdateAndBeforeRender;
 #endif
     }
