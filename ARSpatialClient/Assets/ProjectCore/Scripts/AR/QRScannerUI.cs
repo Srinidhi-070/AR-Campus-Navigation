@@ -445,38 +445,41 @@ public class QRScannerUI : MonoBehaviour
                 // Acquire the raw CPU image directly from ARCore
                 if (cameraManager.TryAcquireLatestCpuImage(out UnityEngine.XR.ARSubsystems.XRCpuImage image))
                 {
-                    successfulCaptures++;
-                    
-                    // Use higher resolution for reliable QR detection
-                    // 320x240 was too low — QR codes need ~640px minimum to decode
-                    int targetWidth = image.width;
-                    int targetHeight = image.height;
-                    
-                    // Only downscale if very large (saves CPU while keeping QR readable)
-                    if (image.width > 1280)
+                    using (image) // GUARANTEES image is disposed even if an exception occurs below
                     {
-                        targetWidth = image.width * 3 / 4;
-                        targetHeight = image.height * 3 / 4;
+                        successfulCaptures++;
+                        
+                        // Use higher resolution for reliable QR detection
+                        // 320x240 was too low — QR codes need ~640px minimum to decode
+                        int targetWidth = image.width;
+                        int targetHeight = image.height;
+                        
+                        // Only downscale if very large (saves CPU while keeping QR readable)
+                        if (image.width > 1280)
+                        {
+                            targetWidth = image.width * 3 / 4;
+                            targetHeight = image.height * 3 / 4;
+                        }
+
+                        var conversionParams = new UnityEngine.XR.ARSubsystems.XRCpuImage.ConversionParams
+                        {
+                            inputRect = new RectInt(0, 0, image.width, image.height),
+                            outputDimensions = new Vector2Int(targetWidth, targetHeight),
+                            outputFormat = TextureFormat.RGBA32,
+                            transformation = UnityEngine.XR.ARSubsystems.XRCpuImage.Transformation.None
+                        };
+
+                        if (conversionTexture == null || conversionTexture.width != targetWidth || conversionTexture.height != targetHeight)
+                        {
+                            if (conversionTexture != null) Destroy(conversionTexture);
+                            conversionTexture = new Texture2D(targetWidth, targetHeight, TextureFormat.RGBA32, false);
+                            Debug.Log($"[QRScannerUI] Created conversion texture: {targetWidth}x{targetHeight}");
+                        }
+
+                        var rawTextureData = conversionTexture.GetRawTextureData<byte>();
+                        image.Convert(conversionParams, rawTextureData);
+                        // image is disposed automatically at the end of the using block
                     }
-
-                    var conversionParams = new UnityEngine.XR.ARSubsystems.XRCpuImage.ConversionParams
-                    {
-                        inputRect = new RectInt(0, 0, image.width, image.height),
-                        outputDimensions = new Vector2Int(targetWidth, targetHeight),
-                        outputFormat = TextureFormat.RGBA32,
-                        transformation = UnityEngine.XR.ARSubsystems.XRCpuImage.Transformation.None
-                    };
-
-                    if (conversionTexture == null || conversionTexture.width != targetWidth || conversionTexture.height != targetHeight)
-                    {
-                        if (conversionTexture != null) Destroy(conversionTexture);
-                        conversionTexture = new Texture2D(targetWidth, targetHeight, TextureFormat.RGBA32, false);
-                        Debug.Log($"[QRScannerUI] Created conversion texture: {targetWidth}x{targetHeight}");
-                    }
-
-                    var rawTextureData = conversionTexture.GetRawTextureData<byte>();
-                    image.Convert(conversionParams, rawTextureData);
-                    image.Dispose(); // MUST dispose to prevent memory leak
                     
                     conversionTexture.Apply();
 

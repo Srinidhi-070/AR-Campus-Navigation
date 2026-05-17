@@ -130,11 +130,8 @@ public class ARFoundationBootstrap : MonoBehaviour
         
         planeManager.planePrefab = planePrefab;
         
-        // Add ARPointCloudManager for feature point visualization (white dots)
-        ARPointCloudManager pointCloudManager = xrOriginGO.AddComponent<ARPointCloudManager>();
-        GameObject pointCloudPrefab = CreatePointCloudPrefab();
-        pointCloudManager.pointCloudPrefab = pointCloudPrefab;
-        Debug.Log("[ARFoundationBootstrap] Added ARPointCloudManager for feature point visualization");
+        // Point Cloud visualization is disabled to prevent ARCore feature overload 
+        // (resolves "Too many image measurements" and RANSAC errors in logcat)
         
         // Add ARRaycastManager for placing objects
         xrOriginGO.AddComponent<ARRaycastManager>();
