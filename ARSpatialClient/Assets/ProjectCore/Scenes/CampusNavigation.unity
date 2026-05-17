@@ -316,7 +316,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 484782bd9e3779b49ac01bda4a0d785d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_BaseUrl: http://192.168.1.4:8000
+  m_BaseUrl: https://ar-campus-navigation.onrender.com
 --- !u!1 &1234567890
 GameObject:
   m_ObjectHideFlags: 0

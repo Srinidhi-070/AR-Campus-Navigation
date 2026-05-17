@@ -50,7 +50,24 @@ AR_Spatial_Client/
 
 ## 🚀 Quick Start (After Cleanup)
 
-### 1. Backend Setup
+### 1. Backend Setup (recommended: Docker stack)
+
+Run the API (FastAPI) on port **8000** (and Ollama on **11434**) using one command:
+
+```bash
+cd ARBackend
+docker compose up --build
+```
+
+- FastAPI: http://localhost:8000
+- API endpoints used by Unity:
+  - `GET /locations`
+  - `POST /get-path`
+  - `POST /chat` (AI, optional)
+
+If Ollama isn’t needed, you can remove/disable the `ollama` service from `ARBackend/docker-compose.yml`.
+
+#### Optional: run backend without Docker
 ```bash
 cd ARBackend
 pip install -r requirements.txt
@@ -63,6 +80,7 @@ python main.py
 1. Open project in Unity 2022.3+
 2. Tools → Generate UI Icons
 3. Update Backend URL: CampusApp → Base Url → http://YOUR_IP:8000
+   - YOUR_IP must be reachable from the Android device (same Wi‑Fi / network)
 4. File → Build Settings → Build
 ```
 
@@ -70,6 +88,13 @@ python main.py
 ```bash
 adb install Builds/ARCampusNav.apk
 ```
+
+### 🔎 Troubleshooting (common “device can’t reach backend”)
+- If phone can’t call `GET /locations`, verify:
+  - backend is running: `docker compose ps`
+  - port mapping works: `http://YOUR_IP:8000/` works in a browser on the same Wi‑Fi
+  - firewall allows inbound TCP on **8000**
+  - `YOUR_IP` is the host machine LAN IP (not `127.0.0.1` and not `localhost`)
 
 ---
 

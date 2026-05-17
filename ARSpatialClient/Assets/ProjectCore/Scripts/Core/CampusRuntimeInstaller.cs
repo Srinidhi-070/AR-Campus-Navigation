@@ -76,10 +76,9 @@ public class CampusRuntimeInstaller : MonoBehaviour
 
     private void DisableLegacyRuntimeComponents()
     {
-        DisableIfPresent<IndoorNavigationBridge>();
-        DisableIfPresent<IndoorPathfinding>();
-        DisableIfPresent<NavigationManager>();
-        DisableIfPresent<PathfindingManager>();
+        // All legacy runtime components (NavigationManager, PathfindingManager,
+        // IndoorNavigationBridge, IndoorPathfinding) have been removed from the project.
+        // This method is retained as a hook for future cleanup if needed.
     }
 
     private void InstallRuntime()
@@ -119,7 +118,15 @@ public class CampusRuntimeInstaller : MonoBehaviour
         if (pathVisualizer == null)
         {
             GameObject pathRoot = new GameObject("PathVisualizer");
-            pathRoot.transform.SetParent(transform, false);
+
+            // Anchor visual arrows under ARSessionOrigin if it exists,
+            // so the path truly lives in world-space and doesn't inherit UI/camera-relative transforms.
+            var sessionOrigin = FindObjectOfType<UnityEngine.XR.ARFoundation.ARSessionOrigin>();
+            if (sessionOrigin != null)
+                pathRoot.transform.SetParent(sessionOrigin.transform, false);
+            else
+                pathRoot.transform.SetParent(transform, false);
+
             pathVisualizer = pathRoot.AddComponent<PathVisualizer>();
         }
 

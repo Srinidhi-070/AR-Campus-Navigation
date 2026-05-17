@@ -105,18 +105,6 @@ public class PathVisualizer : MonoBehaviour
             renderer.material = material;
     }
 
-    public void DrawPath(List<NavigationNode> path)
-    {
-        List<Vector3> positions = new List<Vector3>();
-        if (path != null)
-        {
-            foreach (NavigationNode node in path)
-                positions.Add(node.Position);
-        }
-
-        DrawPath(positions);
-    }
-
     public void DrawPath(List<Vector3> worldPath)
     {
         ClearPath();

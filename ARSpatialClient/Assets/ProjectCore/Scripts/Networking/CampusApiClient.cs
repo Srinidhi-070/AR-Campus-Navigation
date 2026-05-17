@@ -93,7 +93,7 @@ public class CampusApiClient : MonoBehaviour
         Debug.Log($"[CampusApiClient] Fetching locations from: {url}");
         
         using UnityWebRequest request = UnityWebRequest.Get(url);
-        request.timeout = 10; // 10 second timeout to prevent app freeze
+        request.timeout = 3; // Fast timeout — falls back to local routing quickly when offline
         yield return request.SendWebRequest();
 
         if (request.result != UnityWebRequest.Result.Success)
@@ -161,7 +161,7 @@ public class CampusApiClient : MonoBehaviour
         request.uploadHandler = new UploadHandlerRaw(Encoding.UTF8.GetBytes(json));
         request.downloadHandler = new DownloadHandlerBuffer();
         request.SetRequestHeader("Content-Type", "application/json");
-        request.timeout = 10; // 10 second timeout to prevent app freeze
+        request.timeout = 3; // Fast timeout — falls back to local routing quickly when offline
 
         yield return request.SendWebRequest();
 

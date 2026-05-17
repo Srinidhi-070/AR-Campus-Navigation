@@ -30,6 +30,13 @@ public class QRScannerUI : MonoBehaviour
     private bool m_IsScanning;
 #endif
 
+#if UNITY_EDITOR
+    [Header("Editor QR Simulation (no camera needed)")]
+    [SerializeField] private string m_TestNodeId = "HOUSE_ENTRANCE_1";
+    [SerializeField] private string m_TestBuilding = "House";
+    [SerializeField] private int m_TestFloor = 1;
+#endif
+
     // Callbacks
     private System.Action<string> m_OnQRDetected;
     private System.Action m_OnClose;
@@ -261,8 +268,12 @@ public class QRScannerUI : MonoBehaviour
 #if ZXING_ENABLED && !UNITY_EDITOR
         StartCoroutine(StartCamera());
 #elif UNITY_EDITOR
-        m_InstructionText.text = "QR scanning requires device camera";
-        m_ResultText.text = "Build to Android device to test";
+        // Editor/dev mode: simulate a successful QR scan so navigation can be tested in Simulator.
+        // This prevents “nothing happens” in the Unity Editor.
+        m_InstructionText.text = "Editor mode: simulating QR scan...";
+        m_ResultText.text = $"Node: {m_TestNodeId}";
+
+        StartCoroutine(SimulateEditorQrThenClose());
 #else
         m_InstructionText.text = "Camera not available";
 #endif
@@ -282,6 +293,36 @@ public class QRScannerUI : MonoBehaviour
         if (m_ScannerPanel != null)
             m_ScannerPanel.SetActive(false);
     }
+
+#if UNITY_EDITOR
+    private IEnumerator SimulateEditorQrThenClose()
+    {
+        // tiny delay so the UI renders
+        yield return null;
+        yield return new WaitForSeconds(0.2f);
+
+        // Must match QRLocationManager.QRPayload format:
+        // {"building":"Main Block","floor":0,"node_id":"ENTRANCE"}
+        string payload = $"{{\"building\":\"{m_TestBuilding}\",\"floor\":{m_TestFloor},\"node_id\":\"{m_TestNodeId}\"}}";
+
+        if (m_CornerImages != null)
+        {
+            Color green = new Color(0.1f, 1f, 0.3f, 1f);
+            foreach (var img in m_CornerImages)
+                if (img != null) img.color = green;
+        }
+
+        if (m_InstructionText != null) m_InstructionText.text = "QR Code Detected!";
+        if (m_ResultText != null) m_ResultText.text = "Processing...";
+
+        m_IsScanning = false; // harmless; only exists under ZXING_ENABLED
+        m_OnQRDetected?.Invoke(payload);
+
+        // QRScanner.cs will call CloseScanner() after location set,
+        // but we close the UI here too to keep Simulator responsive.
+        CloseScanner();
+    }
+#endif
 
     // ── Corner Pulse Animation ──
 

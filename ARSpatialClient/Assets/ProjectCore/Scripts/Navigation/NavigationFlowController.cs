@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.XR.ARFoundation;
+using UnityEngine.XR.ARSubsystems;
 
 public class NavigationFlowController : MonoBehaviour
 {
@@ -11,6 +13,10 @@ public class NavigationFlowController : MonoBehaviour
     private PathVisualizer m_PathVisualizer;
     private CampusRuntimeUI m_UI;
     private CampusRuntimeValidator m_Validator;
+
+    // Scale factor: 1.0 means 1 grid unit = 1 meter. Adjust if floor map grid
+    // cells don't correspond to real-world meters (e.g., 0.5 = half scale).
+    private float m_MetersPerGridUnit = 1.0f;
 
     private readonly List<string> m_BuildingOptions = new List<string>();
     private readonly List<int> m_FloorOptions = new List<int>();
@@ -216,6 +222,7 @@ public class NavigationFlowController : MonoBehaviour
         Debug.Log($"[NavigationFlowController] HandleLocationsLoaded called with {locations?.Count ?? 0} locations");
 
         m_UseLocalRouting = false;
+        m_LocationRegistry.Clear();
         m_LocationRegistry.SetLocations(locations);
 
         // Debug: Log all loaded locations
@@ -249,16 +256,27 @@ public class NavigationFlowController : MonoBehaviour
 
     private void HandleLocationsError(string error)
     {
+        Debug.LogWarning($"[NavigationFlowController] HandleLocationsError called. backendError={error}");
+
         if (TryLoadLocalLocations(out List<LocationData> localLocations, out string localError))
         {
+            int count = localLocations != null ? localLocations.Count : 0;
+            Debug.LogWarning($"[NavigationFlowController] Local fallback loaded nodes: {count}");
+
             m_UseLocalRouting = true;
+            m_LocationRegistry.Clear();
             m_LocationRegistry.SetLocations(localLocations);
+
+            Debug.LogWarning($"[NavigationFlowController] LocationRegistry after SetLocations: IsLoaded={m_LocationRegistry.IsLoaded}, Count={m_LocationRegistry.Count}");
+
             PopulateBuildingOptions();
             RefreshControls();
             m_UI.ShowStatus("Offline map loaded. Scan QR code to begin.");
-            Debug.LogWarning($"[NavigationFlowController] Backend error, loaded local map instead: {error}");
+            Debug.LogWarning($"[NavigationFlowController] Backend error, loaded local map instead: {error} (localError={localError})");
             return;
         }
+
+        Debug.LogWarning($"[NavigationFlowController] Local fallback FAILED. localError={localError}");
 
         m_UseLocalRouting = false;
         m_LocationRegistry.Clear();
@@ -290,48 +308,85 @@ public class NavigationFlowController : MonoBehaviour
         foreach (CampusApiClient.PathPointPayload point in response.path)
             worldPath.Add(new Vector3(point.x, point.y, point.z));
 
-        // --- CRITICAL AR ALIGNMENT (Position + Rotation) ---
-        // The backend returns coordinates in the map's absolute space.
-        // We must align both the POSITION and ROTATION of the path to the physical world.
-        if (Camera.main != null && worldPath.Count > 0)
+        // --- AR ALIGNMENT (stable, no hardcoded vertical offsets, no rotation_y dependency) ---
+        // Backend points are in map space. We map them into world space by:
+        // 1) picking a stable world anchor position from AR plane raycast near screen center
+        // 2) aligning heading using the first segment direction (map) vs current camera forward projected to XZ
+        if (worldPath.Count > 0)
         {
-            Vector3 camPos = Camera.main.transform.position;
-            Vector3 mapStart = worldPath[0];
-            
-            // Calculate rotation offset: how much did the user turn compared to the map's forward direction?
-            float mapStartRotY = response.path[0].rotation_y;
-            float scanCamRotY = m_QRLocationManager != null ? m_QRLocationManager.ScanCameraRotationY : Camera.main.transform.eulerAngles.y;
-            float rotationDiff = scanCamRotY - mapStartRotY;
-            Quaternion rotationOffset = Quaternion.Euler(0, rotationDiff, 0);
-            
-            Debug.Log($"[NavigationFlowController] Aligning AR Path. MapRotY={mapStartRotY}, CamRotY={scanCamRotY}, Offset={rotationDiff}");
-            Debug.Log($"[NavigationFlowController] Camera Pos at Path Start: {camPos}");
+            // 1) Get a stable world anchor point via AR plane raycast
+            Vector3 worldAnchorPos;
+            bool gotAnchor = TryGetWorldAnchorFromRaycast(out worldAnchorPos);
 
+            if (!gotAnchor)
+            {
+                // Fallback: use camera position, estimate floor ~1.5m below phone
+                Transform fallbackCam = Camera.main != null ? Camera.main.transform : null;
+                if (fallbackCam != null)
+                {
+                    worldAnchorPos = fallbackCam.position + Vector3.down * 1.5f;
+                    Debug.LogWarning("[NavigationFlowController] No AR plane detected. Using camera position as anchor.");
+                }
+                else
+                {
+                    Debug.LogWarning("[NavigationFlowController] No camera or AR plane available. Rendering path unaligned.");
+                    m_PathVisualizer.ClearPath();
+                    m_PathVisualizer.DrawPath(worldPath);
+                    m_UI.ShowDirections(response.directions ?? new List<string>());
+                    m_UI.ShowStatus("Navigation active (unaligned).");
+                    RefreshControls();
+                    return;
+                }
+            }
+
+            // 2) Compute map heading from first segment
+            Vector3 mapStart = worldPath[0];
+            Vector3 mapNext = worldPath.Count > 1 ? worldPath[1] : worldPath[0];
+
+            Vector3 mapDir = new Vector3(mapNext.x - mapStart.x, 0f, mapNext.z - mapStart.z);
+            if (mapDir.sqrMagnitude < 0.0001f)
+                mapDir = Vector3.forward;
+
+            mapDir.Normalize();
+
+            // 3) Compute camera heading (project forward onto XZ)
+            Transform cam = Camera.main != null ? Camera.main.transform : null;
+            Vector3 camForward = cam != null ? cam.forward : Vector3.forward;
+            Vector3 camDir = new Vector3(camForward.x, 0f, camForward.z);
+            if (camDir.sqrMagnitude < 0.0001f)
+                camDir = Vector3.forward;
+            camDir.Normalize();
+
+            float mapYaw = Mathf.Atan2(mapDir.x, mapDir.z) * Mathf.Rad2Deg;
+            float camYaw = Mathf.Atan2(camDir.x, camDir.z) * Mathf.Rad2Deg;
+            float yawOffset = camYaw - mapYaw;
+            Quaternion rotationOffset = Quaternion.Euler(0f, yawOffset, 0f);
+
+            Debug.Log($"[NavigationFlowController] AnchorPos={worldAnchorPos} mapDirYaw={mapYaw:F1} camDirYaw={camYaw:F1} yawOffset={yawOffset:F1}");
+
+            // 4) Transform all points:
+            // translate so mapStart lands at worldAnchorPos, then rotate around Y around origin (using translated vectors)
+            List<Vector3> transformed = new List<Vector3>(worldPath.Count);
             for (int i = 0; i < worldPath.Count; i++)
             {
-                Vector3 point = worldPath[i];
-                
-                // 1. Center around start node
-                Vector3 localPoint = point - mapStart;
-                
-                // 2. Rotate to match camera's heading at scan time
-                localPoint = rotationOffset * localPoint;
-                
-                // 3. Move to physical camera position (X/Z), and place on floor (Y)
-                // We use camPos.y - 1.2f as a heuristic for the floor height
-                Vector3 finalPos = new Vector3(
-                    camPos.x + localPoint.x,
-                    (camPos.y - 1.2f) + (point.y - mapStart.y),
-                    camPos.z + localPoint.z
+                Vector3 p = worldPath[i];
+                Vector3 v = p - mapStart;        // local vector in map space relative to start
+                v *= m_MetersPerGridUnit;        // scale grid units to real-world meters
+                v = rotationOffset * v;          // rotate heading
+                Vector3 outPos = new Vector3(
+                    worldAnchorPos.x + v.x,
+                    worldAnchorPos.y + (p.y - mapStart.y) * m_MetersPerGridUnit, // keep scaled vertical delta
+                    worldAnchorPos.z + v.z
                 );
-
-                worldPath[i] = finalPos;
+                transformed.Add(outPos);
             }
+
+            worldPath = transformed;
 
             if (worldPath.Count > 1)
             {
                 Debug.Log($"[NavigationFlowController] First Point: {worldPath[0]}, Second Point: {worldPath[1]}");
-                Debug.Log($"[NavigationFlowController] Distance to first point: {Vector3.Distance(camPos, worldPath[0])}");
+                Debug.Log($"[NavigationFlowController] Distance anchor->first: {Vector3.Distance(worldAnchorPos, worldPath[0])}");
             }
         }
 
@@ -521,6 +576,29 @@ public class NavigationFlowController : MonoBehaviour
         return true;
     }
 
+    private bool TryGetWorldAnchorFromRaycast(out Vector3 worldAnchorPos)
+    {
+        worldAnchorPos = Vector3.zero;
+
+        // Find raycast manager (created by ARFoundationBootstrap / XROrigin)
+        ARRaycastManager raycastManager = FindObjectOfType<ARRaycastManager>();
+        if (raycastManager == null)
+            return false;
+
+        // Raycast from screen center for stability
+        Vector2 screenCenter = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
+
+        var hits = new List<ARRaycastHit>();
+        if (!raycastManager.Raycast(screenCenter, hits, TrackableType.PlaneWithinPolygon))
+            return false;
+
+        if (hits.Count == 0)
+            return false;
+
+        worldAnchorPos = hits[0].pose.position;
+        return true;
+    }
+
     private string GetLowestCostNode(List<string> open, Dictionary<string, float> costs)
     {
         string best = open[0];
@@ -601,23 +679,50 @@ public class NavigationFlowController : MonoBehaviour
 
     private IEnumerable<LocationData> GetDestinationLocations()
     {
-        var destinations = m_LocationRegistry.GetAllLocations().Where(location =>
+        // Snapshot for logging (avoid multiple enumeration side-effects)
+        var all = m_LocationRegistry != null ? m_LocationRegistry.GetAllLocations() : null;
+
+        if (all == null)
+        {
+            Debug.LogWarning("[NavigationFlowController] GetDestinationLocations: LocationRegistry is null.");
+            yield break;
+        }
+
+        // Show all navigable locations. Only filter out corridor waypoints and wall markers
+        // which are structural, not destinations. Entrances, stairs, lifts ARE valid destinations.
+        var destinations = all.Where(location =>
             location != null &&
             !string.IsNullOrEmpty(location.id) &&
             location.type != "corridor" &&
-            location.type != "entrance" &&
-            location.type != "staircase" &&
-            location.type != "lift" &&
-            location.type != "wall");
-        
-        Debug.Log($"[NavigationFlowController] GetDestinationLocations found {destinations.Count()} destinations");
-        return destinations;
+            location.type != "wall"
+        ).ToList();
+
+        Debug.Log($"[NavigationFlowController] GetDestinationLocations found {destinations.Count} destinations (from loaded {destinations.Count + all.Count() - (destinations.Count)})");
+
+        // Helpful: log room nodes specifically (id/building/floor/type)
+        int roomCount = destinations.Count(l => l.type == "room");
+        int entranceCount = destinations.Count(l => l.type == "entrance");
+        int staircaseCount = destinations.Count(l => l.type == "staircase");
+        int liftCount = destinations.Count(l => l.type == "lift");
+        int corridorCount = destinations.Count(l => l.type == "corridor");
+        int wallCount = destinations.Count(l => l.type == "wall");
+
+        Debug.Log(
+            $"[NavigationFlowController] Destination type breakdown: room={roomCount}, entrance={entranceCount}, staircase={staircaseCount}, lift={liftCount}, corridor={corridorCount}, wall={wallCount}"
+        );
+
+        foreach (var d in destinations)
+            yield return d;
     }
 
     private void PopulateBuildingOptions()
     {
         m_BuildingOptions.Clear();
-        foreach (LocationData location in GetDestinationLocations())
+
+        var dest = GetDestinationLocations().ToList();
+        Debug.Log($"[NavigationFlowController] PopulateBuildingOptions: destinations={dest.Count}");
+
+        foreach (LocationData location in dest)
         {
             if (!m_BuildingOptions.Contains(location.building))
                 m_BuildingOptions.Add(location.building);
@@ -635,11 +740,19 @@ public class NavigationFlowController : MonoBehaviour
     private void PopulateRoomOptions(string building, int floor)
     {
         m_RoomOptions.Clear();
-        foreach (LocationData location in GetDestinationLocations())
+
+        var dest = GetDestinationLocations().ToList();
+        Debug.Log($"[NavigationFlowController] PopulateRoomOptions: building='{building}', floor={floor}, destinations={dest.Count}");
+
+        foreach (LocationData location in dest)
         {
             if (location.building == building && location.floor == floor)
                 m_RoomOptions.Add(location);
         }
+
+        Debug.Log($"[NavigationFlowController] Room matches count={m_RoomOptions.Count}");
+        foreach (var r in m_RoomOptions)
+            Debug.Log($"[NavigationFlowController] Room match: id={r.id}, displayName={r.displayName}, type={r.type}, building={r.building}, floor={r.floor}");
 
         m_UI.RoomDropdown.ClearOptions();
         List<string> options = m_RoomOptions.Count == 0

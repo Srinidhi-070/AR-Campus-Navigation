@@ -1,0 +1,29 @@
+services:
+  api:
+    build: .
+    container_name: ar-campus-api
+    ports:
+      - "8000:8000"
+    environment:
+      # If you also run ollama in this compose file, you can point to it.
+      # Otherwise, set OLLAMA_URL to your existing ollama endpoint.
+      OLLAMA_URL: ${OLLAMA_URL:-http://ollama:11434/api/generate}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-llama3.2}
+    restart: unless-stopped
+
+  # Optional: only needed if you want /chat to work.
+  # If you don't want the LLM running, you can comment out/remove this service.
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ar-campus-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    # Ensure model is pulled at startup (helps for first demo).
+    # If you don't want auto-pull, remove this command.
+    command: ["sh", "-c", "ollama pull ${OLLAMA_MODEL:-llama3.2} && ollama serve"]
+    restart: unless-stopped
+
+volumes:
+  ollama_data:

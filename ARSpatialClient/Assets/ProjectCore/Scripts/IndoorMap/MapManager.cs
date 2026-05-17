@@ -182,6 +182,12 @@ public class MapManager : MonoBehaviour
 
     public void DeleteMap(string mapName)
     {
+        // Always clear any currently spawned wall visuals.
+        // This fixes cases where a deleted map wasn't the active one,
+        // so gridManager.ResetGrid() never ran.
+        if (gridManager != null)
+            gridManager.ClearWalls();
+
         if (maps.ContainsKey(mapName))
             maps.Remove(mapName);
 
