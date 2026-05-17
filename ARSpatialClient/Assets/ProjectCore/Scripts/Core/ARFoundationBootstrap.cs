@@ -15,6 +15,12 @@ using Unity.XR.CoreUtils;
 /// </summary>
 public class ARFoundationBootstrap : MonoBehaviour
 {
+#if UNITY_ANDROID || UNITY_IOS
+    private InputAction m_TrackingStateAction;
+    private InputAction m_PositionAction;
+    private InputAction m_RotationAction;
+#endif
+
     void Awake()
     {
 #if UNITY_ANDROID || UNITY_IOS
@@ -147,29 +153,29 @@ public class ARFoundationBootstrap : MonoBehaviour
         if (poseDriver == null)
             poseDriver = mainCamera.gameObject.AddComponent<TrackedPoseDriver>();
 
-        var trackingStateAction = new InputAction(
+        m_TrackingStateAction = new InputAction(
             "HMD Tracking State",
             InputActionType.PassThrough,
             "<XRHMD>/trackingState",
             expectedControlType: "Integer");
-        trackingStateAction.Enable();
-        poseDriver.trackingStateInput = new InputActionProperty(trackingStateAction);
+        m_TrackingStateAction.Enable();
+        poseDriver.trackingStateInput = new InputActionProperty(m_TrackingStateAction);
 
-        var positionAction = new InputAction(
+        m_PositionAction = new InputAction(
             "HMD Position",
             InputActionType.PassThrough,
             "<XRHMD>/centerEyePosition",
             expectedControlType: "Vector3");
-        positionAction.Enable();
-        poseDriver.positionInput = new InputActionProperty(positionAction);
+        m_PositionAction.Enable();
+        poseDriver.positionInput = new InputActionProperty(m_PositionAction);
 
-        var rotationAction = new InputAction(
+        m_RotationAction = new InputAction(
             "HMD Rotation",
             InputActionType.PassThrough,
             "<XRHMD>/centerEyeRotation",
             expectedControlType: "Quaternion");
-        rotationAction.Enable();
-        poseDriver.rotationInput = new InputActionProperty(rotationAction);
+        m_RotationAction.Enable();
+        poseDriver.rotationInput = new InputActionProperty(m_RotationAction);
         poseDriver.updateType = TrackedPoseDriver.UpdateType.UpdateAndBeforeRender;
 #endif
     }
