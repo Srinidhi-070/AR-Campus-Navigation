@@ -16,9 +16,6 @@ using Unity.XR.CoreUtils;
 public class ARFoundationBootstrap : MonoBehaviour
 {
 #if UNITY_ANDROID || UNITY_IOS
-    private InputAction m_TrackingStateAction;
-    private InputAction m_PositionAction;
-    private InputAction m_RotationAction;
 #endif
 
     void Awake()
@@ -149,34 +146,9 @@ public class ARFoundationBootstrap : MonoBehaviour
     private void EnsureTrackedPoseDriver(Camera mainCamera)
     {
 #if UNITY_ANDROID || UNITY_IOS
-        TrackedPoseDriver poseDriver = mainCamera.GetComponent<TrackedPoseDriver>();
+        ARPoseDriver poseDriver = mainCamera.GetComponent<ARPoseDriver>();
         if (poseDriver == null)
-            poseDriver = mainCamera.gameObject.AddComponent<TrackedPoseDriver>();
-
-        m_TrackingStateAction = new InputAction(
-            "HMD Tracking State",
-            InputActionType.PassThrough,
-            "<XRHMD>/trackingState",
-            expectedControlType: "Integer");
-        m_TrackingStateAction.Enable();
-        poseDriver.trackingStateInput = new InputActionProperty(m_TrackingStateAction);
-
-        m_PositionAction = new InputAction(
-            "HMD Position",
-            InputActionType.PassThrough,
-            "<XRHMD>/centerEyePosition",
-            expectedControlType: "Vector3");
-        m_PositionAction.Enable();
-        poseDriver.positionInput = new InputActionProperty(m_PositionAction);
-
-        m_RotationAction = new InputAction(
-            "HMD Rotation",
-            InputActionType.PassThrough,
-            "<XRHMD>/centerEyeRotation",
-            expectedControlType: "Quaternion");
-        m_RotationAction.Enable();
-        poseDriver.rotationInput = new InputActionProperty(m_RotationAction);
-        poseDriver.updateType = TrackedPoseDriver.UpdateType.UpdateAndBeforeRender;
+            poseDriver = mainCamera.gameObject.AddComponent<ARPoseDriver>();
 #endif
     }
 
