@@ -18,6 +18,7 @@ public class NavigationFlowController : MonoBehaviour
     private float m_MetersPerGridUnit = 1.0f;
 
     private List<Vector3> m_ActiveWorldPath;
+    private List<PathVisualizer.FloorTransition> m_ActiveTransitions;
     private float m_PathUpdateTimer = 0f;
 
     private readonly List<string> m_BuildingOptions = new List<string>();
@@ -435,6 +436,7 @@ public class NavigationFlowController : MonoBehaviour
         }
 
         m_ActiveWorldPath = worldPath; // Store for live dynamic updating
+        m_ActiveTransitions = transitions; // Store transitions so they survive path trimming
 
         m_PathVisualizer.ClearPath();
         m_PathVisualizer.DrawPath(worldPath, transitions);
@@ -464,10 +466,8 @@ public class NavigationFlowController : MonoBehaviour
         int searchLimit = Mathf.Min(m_ActiveWorldPath.Count, 20);
         for (int i = 0; i < searchLimit; i++)
         {
-            // Measure distance on the XZ floor plane
-            float dist = Vector2.Distance(
-                new Vector2(userPos.x, userPos.z), 
-                new Vector2(m_ActiveWorldPath[i].x, m_ActiveWorldPath[i].z));
+            // Measure distance in 3D space so vertical stairs aren't skipped prematurely
+            float dist = Vector3.Distance(userPos, m_ActiveWorldPath[i]);
                 
             if (dist < minDistance)
             {
@@ -481,15 +481,30 @@ public class NavigationFlowController : MonoBehaviour
         {
             m_ActiveWorldPath.RemoveRange(0, closestIndex);
             
+            // Shift transition indices
+            if (m_ActiveTransitions != null)
+            {
+                for (int i = m_ActiveTransitions.Count - 1; i >= 0; i--)
+                {
+                    var t = m_ActiveTransitions[i];
+                    t.segmentStartIndex -= closestIndex;
+                    if (t.segmentStartIndex < 0)
+                        m_ActiveTransitions.RemoveAt(i);
+                    else
+                        m_ActiveTransitions[i] = t;
+                }
+            }
+
             if (m_ActiveWorldPath.Count < 2)
             {
                 m_PathVisualizer.ClearPath();
                 m_UI.ShowStatus("Destination Reached!");
                 m_ActiveWorldPath = null;
+                m_ActiveTransitions = null;
             }
             else
             {
-                m_PathVisualizer.DrawPath(m_ActiveWorldPath);
+                m_PathVisualizer.DrawPath(m_ActiveWorldPath, m_ActiveTransitions);
             }
         }
     }
