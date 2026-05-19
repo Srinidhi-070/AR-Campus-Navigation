@@ -14,8 +14,7 @@ public class QRScanner : MonoBehaviour
 
     void Awake()
     {
-        // Create UI component
-        m_UI = gameObject.AddComponent<QRScannerUI>();
+        // UI component is created lazily in WireUI() to avoid duplicates
         
         if (QRLocationManager.Instance != null)
             QRLocationManager.Instance.OnLocationChanged += OnLocationSet;

@@ -15,6 +15,7 @@ public class ChatManager : MonoBehaviour
     [HideInInspector] public ScrollRect chatScrollRect;
 
     private readonly List<CampusApiClient.ChatHistoryMessage> m_History = new List<CampusApiClient.ChatHistoryMessage>();
+    private const int MaxHistoryMessages = 20;
 
     public void Configure(
         CampusApiClient apiClient,
@@ -40,6 +41,10 @@ public class ChatManager : MonoBehaviour
 
         SpawnBubble(userText, true);
         m_History.Add(new CampusApiClient.ChatHistoryMessage { role = "user", content = userText });
+
+        // Cap history to prevent unbounded growth and oversized API payloads
+        while (m_History.Count > MaxHistoryMessages)
+            m_History.RemoveAt(0);
 
         if (inputField != null)
             inputField.text = string.Empty;
@@ -141,5 +146,19 @@ public class ChatManager : MonoBehaviour
         // Prevent bubble from getting endlessly wide
         LayoutElement textLayout = textGO.AddComponent<LayoutElement>();
         textLayout.preferredWidth = Mathf.Min(text.Length * 14f, 600f);
+    }
+
+    /// <summary>
+    /// Clears all chat history and destroys spawned UI bubble GameObjects.
+    /// </summary>
+    public void ClearChat()
+    {
+        m_History.Clear();
+
+        if (chatContainer != null)
+        {
+            for (int i = chatContainer.childCount - 1; i >= 0; i--)
+                Destroy(chatContainer.GetChild(i).gameObject);
+        }
     }
 }

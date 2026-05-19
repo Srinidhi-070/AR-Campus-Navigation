@@ -50,6 +50,7 @@ class PathPoint(BaseModel):
     y: float
     z: float
     rotation_y: float = 0.0
+    type: str = ""
     building: str
     floor: int
 

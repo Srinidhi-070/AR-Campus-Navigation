@@ -311,6 +311,43 @@ public class NavigationFlowController : MonoBehaviour
             return;
         }
 
+        // ── Detect floor transitions BEFORE coordinate transformation ──
+        // We need the original floor/building data from the response.
+        List<PathVisualizer.FloorTransition> transitions = new List<PathVisualizer.FloorTransition>();
+        for (int i = 0; i < response.path.Count - 1; i++)
+        {
+            CampusApiClient.PathPointPayload current = response.path[i];
+            CampusApiClient.PathPointPayload next = response.path[i + 1];
+
+            if (current.floor != next.floor)
+            {
+                // Determine transition type using the node 'type' field from the backend.
+                // Fallback: check if node ID contains "LIFT".
+                string currentType = (current.type ?? "").ToUpper();
+                string nextType = (next.type ?? "").ToUpper();
+                string currentId = (current.id ?? "").ToUpper();
+                string nextId = (next.id ?? "").ToUpper();
+
+                bool isLift = currentType.Contains("LIFT") || nextType.Contains("LIFT") ||
+                              currentId.Contains("LIFT") || nextId.Contains("LIFT");
+
+                transitions.Add(new PathVisualizer.FloorTransition
+                {
+                    segmentStartIndex = i,
+                    type = isLift
+                        ? PathVisualizer.TransitionType.Lift
+                        : PathVisualizer.TransitionType.Staircase,
+                    fromFloor = current.floor,
+                    toFloor = next.floor,
+                    goingUp = next.floor > current.floor
+                });
+
+                Debug.Log($"[NavigationFlowController] Floor transition at segment {i}: " +
+                          $"{(isLift ? "Lift" : "Stairs")} Floor {current.floor} → {next.floor}" +
+                          $" (type: {current.type} → {next.type})");
+            }
+        }
+
         List<Vector3> worldPath = new List<Vector3>();
         foreach (CampusApiClient.PathPointPayload point in response.path)
             worldPath.Add(new Vector3(point.x, point.y, point.z));
@@ -338,7 +375,7 @@ public class NavigationFlowController : MonoBehaviour
                 {
                     Debug.LogWarning("[NavigationFlowController] No camera or AR plane available. Rendering path unaligned.");
                     m_PathVisualizer.ClearPath();
-                    m_PathVisualizer.DrawPath(worldPath);
+                    m_PathVisualizer.DrawPath(worldPath, transitions);
                     m_UI.ShowDirections(response.directions ?? new List<string>());
                     m_UI.ShowStatus("Navigation active (unaligned).");
                     RefreshControls();
@@ -400,7 +437,7 @@ public class NavigationFlowController : MonoBehaviour
         m_ActiveWorldPath = worldPath; // Store for live dynamic updating
 
         m_PathVisualizer.ClearPath();
-        m_PathVisualizer.DrawPath(worldPath);
+        m_PathVisualizer.DrawPath(worldPath, transitions);
         m_UI.ShowDirections(response.directions ?? new List<string>());
         m_UI.ShowStatus("Navigation active.");
         RefreshControls();
@@ -412,7 +449,7 @@ public class NavigationFlowController : MonoBehaviour
             return;
 
         m_PathUpdateTimer += Time.deltaTime;
-        if (m_PathUpdateTimer < 0.5f) // Update route twice a second
+        if (m_PathUpdateTimer < 0.25f) // Update route 4x per second for smoother tracking
             return;
         m_PathUpdateTimer = 0f;
 
@@ -423,8 +460,8 @@ public class NavigationFlowController : MonoBehaviour
         int closestIndex = 0;
         float minDistance = float.MaxValue;
 
-        // Look ahead up to 5 waypoints to see if user has reached them
-        int searchLimit = Mathf.Min(m_ActiveWorldPath.Count, 5);
+        // Look ahead up to 20 waypoints to see if user has reached them
+        int searchLimit = Mathf.Min(m_ActiveWorldPath.Count, 20);
         for (int i = 0; i < searchLimit; i++)
         {
             // Measure distance on the XZ floor plane
@@ -627,6 +664,7 @@ public class NavigationFlowController : MonoBehaviour
                 y = location.y,
                 z = location.z,
                 rotation_y = location.rotation_y,
+                type = location.type,
                 building = location.building,
                 floor = location.floor
             }).ToList(),

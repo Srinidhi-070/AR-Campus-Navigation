@@ -70,6 +70,7 @@ public class CampusApiClient : MonoBehaviour
         public float y;
         public float z;
         public float rotation_y;
+        public string type;
         public string building;
         public int floor;
     }

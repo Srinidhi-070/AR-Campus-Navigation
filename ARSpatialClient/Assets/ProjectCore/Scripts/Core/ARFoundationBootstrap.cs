@@ -107,7 +107,7 @@ public class ARFoundationBootstrap : MonoBehaviour
         mainCamera.backgroundColor = Color.black;
         mainCamera.fieldOfView = 60f;
         mainCamera.nearClipPlane = 0.1f;
-        mainCamera.farClipPlane = 20f;
+        mainCamera.farClipPlane = 100f;
         
         // Configure XR Origin
         xrOrigin.Camera = mainCamera;
@@ -251,61 +251,4 @@ public class ARFoundationBootstrap : MonoBehaviour
 #endif
     }
     
-    private GameObject CreatePointCloudPrefab()
-    {
-#if UNITY_ANDROID || UNITY_IOS
-        GameObject prefab = new GameObject("ARPointCloud");
-        
-        // ARPointCloud component is REQUIRED — it feeds feature point data to the visualizer
-        prefab.AddComponent<ARPointCloud>();
-        
-        // ARPointCloudParticleVisualizer renders each feature point as a particle
-        prefab.AddComponent<ARPointCloudParticleVisualizer>();
-        
-        // ParticleSystem — required by ARPointCloudParticleVisualizer
-        ParticleSystem ps = prefab.GetComponent<ParticleSystem>();
-        if (ps == null)
-            ps = prefab.AddComponent<ParticleSystem>();
-        
-        // Configure particle system for small white dots
-        var main = ps.main;
-        main.loop = false;
-        main.playOnAwake = false;
-        main.startSize = 0.02f;
-        main.startColor = new Color(1f, 1f, 1f, 0.85f); // White with slight transparency
-        main.startLifetime = float.MaxValue;
-        main.maxParticles = 5000;
-        main.simulationSpace = ParticleSystemSimulationSpace.World;
-        
-        // Disable emission (ARPointCloudParticleVisualizer sets particles manually)
-        var emission = ps.emission;
-        emission.enabled = false;
-        
-        // Disable shape
-        var shape = ps.shape;
-        shape.enabled = false;
-        
-        // Configure renderer for small dots
-        ParticleSystemRenderer psRenderer = prefab.GetComponent<ParticleSystemRenderer>();
-        if (psRenderer != null)
-        {
-            // Use the default particle material
-            Shader particleShader = Shader.Find("Sprites/Default");
-            if (particleShader == null) particleShader = Shader.Find("Particles/Standard Unlit");
-            if (particleShader != null)
-            {
-                Material particleMat = new Material(particleShader);
-                particleMat.color = new Color(1f, 1f, 1f, 0.85f);
-                psRenderer.material = particleMat;
-            }
-        }
-        
-        prefab.SetActive(false);
-        
-        Debug.Log("[ARFoundationBootstrap] Created point cloud prefab with ParticleSystem");
-        return prefab;
-#else
-        return null;
-#endif
-    }
 }

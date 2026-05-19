@@ -20,7 +20,6 @@ public class CampusRuntimeInstaller : MonoBehaviour
 
         m_Initialized = true;
         DisableLegacySceneUI();
-        DisableLegacyRuntimeComponents();
         InstallRuntime();
         
         Debug.Log("[CampusRuntimeInstaller] Installation complete");
@@ -74,12 +73,6 @@ public class CampusRuntimeInstaller : MonoBehaviour
         }
     }
 
-    private void DisableLegacyRuntimeComponents()
-    {
-        // All legacy runtime components (NavigationManager, PathfindingManager,
-        // IndoorNavigationBridge, IndoorPathfinding) have been removed from the project.
-        // This method is retained as a hook for future cleanup if needed.
-    }
 
     private void InstallRuntime()
     {
@@ -200,10 +193,4 @@ public class CampusRuntimeInstaller : MonoBehaviour
         return component;
     }
 
-    private void DisableIfPresent<T>() where T : Behaviour
-    {
-        T component = FindObjectOfType<T>();
-        if (component != null)
-            component.enabled = false;
-    }
 }

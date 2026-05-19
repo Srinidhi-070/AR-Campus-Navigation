@@ -315,7 +315,9 @@ public class QRScannerUI : MonoBehaviour
         if (m_InstructionText != null) m_InstructionText.text = "QR Code Detected!";
         if (m_ResultText != null) m_ResultText.text = "Processing...";
 
-        m_IsScanning = false; // harmless; only exists under ZXING_ENABLED
+#if ZXING_ENABLED
+        m_IsScanning = false;
+#endif
         m_OnQRDetected?.Invoke(payload);
 
         // QRScanner.cs will call CloseScanner() after location set,
@@ -440,13 +442,17 @@ public class QRScannerUI : MonoBehaviour
         {
             scanCount++;
 
+            bool imageAcquired = false;
+            Color32[] pixels = null;
+            int w = 0, h = 0;
+
             try
             {
                 // Acquire the raw CPU image directly from ARCore
                 if (cameraManager.TryAcquireLatestCpuImage(out UnityEngine.XR.ARSubsystems.XRCpuImage image))
                 {
-                    int targetWidth = image.width;
-                    int targetHeight = image.height;
+                    w = image.width;
+                    h = image.height;
 
                     using (image) // GUARANTEES image is disposed even if an exception occurs below
                     {
@@ -455,26 +461,27 @@ public class QRScannerUI : MonoBehaviour
                         // Use higher resolution for reliable QR detection
                         // 320x240 was too low — QR codes need ~640px minimum to decode
                         
-                        // Only downscale if very large (saves CPU while keeping QR readable)
-                        if (image.width > 1280)
+                        // Downscale aggressively to max 640 width to save CPU/Memory
+                        // 640px is plenty for ZXing to read standard QR codes
+                        if (w > 640)
                         {
-                            targetWidth = image.width * 3 / 4;
-                            targetHeight = image.height * 3 / 4;
+                            h = (h * 640) / w;
+                            w = 640;
                         }
 
                         var conversionParams = new UnityEngine.XR.ARSubsystems.XRCpuImage.ConversionParams
                         {
                             inputRect = new RectInt(0, 0, image.width, image.height),
-                            outputDimensions = new Vector2Int(targetWidth, targetHeight),
+                            outputDimensions = new Vector2Int(w, h),
                             outputFormat = TextureFormat.RGBA32,
                             transformation = UnityEngine.XR.ARSubsystems.XRCpuImage.Transformation.None
                         };
 
-                        if (conversionTexture == null || conversionTexture.width != targetWidth || conversionTexture.height != targetHeight)
+                        if (conversionTexture == null || conversionTexture.width != w || conversionTexture.height != h)
                         {
                             if (conversionTexture != null) Destroy(conversionTexture);
-                            conversionTexture = new Texture2D(targetWidth, targetHeight, TextureFormat.RGBA32, false);
-                            Debug.Log($"[QRScannerUI] Created conversion texture: {targetWidth}x{targetHeight}");
+                            conversionTexture = new Texture2D(w, h, TextureFormat.RGBA32, false);
+                            Debug.Log($"[QRScannerUI] Created conversion texture: {w}x{h}");
                         }
 
                         var rawTextureData = conversionTexture.GetRawTextureData<byte>();
@@ -483,31 +490,8 @@ public class QRScannerUI : MonoBehaviour
                     }
                     
                     conversionTexture.Apply();
-
-                    Color32[] pixels = conversionTexture.GetPixels32();
-                    var luminance = new Color32LuminanceSource(pixels, targetWidth, targetHeight);
-                    var result = m_Reader.Decode(luminance);
-
-                    if (result != null && !string.IsNullOrEmpty(result.Text))
-                    {
-                        Debug.Log($"[QRScannerUI] ✅ QR detected: {result.Text}");
-                        m_IsScanning = false;
-                        
-                        if (m_InstructionText != null)
-                            m_InstructionText.text = "QR Code Detected!";
-                        if (m_ResultText != null)
-                            m_ResultText.text = "Processing...";
-
-                        if (m_CornerImages != null)
-                        {
-                            Color green = new Color(0.1f, 1f, 0.3f, 1f);
-                            foreach (var img in m_CornerImages)
-                                if (img != null) img.color = green;
-                        }
-
-                        m_OnQRDetected?.Invoke(result.Text);
-                        break;
-                    }
+                    pixels = conversionTexture.GetPixels32();
+                    imageAcquired = true;
                 }
                 else
                 {
@@ -519,6 +503,55 @@ public class QRScannerUI : MonoBehaviour
             catch (System.Exception ex)
             {
                 Debug.LogWarning($"[QRScannerUI] Frame {scanCount} error: {ex.GetType().Name}: {ex.Message}");
+            }
+
+            // Outside of try-catch block so we can use yield return
+            if (imageAcquired && pixels != null)
+            {
+                // Offload heavy ZXing decode to a background thread to prevent ARCore IMU timeout
+                // This is CRITICAL to avoid blocking the main thread and crashing the AR Session!
+                var decodeTask = System.Threading.Tasks.Task.Run(() =>
+                {
+                    try
+                    {
+                        var luminance = new Color32LuminanceSource(pixels, w, h);
+                        return m_Reader.Decode(luminance);
+                    }
+                    catch (System.Exception ex)
+                    {
+                        Debug.LogWarning($"[QRScannerUI] ZXing Decode exception: {ex.Message}");
+                        return null;
+                    }
+                });
+
+                // Yield until background thread finishes so Unity can process ARCore sensor events
+                while (!decodeTask.IsCompleted)
+                {
+                    yield return null;
+                }
+
+                var result = decodeTask.Result;
+
+                if (result != null && !string.IsNullOrEmpty(result.Text))
+                {
+                    Debug.Log($"[QRScannerUI] ✅ QR detected: {result.Text}");
+                    m_IsScanning = false;
+                    
+                    if (m_InstructionText != null)
+                        m_InstructionText.text = "QR Code Detected!";
+                    if (m_ResultText != null)
+                        m_ResultText.text = "Processing...";
+
+                    if (m_CornerImages != null)
+                    {
+                        Color green = new Color(0.1f, 1f, 0.3f, 1f);
+                        foreach (var img in m_CornerImages)
+                            if (img != null) img.color = green;
+                    }
+
+                    m_OnQRDetected?.Invoke(result.Text);
+                    break;
+                }
             }
 
             // Log progress periodically

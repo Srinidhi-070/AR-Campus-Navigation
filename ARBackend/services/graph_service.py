@@ -39,7 +39,8 @@ class GraphService:
             node = LocationNode(**raw)
             node_id = node.id.upper()
             if node_id in seen:
-                raise ValueError(f"Duplicate node id in nodes.json: {node_id}")
+                print(f"WARNING: Duplicate node id in nodes.json: {node_id} — skipping")
+                continue
             seen.add(node_id)
             node.id = node_id
             node.neighbors = [neighbor.upper() for neighbor in node.neighbors]
@@ -85,6 +86,7 @@ class GraphService:
                     y=node.y,
                     z=node.z,
                     rotation_y=getattr(node, 'rotation_y', 0.0),
+                    type=getattr(node, 'type', ''),
                     building=node.building,
                     floor=node.floor,
                 )

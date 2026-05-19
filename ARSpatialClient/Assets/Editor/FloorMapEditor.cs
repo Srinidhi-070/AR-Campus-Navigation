@@ -237,7 +237,8 @@ public class FloorMapEditor : EditorWindow
                 {
                     // Save current work before loading different map
                     if (!string.IsNullOrEmpty(m_MapManager.currentMapName) && 
-                        m_MapManager.currentMapName != mapName)
+                        m_MapManager.currentMapName != mapName &&
+                        m_GridManager != null && m_GridManager.grid != null)
                     {
                         bool saveBeforeLoad = EditorUtility.DisplayDialog(
                             "Save Current Work?", 
@@ -321,6 +322,16 @@ public class FloorMapEditor : EditorWindow
             EditorGUILayout.LabelField("Position", $"({m_SelectedNode.x}, {m_SelectedNode.y})");
             EditorGUILayout.LabelField("Type", m_SelectedNode.nodeType.ToString());
             EditorGUILayout.LabelField("Walkable", m_SelectedNode.isWalkable ? "Yes" : "No");
+
+            if (m_SelectedNode.nodeType == NodeType.StairEntry || m_SelectedNode.nodeType == NodeType.LiftEntry)
+            {
+                EditorGUILayout.Space(4);
+                GUILayout.Label("🔗 CROSS-FLOOR CONNECTION", EditorStyles.boldLabel);
+                m_SelectedNode.connectedMap = EditorGUILayout.TextField("Connected Map Name", m_SelectedNode.connectedMap);
+                m_SelectedNode.connectedNode = EditorGUILayout.Vector2IntField("Connected Node (X,Y)", m_SelectedNode.connectedNode);
+                
+                EditorGUILayout.HelpBox("Set to the exact Map Name and grid coordinates of the stairs/lift on the other floor.", MessageType.Info);
+            }
 
             EditorGUILayout.Space(4);
             GUILayout.Label("Node ID / Name:", EditorStyles.miniLabel);

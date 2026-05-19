@@ -4,12 +4,12 @@ import httpx
 
 try:
     import numpy as np
-except Exception:  # pragma: no cover - optional dependency fallback
+except ImportError:  # pragma: no cover - optional dependency
     np = None
 
 try:
     from sentence_transformers import SentenceTransformer
-except Exception:  # pragma: no cover - optional dependency fallback
+except ImportError:  # pragma: no cover - optional dependency
     SentenceTransformer = None
 
 from schemas import ChatMessage
