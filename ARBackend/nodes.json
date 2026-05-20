@@ -13,10 +13,30 @@
             "qr_point": true,
             "description": "House Entrance 1 on floor 1 of House.",
             "neighbors": [
+                "STAIRCASE_1",
+                "KITCHEN_ENTRANCE_1",
+                "BATHROOM_ENTRANCE_1",
+                "TOILET_1"
+            ]
+        },
+        {
+            "id": "STAIRCASE_1",
+            "displayName": "Staircase 1",
+            "type": "staircase",
+            "building": "House",
+            "floor": 1,
+            "x": 18.0,
+            "y": 4.0,
+            "z": 53.0,
+            "rotation_y": 0.0,
+            "qr_point": true,
+            "description": "Staircase 1 on floor 1 of House.",
+            "neighbors": [
+                "HOUSE_ENTRANCE_1",
                 "KITCHEN_ENTRANCE_1",
                 "BATHROOM_ENTRANCE_1",
                 "TOILET_1",
-                "STAIRCASE_F1"
+                "STAIR_CASE_1"
             ]
         },
         {
@@ -33,6 +53,7 @@
             "description": "Kitchen Entrance 1 on floor 1 of House.",
             "neighbors": [
                 "HOUSE_ENTRANCE_1",
+                "STAIRCASE_1",
                 "BATHROOM_ENTRANCE_1",
                 "TOILET_1"
             ]
@@ -51,6 +72,7 @@
             "description": "Bathroom Entrance 1 on floor 1 of House.",
             "neighbors": [
                 "HOUSE_ENTRANCE_1",
+                "STAIRCASE_1",
                 "KITCHEN_ENTRANCE_1",
                 "TOILET_1"
             ]
@@ -69,43 +91,9 @@
             "description": "Toilet 1 on floor 1 of House.",
             "neighbors": [
                 "HOUSE_ENTRANCE_1",
+                "STAIRCASE_1",
                 "KITCHEN_ENTRANCE_1",
                 "BATHROOM_ENTRANCE_1"
-            ]
-        },
-        {
-            "id": "STAIRCASE_F1",
-            "displayName": "Staircase (Floor 1)",
-            "type": "staircase",
-            "building": "House",
-            "floor": 1,
-            "x": 16.0,
-            "y": 4.0,
-            "z": 57.0,
-            "rotation_y": 0.0,
-            "qr_point": false,
-            "description": "Staircase connecting floor 1 to floor 2.",
-            "neighbors": [
-                "HOUSE_ENTRANCE_1",
-                "STAIRCASE_F2"
-            ]
-        },
-        {
-            "id": "STAIRCASE_F2",
-            "displayName": "Staircase (Floor 2)",
-            "type": "staircase",
-            "building": "House",
-            "floor": 2,
-            "x": 16.0,
-            "y": 8.0,
-            "z": 57.0,
-            "rotation_y": 0.0,
-            "qr_point": false,
-            "description": "Staircase connecting floor 2 to floor 1.",
-            "neighbors": [
-                "STAIRCASE_F1",
-                "HOUSE_ENTRANCE_2",
-                "ROOM_1"
             ]
         },
         {
@@ -121,10 +109,30 @@
             "qr_point": true,
             "description": "Room 1 on floor 2 of House.",
             "neighbors": [
+                "STAIR_CASE_1",
                 "HOUSE_ENTRANCE_2",
                 "POOJA_ROOM",
-                "ROOM_2",
-                "STAIRCASE_F2"
+                "ROOM_2"
+            ]
+        },
+        {
+            "id": "STAIR_CASE_1",
+            "displayName": "Stair Case 1",
+            "type": "staircase",
+            "building": "House",
+            "floor": 2,
+            "x": 16.0,
+            "y": 8.0,
+            "z": 55.0,
+            "rotation_y": 0.0,
+            "qr_point": true,
+            "description": "Stair Case 1 on floor 2 of House.",
+            "neighbors": [
+                "STAIRCASE_1",
+                "ROOM_1",
+                "HOUSE_ENTRANCE_2",
+                "POOJA_ROOM",
+                "ROOM_2"
             ]
         },
         {
@@ -141,9 +149,9 @@
             "description": "House Entrance 2 on floor 2 of House.",
             "neighbors": [
                 "ROOM_1",
+                "STAIR_CASE_1",
                 "POOJA_ROOM",
-                "ROOM_2",
-                "STAIRCASE_F2"
+                "ROOM_2"
             ]
         },
         {
@@ -160,6 +168,7 @@
             "description": "Pooja Room on floor 2 of House.",
             "neighbors": [
                 "ROOM_1",
+                "STAIR_CASE_1",
                 "HOUSE_ENTRANCE_2",
                 "ROOM_2"
             ]
@@ -178,6 +187,7 @@
             "description": "Room 2 on floor 2 of House.",
             "neighbors": [
                 "ROOM_1",
+                "STAIR_CASE_1",
                 "HOUSE_ENTRANCE_2",
                 "POOJA_ROOM",
                 "TOILET_2"
