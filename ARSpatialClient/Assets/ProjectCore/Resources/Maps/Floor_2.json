@@ -14739,13 +14739,13 @@
             "y": 53,
             "isWalkable": true,
             "nodeType": 2,
-            "connectedMap": "",
+            "connectedMap": "Floor_1",
             "connectedNode": {
-                "x": 0,
-                "y": 0
+                "x": 16,
+                "y": 55
             },
             "connectionID": -1,
-            "nodeName": ""
+            "nodeName": "STAIRCASE_1"
         },
         {
             "x": 18,

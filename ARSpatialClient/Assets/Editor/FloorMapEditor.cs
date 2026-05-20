@@ -345,6 +345,18 @@ public class FloorMapEditor : EditorWindow
                 m_QRPreview = LoadExistingQR(m_SelectedNode.nodeName);
                 Repaint();
             }
+
+            GUI.backgroundColor = new Color(0.9f, 0.3f, 0.3f);
+            if (GUILayout.Button("🗑️ Clear Node Data", GUILayout.Height(24)))
+            {
+                m_SelectedNode.nodeName = "";
+                m_NodeNameInput = "";
+                m_SelectedNode.connectedMap = "";
+                m_SelectedNode.connectedNode = Vector2Int.zero;
+                m_QRPreview = null;
+                Debug.Log("[FloorMapEditor] Cleared node data.");
+                Repaint();
+            }
             GUI.backgroundColor = Color.white;
 
             EditorGUILayout.Space(4);

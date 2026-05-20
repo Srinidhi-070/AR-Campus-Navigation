@@ -13205,13 +13205,13 @@
             "y": 55,
             "isWalkable": true,
             "nodeType": 2,
-            "connectedMap": "",
+            "connectedMap": "Floor_2",
             "connectedNode": {
-                "x": 0,
-                "y": 0
+                "x": 18,
+                "y": 53
             },
             "connectionID": -1,
-            "nodeName": ""
+            "nodeName": "STAIRCASE_2"
         },
         {
             "x": 16,
@@ -14741,11 +14741,11 @@
             "nodeType": 2,
             "connectedMap": "Floor_2",
             "connectedNode": {
-                "x": 18,
-                "y": 53
+                "x": 16,
+                "y": 55
             },
             "connectionID": -1,
-            "nodeName": "STAIR_CASE"
+            "nodeName": "STAIRCASE_1"
         },
         {
             "x": 18,
