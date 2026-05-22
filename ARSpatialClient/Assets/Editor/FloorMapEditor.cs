@@ -883,7 +883,7 @@ public class FloorMapEditor : EditorWindow
 
     void ExportToNodesJson()
     {
-        // Collect all named nodes across all maps
+        // Collect all walkable nodes across all maps (both named rooms and unnamed corridors)
         List<ExportNode> exportNodes = new List<ExportNode>();
         List<string> allMaps = m_MapManager.GetAllMaps();
         HashSet<string> seenIds = new HashSet<string>();
@@ -902,32 +902,39 @@ public class FloorMapEditor : EditorWindow
                 for (int y = 0; y < grid.GetLength(1); y++)
                 {
                     Node n = grid[x, y];
-                    if (n == null || string.IsNullOrEmpty(n.nodeName)) continue;
+                    if (n == null || !n.isWalkable) continue;
 
-                    string normalizedId = n.nodeName.Trim().ToUpper();
-                    if (!seenIds.Add(normalizedId))
+                    string normalizedId = "";
+                    bool isNamed = !string.IsNullOrEmpty(n.nodeName);
+                    
+                    if (isNamed)
                     {
-                        EditorUtility.DisplayDialog(
-                            "Duplicate Node ID",
-                            $"Duplicate node_id detected: {normalizedId}\n\nEach exported node_id must be unique across all maps.",
-                            "OK");
-                        return;
+                        normalizedId = n.nodeName.Trim().ToUpper();
+                        if (!seenIds.Add(normalizedId))
+                        {
+                            EditorUtility.DisplayDialog(
+                                "Duplicate Node ID",
+                                $"Duplicate node_id detected: {normalizedId}\n\nEach exported node_id must be unique across all maps.",
+                                "OK");
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        normalizedId = $"WAYPOINT_{mapName.Replace(" ", "_")}_{x}_{y}".ToUpper();
                     }
 
                     ExportNode en = new ExportNode();
                     en.id          = normalizedId;
-                    en.displayName = FormatDisplayName(normalizedId);
+                    en.displayName = isNamed ? FormatDisplayName(normalizedId) : "";
                     en.type        = GetTypeString(n);
                     en.building    = bldg;
                     en.floor       = floor;
-                    en.qr_point    = true;
-                    en.description = $"{en.displayName} on floor {floor} of {bldg}.";
+                    en.qr_point    = isNamed;
+                    en.description = isNamed ? $"{en.displayName} on floor {floor} of {bldg}." : "";
                     en.gridX       = x;
                     en.gridY       = y;
                     en.mapName     = mapName;
-                    
-                    // Note: In a 2D grid we default rotation to 0. 
-                    // This can be modified manually in nodes.json for precise AR alignment.
                     en.rotation_y  = 0f;
 
                     exportNodes.Add(en);
@@ -939,14 +946,11 @@ public class FloorMapEditor : EditorWindow
         {
             WriteNodesJsonFiles("{\"nodes\":[]}");
             AssetDatabase.Refresh();
-            EditorUtility.DisplayDialog(
-                "Exported Empty Graph",
-                "No named nodes were found.\n\nCreate nodes by:\n1. Selecting a cell\n2. Assigning a name\n3. Exporting again",
-                "OK");
+            EditorUtility.DisplayDialog("Exported Empty Graph", "No walkable nodes found.", "OK");
             return;
         }
 
-        // Build graph edges through authored walkable cells.
+        // Build graph edges by connecting adjacent walkable cells
         BuildNeighbors(exportNodes);
 
         // Serialize to nodes.json format
@@ -976,11 +980,10 @@ public class FloorMapEditor : EditorWindow
 
         string json = JsonUtility.ToJson(wrapper, true);
         WriteNodesJsonFiles(json);
-
         AssetDatabase.Refresh();
 
         EditorUtility.DisplayDialog("Export Complete",
-            $"Exported {exportNodes.Count} nodes to Unity Resources and ARBackend/nodes.json", "OK");
+            $"Exported {exportNodes.Count} nodes (including corridors) to Unity Resources and ARBackend/nodes.json", "OK");
 
         Debug.Log($"[FloorMapEditor] Exported {exportNodes.Count} nodes to Unity Resources + backend nodes.json");
     }
@@ -998,50 +1001,23 @@ public class FloorMapEditor : EditorWindow
         int[] dx = { 0, 0, 1, -1 };
         int[] dy = { 1, -1, 0, 0 };
 
-        // For each named node, run BFS through walkable cells to find all reachable named nodes
+        // For each node, just connect to its 4 adjacent walkable neighbors
         foreach (ExportNode en in nodes)
         {
             Node[,] grid = m_MapManager.GetMap(en.mapName);
             if (grid == null) continue;
 
-            Queue<Vector2Int> queue = new Queue<Vector2Int>();
-            HashSet<Vector2Int> visited = new HashSet<Vector2Int>();
-            Vector2Int start = new Vector2Int(en.gridX, en.gridY);
-            queue.Enqueue(start);
-            visited.Add(start);
-
-            // BFS through walkable cells
-            while (queue.Count > 0)
+            for (int d = 0; d < 4; d++)
             {
-                Vector2Int current = queue.Dequeue();
+                int nx = en.gridX + dx[d];
+                int ny = en.gridY + dy[d];
 
-                // Check all 4 adjacent cells
-                for (int d = 0; d < 4; d++)
+                if (nx < 0 || ny < 0 || nx >= grid.GetLength(0) || ny >= grid.GetLength(1)) continue;
+
+                string neighborKey = $"{en.mapName}_{nx}_{ny}";
+                if (posToNode.TryGetValue(neighborKey, out ExportNode neighborNode))
                 {
-                    int nx = current.x + dx[d];
-                    int ny = current.y + dy[d];
-
-                    if (nx < 0 || ny < 0 || nx >= grid.GetLength(0) || ny >= grid.GetLength(1)) continue;
-
-                    Vector2Int next = new Vector2Int(nx, ny);
-                    if (!visited.Add(next)) continue; // Already visited
-
-                    Node neighborCell = grid[nx, ny];
-                    if (neighborCell == null || !neighborCell.isWalkable) continue; // Wall or null
-
-                    // Check if this cell has a named node
-                    string neighborKey = $"{en.mapName}_{nx}_{ny}";
-                    if (posToNode.TryGetValue(neighborKey, out ExportNode neighborNode))
-                    {
-                        // Found a named node - add as neighbor (but don't traverse beyond it)
-                        if (neighborNode.id != en.id)
-                            AddBidirectionalNeighbor(en, neighborNode);
-                        // Don't add to queue - we found a destination node
-                        continue;
-                    }
-
-                    // Walkable corridor cell - continue BFS
-                    queue.Enqueue(next);
+                    AddBidirectionalNeighbor(en, neighborNode);
                 }
             }
 
