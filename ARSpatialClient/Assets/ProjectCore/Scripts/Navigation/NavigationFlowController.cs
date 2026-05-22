@@ -794,40 +794,21 @@ public class NavigationFlowController : MonoBehaviour
 
     private IEnumerable<LocationData> GetDestinationLocations()
     {
-        // Snapshot for logging (avoid multiple enumeration side-effects)
         var all = m_LocationRegistry != null ? m_LocationRegistry.GetAllLocations() : null;
+        if (all == null) yield break;
 
-        if (all == null)
-        {
-            Debug.LogWarning("[NavigationFlowController] GetDestinationLocations: LocationRegistry is null.");
-            yield break;
-        }
-
-        // Show all navigable locations. Only filter out corridor waypoints and wall markers
-        // which are structural, not destinations. Entrances, stairs, lifts ARE valid destinations.
         var destinations = all.Where(location =>
             location != null &&
             !string.IsNullOrEmpty(location.id) &&
             location.type != "corridor" &&
-            location.type != "wall"
+            location.type != "wall" &&
+            !string.IsNullOrWhiteSpace(location.displayName)
         ).ToList();
 
-        Debug.Log($"[NavigationFlowController] GetDestinationLocations found {destinations.Count} destinations (from loaded {destinations.Count + all.Count() - (destinations.Count)})");
-
-        // Helpful: log room nodes specifically (id/building/floor/type)
-        int roomCount = destinations.Count(l => l.type == "room");
-        int entranceCount = destinations.Count(l => l.type == "entrance");
-        int staircaseCount = destinations.Count(l => l.type == "staircase");
-        int liftCount = destinations.Count(l => l.type == "lift");
-        int corridorCount = destinations.Count(l => l.type == "corridor");
-        int wallCount = destinations.Count(l => l.type == "wall");
-
-        Debug.Log(
-            $"[NavigationFlowController] Destination type breakdown: room={roomCount}, entrance={entranceCount}, staircase={staircaseCount}, lift={liftCount}, corridor={corridorCount}, wall={wallCount}"
-        );
-
-        foreach (var d in destinations)
-            yield return d;
+        foreach (var dest in destinations)
+        {
+            yield return dest;
+        }
     }
 
     private void PopulateBuildingOptions()
