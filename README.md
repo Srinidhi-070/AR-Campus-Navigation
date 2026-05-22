@@ -5,7 +5,7 @@
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 AR_Spatial_Client/
@@ -30,20 +30,20 @@ AR_Spatial_Client/
 
 ---
 
-## 🎯 Core Features
+## Core Features
 
-- ✅ AR Navigation with ARCore (QR-initiated, arrow-based path rendering)
-- ✅ Floor Map Editor (Unity Editor tool for authoring campus graphs)
-- ✅ QR Code Scanning (XRCpuImage-based, no WebCamTexture)
-- ✅ Backend API (FastAPI — locations, A* pathfinding, AI chat)
-- ✅ Runtime UI System (built entirely at runtime via CampusRuntimeInstaller)
-- ✅ Offline Fallback (local Dijkstra pathfinding from bundled nodes.json)
-- ✅ AI Chat Navigation (Ollama LLM + semantic matching)
-- ✅ Multi-floor Navigation (staircase/lift node connectivity)
+- [x] AR Navigation with ARCore (QR-initiated, arrow-based path rendering)
+- [x] Floor Map Editor (Unity Editor tool for authoring campus graphs)
+- [x] QR Code Scanning (XRCpuImage-based, no WebCamTexture)
+- [x] Backend API (FastAPI — locations, A* pathfinding, AI chat)
+- [x] Runtime UI System (built entirely at runtime via CampusRuntimeInstaller)
+- [x] Offline Fallback (local Dijkstra pathfinding from bundled nodes.json)
+- [x] AI Chat Navigation (Ollama LLM + semantic matching)
+- [x] Multi-floor Navigation (staircase/lift node connectivity)
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Backend Setup
 
@@ -80,7 +80,7 @@ adb install Builds/ARCampusNav.apk
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ### Runtime Flow
 ```
@@ -104,7 +104,7 @@ AppController (singleton, DontDestroyOnLoad)
 
 ---
 
-## 🛠️ Technical Details
+## Technical Details
 
 | Property | Value |
 |----------|-------|
@@ -117,7 +117,7 @@ AppController (singleton, DontDestroyOnLoad)
 
 ---
 
-## 🔎 Troubleshooting
+## Troubleshooting
 
 - **Phone can't reach backend**: Ensure both devices are on the same Wi-Fi, backend URL uses LAN IP (not `127.0.0.1`), and firewall allows TCP port 8000
 - **AR not tracking**: Ensure adequate lighting and textured surfaces for ARCore
