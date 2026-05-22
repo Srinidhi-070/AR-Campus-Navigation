@@ -226,6 +226,15 @@ public class PathVisualizer : MonoBehaviour
                 Vector3 pos = Vector3.Lerp(start, end, j / (float)steps);
                 GameObject arrowInstance = Instantiate(arrowPrefab, pos, Quaternion.LookRotation(dir), transform);
                 ApplyMaterial(arrowInstance, arrowMaterial);
+                
+                // Add a gentle bobbing animation to the regular path arrows
+                ARWaypointAnimator anim = arrowInstance.AddComponent<ARWaypointAnimator>();
+                anim.animatePosition = true;
+                anim.bobSpeed = 2f;
+                anim.bobHeight = 0.05f;
+                anim.animateRotation = false;
+                anim.animateScale = false;
+
                 arrowInstance.SetActive(true);
                 spawnedArrows.Add(arrowInstance);
             }
@@ -240,6 +249,18 @@ public class PathVisualizer : MonoBehaviour
             Quaternion.LookRotation(lastDir),
             transform);
         ApplyMaterial(lastArrow, destinationMaterial);
+
+        // Add a flashy destination animation
+        ARWaypointAnimator destAnim = lastArrow.AddComponent<ARWaypointAnimator>();
+        destAnim.animatePosition = true;
+        destAnim.bobSpeed = 4f;
+        destAnim.bobHeight = 0.1f;
+        destAnim.animateRotation = true;
+        destAnim.spinSpeed = 120f;
+        destAnim.animateScale = true;
+        destAnim.pulseSpeed = 3f;
+        destAnim.pulseAmount = 0.2f;
+
         lastArrow.SetActive(true);
         spawnedArrows.Add(lastArrow);
         
