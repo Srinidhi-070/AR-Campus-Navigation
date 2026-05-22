@@ -384,15 +384,11 @@ public class NavigationFlowController : MonoBehaviour
                 }
             }
 
-            // 2) Compute map heading from first segment
+            // 2) Initialize compass if not running
+            if (!Input.compass.enabled)
+                Input.compass.enabled = true;
+
             Vector3 mapStart = worldPath[0];
-            Vector3 mapNext = worldPath.Count > 1 ? worldPath[1] : worldPath[0];
-
-            Vector3 mapDir = new Vector3(mapNext.x - mapStart.x, 0f, mapNext.z - mapStart.z);
-            if (mapDir.sqrMagnitude < 0.0001f)
-                mapDir = Vector3.forward;
-
-            mapDir.Normalize();
 
             // 3) Compute camera heading (project forward onto XZ)
             Transform cam = Camera.main != null ? Camera.main.transform : null;
@@ -402,14 +398,20 @@ public class NavigationFlowController : MonoBehaviour
                 camDir = Vector3.forward;
             camDir.Normalize();
 
-            float mapYaw = Mathf.Atan2(mapDir.x, mapDir.z) * Mathf.Rad2Deg;
             float camYaw = Mathf.Atan2(camDir.x, camDir.z) * Mathf.Rad2Deg;
-            float yawOffset = camYaw - mapYaw;
+            
+            // 4) Align using Compass Data (Assuming Map +Z is True North)
+            float trueHeading = Input.compass.trueHeading;
+            // North in AR world is offset by the camera's true heading
+            float northYaw = camYaw - trueHeading;
+            
+            // Map +Z is 0 degrees. So yawOffset is just northYaw.
+            float yawOffset = northYaw;
             Quaternion rotationOffset = Quaternion.Euler(0f, yawOffset, 0f);
 
-            Debug.Log($"[NavigationFlowController] AnchorPos={worldAnchorPos} mapDirYaw={mapYaw:F1} camDirYaw={camYaw:F1} yawOffset={yawOffset:F1}");
+            Debug.Log($"[NavigationFlowController] AnchorPos={worldAnchorPos} camDirYaw={camYaw:F1} trueHeading={trueHeading:F1} yawOffset={yawOffset:F1}");
 
-            // 4) Transform all points:
+            // 5) Transform all points:
             // translate so mapStart lands at worldAnchorPos, then rotate around Y around origin (using translated vectors)
             List<Vector3> transformed = new List<Vector3>(worldPath.Count);
             for (int i = 0; i < worldPath.Count; i++)
