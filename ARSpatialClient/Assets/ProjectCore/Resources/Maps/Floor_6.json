@@ -554,8 +554,8 @@
         {
             "x": 0,
             "y": 42,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -568,20 +568,20 @@
             "x": 0,
             "y": 43,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 4,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
                 "y": 0
             },
             "connectionID": -1,
-            "nodeName": ""
+            "nodeName": "DEPT_LIBRARY"
         },
         {
             "x": 0,
             "y": 44,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -593,8 +593,8 @@
         {
             "x": 0,
             "y": 45,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -606,8 +606,8 @@
         {
             "x": 0,
             "y": 46,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -619,19 +619,6 @@
         {
             "x": 0,
             "y": 47,
-            "isWalkable": true,
-            "nodeType": 0,
-            "connectedMap": "",
-            "connectedNode": {
-                "x": 0,
-                "y": 0
-            },
-            "connectionID": -1,
-            "nodeName": ""
-        },
-        {
-            "x": 0,
-            "y": 48,
             "isWalkable": true,
             "nodeType": 0,
             "connectedMap": "",
@@ -644,6 +631,19 @@
         },
         {
             "x": 0,
+            "y": 48,
+            "isWalkable": true,
+            "nodeType": 0,
+            "connectedMap": "",
+            "connectedNode": {
+                "x": 0,
+                "y": 0
+            },
+            "connectionID": -1,
+            "nodeName": ""
+        },
+        {
+            "x": 0,
             "y": 49,
             "isWalkable": true,
             "nodeType": 0,
@@ -1100,6 +1100,97 @@
         {
             "x": 1,
             "y": 24,
+            "isWalkable": false,
+            "nodeType": 1,
+            "connectedMap": "",
+            "connectedNode": {
+                "x": 0,
+                "y": 0
+            },
+            "connectionID": -1,
+            "nodeName": ""
+        },
+        {
+            "x": 1,
+            "y": 25,
+            "isWalkable": false,
+            "nodeType": 1,
+            "connectedMap": "",
+            "connectedNode": {
+                "x": 0,
+                "y": 0
+            },
+            "connectionID": -1,
+            "nodeName": ""
+        },
+        {
+            "x": 1,
+            "y": 26,
+            "isWalkable": false,
+            "nodeType": 1,
+            "connectedMap": "",
+            "connectedNode": {
+                "x": 0,
+                "y": 0
+            },
+            "connectionID": -1,
+            "nodeName": ""
+        },
+        {
+            "x": 1,
+            "y": 27,
+            "isWalkable": false,
+            "nodeType": 1,
+            "connectedMap": "",
+            "connectedNode": {
+                "x": 0,
+                "y": 0
+            },
+            "connectionID": -1,
+            "nodeName": ""
+        },
+        {
+            "x": 1,
+            "y": 28,
+            "isWalkable": false,
+            "nodeType": 1,
+            "connectedMap": "",
+            "connectedNode": {
+                "x": 0,
+                "y": 0
+            },
+            "connectionID": -1,
+            "nodeName": ""
+        },
+        {
+            "x": 1,
+            "y": 29,
+            "isWalkable": false,
+            "nodeType": 1,
+            "connectedMap": "",
+            "connectedNode": {
+                "x": 0,
+                "y": 0
+            },
+            "connectionID": -1,
+            "nodeName": ""
+        },
+        {
+            "x": 1,
+            "y": 30,
+            "isWalkable": false,
+            "nodeType": 1,
+            "connectedMap": "",
+            "connectedNode": {
+                "x": 0,
+                "y": 0
+            },
+            "connectionID": -1,
+            "nodeName": ""
+        },
+        {
+            "x": 1,
+            "y": 31,
             "isWalkable": true,
             "nodeType": 0,
             "connectedMap": "",
@@ -1112,97 +1203,6 @@
         },
         {
             "x": 1,
-            "y": 25,
-            "isWalkable": true,
-            "nodeType": 0,
-            "connectedMap": "",
-            "connectedNode": {
-                "x": 0,
-                "y": 0
-            },
-            "connectionID": -1,
-            "nodeName": ""
-        },
-        {
-            "x": 1,
-            "y": 26,
-            "isWalkable": true,
-            "nodeType": 0,
-            "connectedMap": "",
-            "connectedNode": {
-                "x": 0,
-                "y": 0
-            },
-            "connectionID": -1,
-            "nodeName": ""
-        },
-        {
-            "x": 1,
-            "y": 27,
-            "isWalkable": true,
-            "nodeType": 0,
-            "connectedMap": "",
-            "connectedNode": {
-                "x": 0,
-                "y": 0
-            },
-            "connectionID": -1,
-            "nodeName": ""
-        },
-        {
-            "x": 1,
-            "y": 28,
-            "isWalkable": true,
-            "nodeType": 0,
-            "connectedMap": "",
-            "connectedNode": {
-                "x": 0,
-                "y": 0
-            },
-            "connectionID": -1,
-            "nodeName": ""
-        },
-        {
-            "x": 1,
-            "y": 29,
-            "isWalkable": true,
-            "nodeType": 0,
-            "connectedMap": "",
-            "connectedNode": {
-                "x": 0,
-                "y": 0
-            },
-            "connectionID": -1,
-            "nodeName": ""
-        },
-        {
-            "x": 1,
-            "y": 30,
-            "isWalkable": true,
-            "nodeType": 0,
-            "connectedMap": "",
-            "connectedNode": {
-                "x": 0,
-                "y": 0
-            },
-            "connectionID": -1,
-            "nodeName": ""
-        },
-        {
-            "x": 1,
-            "y": 31,
-            "isWalkable": true,
-            "nodeType": 0,
-            "connectedMap": "",
-            "connectedNode": {
-                "x": 0,
-                "y": 0
-            },
-            "connectionID": -1,
-            "nodeName": ""
-        },
-        {
-            "x": 1,
             "y": 32,
             "isWalkable": true,
             "nodeType": 0,
@@ -1334,8 +1334,8 @@
         {
             "x": 1,
             "y": 42,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -1386,8 +1386,8 @@
         {
             "x": 1,
             "y": 46,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -1880,8 +1880,8 @@
         {
             "x": 2,
             "y": 24,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -1894,7 +1894,7 @@
             "x": 2,
             "y": 25,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -1907,7 +1907,7 @@
             "x": 2,
             "y": 26,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -1920,7 +1920,7 @@
             "x": 2,
             "y": 27,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -1933,7 +1933,7 @@
             "x": 2,
             "y": 28,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -1946,20 +1946,20 @@
             "x": 2,
             "y": 29,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 4,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
                 "y": 0
             },
             "connectionID": -1,
-            "nodeName": ""
+            "nodeName": "GIRLS_TOILET"
         },
         {
             "x": 2,
             "y": 30,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -1971,19 +1971,6 @@
         {
             "x": 2,
             "y": 31,
-            "isWalkable": true,
-            "nodeType": 0,
-            "connectedMap": "",
-            "connectedNode": {
-                "x": 0,
-                "y": 0
-            },
-            "connectionID": -1,
-            "nodeName": ""
-        },
-        {
-            "x": 2,
-            "y": 32,
             "isWalkable": true,
             "nodeType": 0,
             "connectedMap": "",
@@ -1996,6 +1983,19 @@
         },
         {
             "x": 2,
+            "y": 32,
+            "isWalkable": true,
+            "nodeType": 0,
+            "connectedMap": "",
+            "connectedNode": {
+                "x": 0,
+                "y": 0
+            },
+            "connectionID": -1,
+            "nodeName": ""
+        },
+        {
+            "x": 2,
             "y": 33,
             "isWalkable": true,
             "nodeType": 0,
@@ -2114,8 +2114,8 @@
         {
             "x": 2,
             "y": 42,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -2166,8 +2166,8 @@
         {
             "x": 2,
             "y": 46,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -2660,8 +2660,8 @@
         {
             "x": 3,
             "y": 24,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -2674,7 +2674,7 @@
             "x": 3,
             "y": 25,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -2687,7 +2687,7 @@
             "x": 3,
             "y": 26,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -2700,7 +2700,7 @@
             "x": 3,
             "y": 27,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -2713,7 +2713,7 @@
             "x": 3,
             "y": 28,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -2738,8 +2738,8 @@
         {
             "x": 3,
             "y": 30,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -2894,8 +2894,8 @@
         {
             "x": 3,
             "y": 42,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -2946,8 +2946,8 @@
         {
             "x": 3,
             "y": 46,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -3440,8 +3440,8 @@
         {
             "x": 4,
             "y": 24,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -3454,7 +3454,7 @@
             "x": 4,
             "y": 25,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -3467,7 +3467,7 @@
             "x": 4,
             "y": 26,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -3480,7 +3480,7 @@
             "x": 4,
             "y": 27,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -3493,7 +3493,7 @@
             "x": 4,
             "y": 28,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -3518,8 +3518,8 @@
         {
             "x": 4,
             "y": 30,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -3674,8 +3674,8 @@
         {
             "x": 4,
             "y": 42,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -3727,14 +3727,14 @@
             "x": 4,
             "y": 46,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 4,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
                 "y": 0
             },
             "connectionID": -1,
-            "nodeName": ""
+            "nodeName": "MATHS_FACULTY_ROOM"
         },
         {
             "x": 4,
@@ -4220,8 +4220,8 @@
         {
             "x": 5,
             "y": 24,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -4234,7 +4234,7 @@
             "x": 5,
             "y": 25,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -4247,7 +4247,7 @@
             "x": 5,
             "y": 26,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -4260,7 +4260,7 @@
             "x": 5,
             "y": 27,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -4273,7 +4273,7 @@
             "x": 5,
             "y": 28,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -4298,8 +4298,8 @@
         {
             "x": 5,
             "y": 30,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -4454,8 +4454,8 @@
         {
             "x": 5,
             "y": 42,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -4506,8 +4506,8 @@
         {
             "x": 5,
             "y": 46,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -5000,8 +5000,8 @@
         {
             "x": 6,
             "y": 24,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -5014,7 +5014,7 @@
             "x": 6,
             "y": 25,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -5027,7 +5027,7 @@
             "x": 6,
             "y": 26,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -5040,7 +5040,7 @@
             "x": 6,
             "y": 27,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -5053,7 +5053,7 @@
             "x": 6,
             "y": 28,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -5078,8 +5078,8 @@
         {
             "x": 6,
             "y": 30,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -5234,8 +5234,8 @@
         {
             "x": 6,
             "y": 42,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -5286,8 +5286,8 @@
         {
             "x": 6,
             "y": 46,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -5780,8 +5780,8 @@
         {
             "x": 7,
             "y": 24,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -5794,7 +5794,7 @@
             "x": 7,
             "y": 25,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -5807,7 +5807,7 @@
             "x": 7,
             "y": 26,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -5820,7 +5820,7 @@
             "x": 7,
             "y": 27,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -5833,7 +5833,7 @@
             "x": 7,
             "y": 28,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -5858,8 +5858,8 @@
         {
             "x": 7,
             "y": 30,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -6015,14 +6015,14 @@
             "x": 7,
             "y": 42,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 4,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
                 "y": 0
             },
             "connectionID": -1,
-            "nodeName": ""
+            "nodeName": "709_FLIPPED_CLASSROOM"
         },
         {
             "x": 7,
@@ -6066,8 +6066,8 @@
         {
             "x": 7,
             "y": 46,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -6560,8 +6560,8 @@
         {
             "x": 8,
             "y": 24,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -6574,7 +6574,7 @@
             "x": 8,
             "y": 25,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -6587,7 +6587,7 @@
             "x": 8,
             "y": 26,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -6600,7 +6600,7 @@
             "x": 8,
             "y": 27,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -6613,7 +6613,7 @@
             "x": 8,
             "y": 28,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -6638,8 +6638,8 @@
         {
             "x": 8,
             "y": 30,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -6794,8 +6794,8 @@
         {
             "x": 8,
             "y": 42,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -6846,8 +6846,8 @@
         {
             "x": 8,
             "y": 46,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -7145,8 +7145,8 @@
         {
             "x": 9,
             "y": 9,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -7158,8 +7158,8 @@
         {
             "x": 9,
             "y": 10,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -7171,8 +7171,8 @@
         {
             "x": 9,
             "y": 11,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -7184,8 +7184,8 @@
         {
             "x": 9,
             "y": 12,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -7197,8 +7197,8 @@
         {
             "x": 9,
             "y": 13,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -7210,8 +7210,8 @@
         {
             "x": 9,
             "y": 14,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -7223,8 +7223,8 @@
         {
             "x": 9,
             "y": 15,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -7236,8 +7236,8 @@
         {
             "x": 9,
             "y": 16,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -7249,8 +7249,8 @@
         {
             "x": 9,
             "y": 17,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -7262,8 +7262,8 @@
         {
             "x": 9,
             "y": 18,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -7275,8 +7275,8 @@
         {
             "x": 9,
             "y": 19,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -7288,8 +7288,8 @@
         {
             "x": 9,
             "y": 20,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -7301,8 +7301,8 @@
         {
             "x": 9,
             "y": 21,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -7314,8 +7314,8 @@
         {
             "x": 9,
             "y": 22,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -7328,20 +7328,20 @@
             "x": 9,
             "y": 23,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 4,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
                 "y": 0
             },
             "connectionID": -1,
-            "nodeName": ""
+            "nodeName": "DEPT_OF_HUMANITIES"
         },
         {
             "x": 9,
             "y": 24,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -7354,7 +7354,7 @@
             "x": 9,
             "y": 25,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -7367,7 +7367,7 @@
             "x": 9,
             "y": 26,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -7380,7 +7380,7 @@
             "x": 9,
             "y": 27,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -7393,7 +7393,7 @@
             "x": 9,
             "y": 28,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -7418,8 +7418,8 @@
         {
             "x": 9,
             "y": 30,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -7431,8 +7431,8 @@
         {
             "x": 9,
             "y": 31,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -7444,8 +7444,8 @@
         {
             "x": 9,
             "y": 32,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -7457,8 +7457,8 @@
         {
             "x": 9,
             "y": 33,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -7470,8 +7470,8 @@
         {
             "x": 9,
             "y": 34,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -7483,8 +7483,8 @@
         {
             "x": 9,
             "y": 35,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -7496,8 +7496,8 @@
         {
             "x": 9,
             "y": 36,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -7509,8 +7509,8 @@
         {
             "x": 9,
             "y": 37,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -7522,8 +7522,8 @@
         {
             "x": 9,
             "y": 38,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -7535,8 +7535,8 @@
         {
             "x": 9,
             "y": 39,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -7548,8 +7548,8 @@
         {
             "x": 9,
             "y": 40,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -7561,8 +7561,8 @@
         {
             "x": 9,
             "y": 41,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -7574,8 +7574,8 @@
         {
             "x": 9,
             "y": 42,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -7626,8 +7626,8 @@
         {
             "x": 9,
             "y": 46,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -7639,8 +7639,8 @@
         {
             "x": 9,
             "y": 47,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -7652,8 +7652,8 @@
         {
             "x": 9,
             "y": 48,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -7665,8 +7665,8 @@
         {
             "x": 9,
             "y": 49,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -7678,8 +7678,8 @@
         {
             "x": 9,
             "y": 50,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -7925,8 +7925,8 @@
         {
             "x": 10,
             "y": 9,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -8458,8 +8458,8 @@
         {
             "x": 10,
             "y": 50,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -8706,14 +8706,14 @@
             "x": 11,
             "y": 9,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 4,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
                 "y": 0
             },
             "connectionID": -1,
-            "nodeName": ""
+            "nodeName": "705_COMPUTER_LAB"
         },
         {
             "x": 11,
@@ -9238,8 +9238,8 @@
         {
             "x": 11,
             "y": 50,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -9485,8 +9485,8 @@
         {
             "x": 12,
             "y": 9,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -10019,14 +10019,14 @@
             "x": 12,
             "y": 50,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 4,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
                 "y": 0
             },
             "connectionID": -1,
-            "nodeName": ""
+            "nodeName": "BOYS_TOILET"
         },
         {
             "x": 12,
@@ -10266,14 +10266,14 @@
             "x": 13,
             "y": 9,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 4,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
                 "y": 0
             },
             "connectionID": -1,
-            "nodeName": ""
+            "nodeName": "704_STAFF_ROOM"
         },
         {
             "x": 13,
@@ -10317,8 +10317,8 @@
         {
             "x": 13,
             "y": 13,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -10330,8 +10330,8 @@
         {
             "x": 13,
             "y": 14,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -10343,8 +10343,8 @@
         {
             "x": 13,
             "y": 15,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -10356,8 +10356,8 @@
         {
             "x": 13,
             "y": 16,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -10369,8 +10369,8 @@
         {
             "x": 13,
             "y": 17,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -10382,8 +10382,8 @@
         {
             "x": 13,
             "y": 18,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -10395,8 +10395,8 @@
         {
             "x": 13,
             "y": 19,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -10408,8 +10408,8 @@
         {
             "x": 13,
             "y": 20,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -10421,8 +10421,8 @@
         {
             "x": 13,
             "y": 21,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -10434,8 +10434,8 @@
         {
             "x": 13,
             "y": 22,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -10447,8 +10447,8 @@
         {
             "x": 13,
             "y": 23,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -10460,8 +10460,8 @@
         {
             "x": 13,
             "y": 24,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -10473,8 +10473,8 @@
         {
             "x": 13,
             "y": 25,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -10486,8 +10486,8 @@
         {
             "x": 13,
             "y": 26,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -10499,8 +10499,8 @@
         {
             "x": 13,
             "y": 27,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -10512,8 +10512,8 @@
         {
             "x": 13,
             "y": 28,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -10526,7 +10526,7 @@
             "x": 13,
             "y": 29,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 3,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -10538,8 +10538,8 @@
         {
             "x": 13,
             "y": 30,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -10551,8 +10551,8 @@
         {
             "x": 13,
             "y": 31,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -10564,8 +10564,8 @@
         {
             "x": 13,
             "y": 32,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -10577,8 +10577,8 @@
         {
             "x": 13,
             "y": 33,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -10590,8 +10590,8 @@
         {
             "x": 13,
             "y": 34,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -10603,8 +10603,8 @@
         {
             "x": 13,
             "y": 35,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -10616,8 +10616,8 @@
         {
             "x": 13,
             "y": 36,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -10629,8 +10629,8 @@
         {
             "x": 13,
             "y": 37,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -10642,8 +10642,8 @@
         {
             "x": 13,
             "y": 38,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -10655,8 +10655,8 @@
         {
             "x": 13,
             "y": 39,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -10668,8 +10668,8 @@
         {
             "x": 13,
             "y": 40,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -10681,8 +10681,8 @@
         {
             "x": 13,
             "y": 41,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -10694,8 +10694,8 @@
         {
             "x": 13,
             "y": 42,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -10746,8 +10746,8 @@
         {
             "x": 13,
             "y": 46,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -10759,8 +10759,8 @@
         {
             "x": 13,
             "y": 47,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -10772,8 +10772,8 @@
         {
             "x": 13,
             "y": 48,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -10785,8 +10785,8 @@
         {
             "x": 13,
             "y": 49,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -10798,8 +10798,8 @@
         {
             "x": 13,
             "y": 50,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -11045,8 +11045,8 @@
         {
             "x": 14,
             "y": 9,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -11097,8 +11097,8 @@
         {
             "x": 14,
             "y": 13,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -11474,8 +11474,8 @@
         {
             "x": 14,
             "y": 42,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -11526,8 +11526,8 @@
         {
             "x": 14,
             "y": 46,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -11825,8 +11825,8 @@
         {
             "x": 15,
             "y": 9,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -11877,8 +11877,8 @@
         {
             "x": 15,
             "y": 13,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -12254,8 +12254,8 @@
         {
             "x": 15,
             "y": 42,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -12306,8 +12306,8 @@
         {
             "x": 15,
             "y": 46,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -12605,8 +12605,8 @@
         {
             "x": 16,
             "y": 9,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -12657,8 +12657,8 @@
         {
             "x": 16,
             "y": 13,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -13034,8 +13034,8 @@
         {
             "x": 16,
             "y": 42,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -13086,8 +13086,8 @@
         {
             "x": 16,
             "y": 46,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -13385,8 +13385,8 @@
         {
             "x": 17,
             "y": 9,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -13437,8 +13437,8 @@
         {
             "x": 17,
             "y": 13,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -13814,8 +13814,8 @@
         {
             "x": 17,
             "y": 42,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -13866,8 +13866,8 @@
         {
             "x": 17,
             "y": 46,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -14165,8 +14165,8 @@
         {
             "x": 18,
             "y": 9,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -14217,8 +14217,8 @@
         {
             "x": 18,
             "y": 13,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -14594,8 +14594,8 @@
         {
             "x": 18,
             "y": 42,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -14646,8 +14646,8 @@
         {
             "x": 18,
             "y": 46,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -14945,8 +14945,8 @@
         {
             "x": 19,
             "y": 9,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -14997,8 +14997,8 @@
         {
             "x": 19,
             "y": 13,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -15374,8 +15374,8 @@
         {
             "x": 19,
             "y": 42,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -15426,8 +15426,8 @@
         {
             "x": 19,
             "y": 46,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -15725,8 +15725,8 @@
         {
             "x": 20,
             "y": 9,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -15777,8 +15777,8 @@
         {
             "x": 20,
             "y": 13,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -16154,8 +16154,8 @@
         {
             "x": 20,
             "y": 42,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -16206,8 +16206,8 @@
         {
             "x": 20,
             "y": 46,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -16505,8 +16505,8 @@
         {
             "x": 21,
             "y": 9,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -16557,8 +16557,8 @@
         {
             "x": 21,
             "y": 13,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -16934,8 +16934,8 @@
         {
             "x": 21,
             "y": 42,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -16986,8 +16986,8 @@
         {
             "x": 21,
             "y": 46,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -17285,8 +17285,8 @@
         {
             "x": 22,
             "y": 9,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -17337,8 +17337,8 @@
         {
             "x": 22,
             "y": 13,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -17714,8 +17714,8 @@
         {
             "x": 22,
             "y": 42,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -17766,8 +17766,8 @@
         {
             "x": 22,
             "y": 46,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -18065,8 +18065,8 @@
         {
             "x": 23,
             "y": 9,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -18117,8 +18117,8 @@
         {
             "x": 23,
             "y": 13,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -18494,8 +18494,8 @@
         {
             "x": 23,
             "y": 42,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -18546,8 +18546,8 @@
         {
             "x": 23,
             "y": 46,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -18845,8 +18845,8 @@
         {
             "x": 24,
             "y": 9,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -18897,8 +18897,8 @@
         {
             "x": 24,
             "y": 13,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -19274,8 +19274,8 @@
         {
             "x": 24,
             "y": 42,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -19326,8 +19326,8 @@
         {
             "x": 24,
             "y": 46,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -19625,8 +19625,8 @@
         {
             "x": 25,
             "y": 9,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -19677,8 +19677,8 @@
         {
             "x": 25,
             "y": 13,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -20054,8 +20054,8 @@
         {
             "x": 25,
             "y": 42,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -20106,8 +20106,8 @@
         {
             "x": 25,
             "y": 46,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -20405,8 +20405,8 @@
         {
             "x": 26,
             "y": 9,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -20457,8 +20457,8 @@
         {
             "x": 26,
             "y": 13,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -20834,8 +20834,8 @@
         {
             "x": 26,
             "y": 42,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -20886,8 +20886,8 @@
         {
             "x": 26,
             "y": 46,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -21185,8 +21185,8 @@
         {
             "x": 27,
             "y": 9,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -21237,8 +21237,8 @@
         {
             "x": 27,
             "y": 13,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -21614,8 +21614,8 @@
         {
             "x": 27,
             "y": 42,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -21667,14 +21667,14 @@
             "x": 27,
             "y": 46,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 4,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
                 "y": 0
             },
             "connectionID": -1,
-            "nodeName": ""
+            "nodeName": "DEPT_OF_MATHS"
         },
         {
             "x": 27,
@@ -21965,8 +21965,8 @@
         {
             "x": 28,
             "y": 9,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -22017,8 +22017,8 @@
         {
             "x": 28,
             "y": 13,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -22394,8 +22394,8 @@
         {
             "x": 28,
             "y": 42,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -22446,8 +22446,8 @@
         {
             "x": 28,
             "y": 46,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -22641,8 +22641,8 @@
         {
             "x": 29,
             "y": 1,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -22654,8 +22654,8 @@
         {
             "x": 29,
             "y": 2,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -22667,8 +22667,8 @@
         {
             "x": 29,
             "y": 3,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -22680,8 +22680,8 @@
         {
             "x": 29,
             "y": 4,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -22693,8 +22693,8 @@
         {
             "x": 29,
             "y": 5,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -22706,8 +22706,8 @@
         {
             "x": 29,
             "y": 6,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -22719,8 +22719,8 @@
         {
             "x": 29,
             "y": 7,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -22732,8 +22732,8 @@
         {
             "x": 29,
             "y": 8,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -22745,8 +22745,8 @@
         {
             "x": 29,
             "y": 9,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -22797,8 +22797,8 @@
         {
             "x": 29,
             "y": 13,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -23174,8 +23174,8 @@
         {
             "x": 29,
             "y": 42,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -23226,8 +23226,8 @@
         {
             "x": 29,
             "y": 46,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -23421,8 +23421,8 @@
         {
             "x": 30,
             "y": 1,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -23435,7 +23435,7 @@
             "x": 30,
             "y": 2,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -23448,7 +23448,7 @@
             "x": 30,
             "y": 3,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -23461,7 +23461,7 @@
             "x": 30,
             "y": 4,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -23474,7 +23474,7 @@
             "x": 30,
             "y": 5,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -23487,7 +23487,7 @@
             "x": 30,
             "y": 6,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -23500,7 +23500,7 @@
             "x": 30,
             "y": 7,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -23513,7 +23513,7 @@
             "x": 30,
             "y": 8,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -23577,8 +23577,8 @@
         {
             "x": 30,
             "y": 13,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -23954,8 +23954,8 @@
         {
             "x": 30,
             "y": 42,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -24006,8 +24006,8 @@
         {
             "x": 30,
             "y": 46,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -24201,8 +24201,8 @@
         {
             "x": 31,
             "y": 1,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -24215,7 +24215,7 @@
             "x": 31,
             "y": 2,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -24228,7 +24228,7 @@
             "x": 31,
             "y": 3,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -24241,7 +24241,7 @@
             "x": 31,
             "y": 4,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -24254,7 +24254,7 @@
             "x": 31,
             "y": 5,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -24267,7 +24267,7 @@
             "x": 31,
             "y": 6,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -24280,7 +24280,7 @@
             "x": 31,
             "y": 7,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -24293,7 +24293,7 @@
             "x": 31,
             "y": 8,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -24357,8 +24357,8 @@
         {
             "x": 31,
             "y": 13,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -24734,8 +24734,8 @@
         {
             "x": 31,
             "y": 42,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -24786,8 +24786,8 @@
         {
             "x": 31,
             "y": 46,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -24981,8 +24981,8 @@
         {
             "x": 32,
             "y": 1,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -24995,7 +24995,7 @@
             "x": 32,
             "y": 2,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -25008,7 +25008,7 @@
             "x": 32,
             "y": 3,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -25021,7 +25021,7 @@
             "x": 32,
             "y": 4,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -25034,7 +25034,7 @@
             "x": 32,
             "y": 5,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -25047,7 +25047,7 @@
             "x": 32,
             "y": 6,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -25060,7 +25060,7 @@
             "x": 32,
             "y": 7,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -25073,7 +25073,7 @@
             "x": 32,
             "y": 8,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -25137,8 +25137,8 @@
         {
             "x": 32,
             "y": 13,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -25514,8 +25514,8 @@
         {
             "x": 32,
             "y": 42,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -25566,8 +25566,8 @@
         {
             "x": 32,
             "y": 46,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -25761,8 +25761,8 @@
         {
             "x": 33,
             "y": 1,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -25775,7 +25775,7 @@
             "x": 33,
             "y": 2,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -25788,7 +25788,7 @@
             "x": 33,
             "y": 3,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -25801,7 +25801,7 @@
             "x": 33,
             "y": 4,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -25814,7 +25814,7 @@
             "x": 33,
             "y": 5,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -25827,7 +25827,7 @@
             "x": 33,
             "y": 6,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -25840,7 +25840,7 @@
             "x": 33,
             "y": 7,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -25853,7 +25853,7 @@
             "x": 33,
             "y": 8,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -25918,7 +25918,7 @@
             "x": 33,
             "y": 13,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 3,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -26294,8 +26294,8 @@
         {
             "x": 33,
             "y": 42,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -26346,8 +26346,8 @@
         {
             "x": 33,
             "y": 46,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -26541,8 +26541,8 @@
         {
             "x": 34,
             "y": 1,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -26554,8 +26554,8 @@
         {
             "x": 34,
             "y": 2,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -26567,8 +26567,8 @@
         {
             "x": 34,
             "y": 3,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -26697,8 +26697,8 @@
         {
             "x": 34,
             "y": 13,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -27074,8 +27074,8 @@
         {
             "x": 34,
             "y": 42,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -27126,8 +27126,8 @@
         {
             "x": 34,
             "y": 46,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -27191,8 +27191,8 @@
         {
             "x": 34,
             "y": 51,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -27204,8 +27204,8 @@
         {
             "x": 34,
             "y": 52,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -27217,8 +27217,8 @@
         {
             "x": 34,
             "y": 53,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -27230,8 +27230,8 @@
         {
             "x": 34,
             "y": 54,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -27243,8 +27243,8 @@
         {
             "x": 34,
             "y": 55,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -27256,8 +27256,8 @@
         {
             "x": 34,
             "y": 56,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -27347,8 +27347,8 @@
         {
             "x": 35,
             "y": 3,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -27360,8 +27360,8 @@
         {
             "x": 35,
             "y": 4,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -27373,8 +27373,8 @@
         {
             "x": 35,
             "y": 5,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -27386,8 +27386,8 @@
         {
             "x": 35,
             "y": 6,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -27399,8 +27399,8 @@
         {
             "x": 35,
             "y": 7,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -27412,8 +27412,8 @@
         {
             "x": 35,
             "y": 8,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -27425,8 +27425,8 @@
         {
             "x": 35,
             "y": 9,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -27477,8 +27477,8 @@
         {
             "x": 35,
             "y": 13,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -27854,8 +27854,8 @@
         {
             "x": 35,
             "y": 42,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -27906,8 +27906,8 @@
         {
             "x": 35,
             "y": 46,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -27971,8 +27971,8 @@
         {
             "x": 35,
             "y": 51,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -27985,7 +27985,7 @@
             "x": 35,
             "y": 52,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -27998,7 +27998,7 @@
             "x": 35,
             "y": 53,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -28011,7 +28011,7 @@
             "x": 35,
             "y": 54,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -28024,7 +28024,7 @@
             "x": 35,
             "y": 55,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -28036,8 +28036,8 @@
         {
             "x": 35,
             "y": 56,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -28206,14 +28206,14 @@
             "x": 36,
             "y": 9,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 4,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
                 "y": 0
             },
             "connectionID": -1,
-            "nodeName": ""
+            "nodeName": "703_COMPUTER_LAB_1"
         },
         {
             "x": 36,
@@ -28257,8 +28257,8 @@
         {
             "x": 36,
             "y": 13,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -28634,8 +28634,8 @@
         {
             "x": 36,
             "y": 42,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -28686,8 +28686,8 @@
         {
             "x": 36,
             "y": 46,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -28751,8 +28751,8 @@
         {
             "x": 36,
             "y": 51,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -28765,7 +28765,7 @@
             "x": 36,
             "y": 52,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -28778,7 +28778,7 @@
             "x": 36,
             "y": 53,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -28791,7 +28791,7 @@
             "x": 36,
             "y": 54,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -28804,7 +28804,7 @@
             "x": 36,
             "y": 55,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -28816,8 +28816,8 @@
         {
             "x": 36,
             "y": 56,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -28985,8 +28985,8 @@
         {
             "x": 37,
             "y": 9,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -29037,8 +29037,8 @@
         {
             "x": 37,
             "y": 13,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -29414,8 +29414,8 @@
         {
             "x": 37,
             "y": 42,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -29466,8 +29466,8 @@
         {
             "x": 37,
             "y": 46,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -29531,8 +29531,8 @@
         {
             "x": 37,
             "y": 51,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -29545,7 +29545,7 @@
             "x": 37,
             "y": 52,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -29558,7 +29558,7 @@
             "x": 37,
             "y": 53,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -29571,7 +29571,7 @@
             "x": 37,
             "y": 54,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -29584,7 +29584,7 @@
             "x": 37,
             "y": 55,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -29596,8 +29596,8 @@
         {
             "x": 37,
             "y": 56,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -29765,8 +29765,8 @@
         {
             "x": 38,
             "y": 9,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -29817,8 +29817,8 @@
         {
             "x": 38,
             "y": 13,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -30194,8 +30194,8 @@
         {
             "x": 38,
             "y": 42,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -30246,8 +30246,8 @@
         {
             "x": 38,
             "y": 46,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -30311,8 +30311,8 @@
         {
             "x": 38,
             "y": 51,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -30325,7 +30325,7 @@
             "x": 38,
             "y": 52,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -30338,7 +30338,7 @@
             "x": 38,
             "y": 53,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -30351,7 +30351,7 @@
             "x": 38,
             "y": 54,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -30364,7 +30364,7 @@
             "x": 38,
             "y": 55,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -30376,8 +30376,8 @@
         {
             "x": 38,
             "y": 56,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -30545,8 +30545,8 @@
         {
             "x": 39,
             "y": 9,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -30597,8 +30597,8 @@
         {
             "x": 39,
             "y": 13,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -30974,8 +30974,8 @@
         {
             "x": 39,
             "y": 42,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -31026,8 +31026,8 @@
         {
             "x": 39,
             "y": 46,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -31039,8 +31039,8 @@
         {
             "x": 39,
             "y": 47,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -31053,7 +31053,7 @@
             "x": 39,
             "y": 48,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 3,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -31065,8 +31065,8 @@
         {
             "x": 39,
             "y": 49,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -31078,8 +31078,8 @@
         {
             "x": 39,
             "y": 50,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -31092,7 +31092,7 @@
             "x": 39,
             "y": 51,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 3,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -31105,7 +31105,7 @@
             "x": 39,
             "y": 52,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -31118,7 +31118,7 @@
             "x": 39,
             "y": 53,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -31131,7 +31131,7 @@
             "x": 39,
             "y": 54,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -31144,7 +31144,7 @@
             "x": 39,
             "y": 55,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -31156,8 +31156,8 @@
         {
             "x": 39,
             "y": 56,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -31325,8 +31325,8 @@
         {
             "x": 40,
             "y": 9,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -31377,8 +31377,8 @@
         {
             "x": 40,
             "y": 13,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -31754,8 +31754,8 @@
         {
             "x": 40,
             "y": 42,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -31885,7 +31885,7 @@
             "x": 40,
             "y": 52,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -31898,7 +31898,7 @@
             "x": 40,
             "y": 53,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -31911,7 +31911,7 @@
             "x": 40,
             "y": 54,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -31924,7 +31924,7 @@
             "x": 40,
             "y": 55,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -31936,8 +31936,8 @@
         {
             "x": 40,
             "y": 56,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -32105,8 +32105,8 @@
         {
             "x": 41,
             "y": 9,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -32157,8 +32157,8 @@
         {
             "x": 41,
             "y": 13,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -32534,8 +32534,8 @@
         {
             "x": 41,
             "y": 42,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -32665,7 +32665,7 @@
             "x": 41,
             "y": 52,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -32678,7 +32678,7 @@
             "x": 41,
             "y": 53,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -32691,7 +32691,7 @@
             "x": 41,
             "y": 54,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -32704,7 +32704,7 @@
             "x": 41,
             "y": 55,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -32716,8 +32716,8 @@
         {
             "x": 41,
             "y": 56,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -32885,8 +32885,8 @@
         {
             "x": 42,
             "y": 9,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -32937,8 +32937,8 @@
         {
             "x": 42,
             "y": 13,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -32950,8 +32950,8 @@
         {
             "x": 42,
             "y": 14,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -32963,8 +32963,8 @@
         {
             "x": 42,
             "y": 15,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -32976,8 +32976,8 @@
         {
             "x": 42,
             "y": 16,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -32989,8 +32989,8 @@
         {
             "x": 42,
             "y": 17,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -33002,8 +33002,8 @@
         {
             "x": 42,
             "y": 18,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -33015,8 +33015,8 @@
         {
             "x": 42,
             "y": 19,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -33028,8 +33028,8 @@
         {
             "x": 42,
             "y": 20,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -33041,8 +33041,8 @@
         {
             "x": 42,
             "y": 21,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -33054,8 +33054,8 @@
         {
             "x": 42,
             "y": 22,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -33067,8 +33067,8 @@
         {
             "x": 42,
             "y": 23,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -33080,8 +33080,8 @@
         {
             "x": 42,
             "y": 24,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -33093,8 +33093,8 @@
         {
             "x": 42,
             "y": 25,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -33106,8 +33106,8 @@
         {
             "x": 42,
             "y": 26,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -33119,8 +33119,8 @@
         {
             "x": 42,
             "y": 27,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -33132,8 +33132,8 @@
         {
             "x": 42,
             "y": 28,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -33145,8 +33145,8 @@
         {
             "x": 42,
             "y": 29,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -33158,8 +33158,8 @@
         {
             "x": 42,
             "y": 30,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -33171,8 +33171,8 @@
         {
             "x": 42,
             "y": 31,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -33184,8 +33184,8 @@
         {
             "x": 42,
             "y": 32,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -33197,8 +33197,8 @@
         {
             "x": 42,
             "y": 33,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -33210,8 +33210,8 @@
         {
             "x": 42,
             "y": 34,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -33223,8 +33223,8 @@
         {
             "x": 42,
             "y": 35,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -33236,8 +33236,8 @@
         {
             "x": 42,
             "y": 36,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -33249,8 +33249,8 @@
         {
             "x": 42,
             "y": 37,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -33262,8 +33262,8 @@
         {
             "x": 42,
             "y": 38,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -33275,8 +33275,8 @@
         {
             "x": 42,
             "y": 39,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -33288,8 +33288,8 @@
         {
             "x": 42,
             "y": 40,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -33301,8 +33301,8 @@
         {
             "x": 42,
             "y": 41,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -33314,8 +33314,8 @@
         {
             "x": 42,
             "y": 42,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -33445,7 +33445,7 @@
             "x": 42,
             "y": 52,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -33458,7 +33458,7 @@
             "x": 42,
             "y": 53,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -33471,7 +33471,7 @@
             "x": 42,
             "y": 54,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -33484,7 +33484,7 @@
             "x": 42,
             "y": 55,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -33496,8 +33496,8 @@
         {
             "x": 42,
             "y": 56,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -33665,8 +33665,8 @@
         {
             "x": 43,
             "y": 9,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -34276,8 +34276,8 @@
         {
             "x": 43,
             "y": 56,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -34445,8 +34445,8 @@
         {
             "x": 44,
             "y": 9,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -35056,8 +35056,8 @@
         {
             "x": 44,
             "y": 56,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -35225,8 +35225,8 @@
         {
             "x": 45,
             "y": 9,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -35836,8 +35836,8 @@
         {
             "x": 45,
             "y": 56,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -36005,8 +36005,8 @@
         {
             "x": 46,
             "y": 9,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -36018,8 +36018,8 @@
         {
             "x": 46,
             "y": 10,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -36031,8 +36031,8 @@
         {
             "x": 46,
             "y": 11,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -36045,20 +36045,20 @@
             "x": 46,
             "y": 12,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 4,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
                 "y": 0
             },
             "connectionID": -1,
-            "nodeName": ""
+            "nodeName": "703_COMPUTER_LAB"
         },
         {
             "x": 46,
             "y": 13,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -36071,20 +36071,20 @@
             "x": 46,
             "y": 14,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 4,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
                 "y": 0
             },
             "connectionID": -1,
-            "nodeName": ""
+            "nodeName": "702_CLASSROOM_FIRST_YEAR"
         },
         {
             "x": 46,
             "y": 15,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -36096,8 +36096,8 @@
         {
             "x": 46,
             "y": 16,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -36109,8 +36109,8 @@
         {
             "x": 46,
             "y": 17,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -36122,8 +36122,8 @@
         {
             "x": 46,
             "y": 18,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -36135,8 +36135,8 @@
         {
             "x": 46,
             "y": 19,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -36148,8 +36148,8 @@
         {
             "x": 46,
             "y": 20,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -36161,8 +36161,8 @@
         {
             "x": 46,
             "y": 21,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -36174,8 +36174,8 @@
         {
             "x": 46,
             "y": 22,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -36187,8 +36187,8 @@
         {
             "x": 46,
             "y": 23,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -36200,8 +36200,8 @@
         {
             "x": 46,
             "y": 24,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -36213,8 +36213,8 @@
         {
             "x": 46,
             "y": 25,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -36226,8 +36226,8 @@
         {
             "x": 46,
             "y": 26,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -36239,8 +36239,8 @@
         {
             "x": 46,
             "y": 27,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -36253,20 +36253,20 @@
             "x": 46,
             "y": 28,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 4,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
                 "y": 0
             },
             "connectionID": -1,
-            "nodeName": ""
+            "nodeName": "701_CLASSROOM_FIRST_YEAR"
         },
         {
             "x": 46,
             "y": 29,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -36278,8 +36278,8 @@
         {
             "x": 46,
             "y": 30,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -36291,8 +36291,8 @@
         {
             "x": 46,
             "y": 31,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -36304,8 +36304,8 @@
         {
             "x": 46,
             "y": 32,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -36317,8 +36317,8 @@
         {
             "x": 46,
             "y": 33,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -36330,8 +36330,8 @@
         {
             "x": 46,
             "y": 34,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -36343,8 +36343,8 @@
         {
             "x": 46,
             "y": 35,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -36356,8 +36356,8 @@
         {
             "x": 46,
             "y": 36,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -36369,8 +36369,8 @@
         {
             "x": 46,
             "y": 37,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -36382,8 +36382,8 @@
         {
             "x": 46,
             "y": 38,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -36395,8 +36395,8 @@
         {
             "x": 46,
             "y": 39,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -36616,8 +36616,8 @@
         {
             "x": 46,
             "y": 56,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -37175,8 +37175,8 @@
         {
             "x": 47,
             "y": 39,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -37396,8 +37396,8 @@
         {
             "x": 47,
             "y": 56,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -37956,7 +37956,7 @@
             "x": 48,
             "y": 39,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 3,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -38163,8 +38163,8 @@
         {
             "x": 48,
             "y": 55,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -38176,8 +38176,8 @@
         {
             "x": 48,
             "y": 56,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -38735,8 +38735,8 @@
         {
             "x": 49,
             "y": 39,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -38930,8 +38930,8 @@
         {
             "x": 49,
             "y": 54,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -38943,8 +38943,8 @@
         {
             "x": 49,
             "y": 55,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -39515,8 +39515,8 @@
         {
             "x": 50,
             "y": 39,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -39697,8 +39697,8 @@
         {
             "x": 50,
             "y": 53,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -39710,8 +39710,8 @@
         {
             "x": 50,
             "y": 54,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -40230,8 +40230,8 @@
         {
             "x": 51,
             "y": 34,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -40243,8 +40243,8 @@
         {
             "x": 51,
             "y": 35,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -40256,8 +40256,8 @@
         {
             "x": 51,
             "y": 36,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -40269,8 +40269,8 @@
         {
             "x": 51,
             "y": 37,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -40282,8 +40282,8 @@
         {
             "x": 51,
             "y": 38,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -40296,7 +40296,7 @@
             "x": 51,
             "y": 39,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 3,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -40464,8 +40464,8 @@
         {
             "x": 51,
             "y": 52,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -40477,8 +40477,8 @@
         {
             "x": 51,
             "y": 53,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -41010,8 +41010,8 @@
         {
             "x": 52,
             "y": 34,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -41024,7 +41024,7 @@
             "x": 52,
             "y": 35,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -41037,7 +41037,7 @@
             "x": 52,
             "y": 36,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -41050,7 +41050,7 @@
             "x": 52,
             "y": 37,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -41063,7 +41063,7 @@
             "x": 52,
             "y": 38,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -41076,7 +41076,7 @@
             "x": 52,
             "y": 39,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -41089,7 +41089,7 @@
             "x": 52,
             "y": 40,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -41102,7 +41102,7 @@
             "x": 52,
             "y": 41,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -41115,7 +41115,7 @@
             "x": 52,
             "y": 42,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -41232,20 +41232,20 @@
             "x": 52,
             "y": 51,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 4,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
                 "y": 0
             },
             "connectionID": -1,
-            "nodeName": ""
+            "nodeName": "AB_714_LIBRARY"
         },
         {
             "x": 52,
             "y": 52,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -41790,8 +41790,8 @@
         {
             "x": 53,
             "y": 34,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -41804,7 +41804,7 @@
             "x": 53,
             "y": 35,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -41817,7 +41817,7 @@
             "x": 53,
             "y": 36,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -41830,7 +41830,7 @@
             "x": 53,
             "y": 37,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -41843,7 +41843,7 @@
             "x": 53,
             "y": 38,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -41856,7 +41856,7 @@
             "x": 53,
             "y": 39,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -41869,7 +41869,7 @@
             "x": 53,
             "y": 40,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -41882,7 +41882,7 @@
             "x": 53,
             "y": 41,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -41895,7 +41895,7 @@
             "x": 53,
             "y": 42,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -41998,8 +41998,8 @@
         {
             "x": 53,
             "y": 50,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -42011,8 +42011,8 @@
         {
             "x": 53,
             "y": 51,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -42570,8 +42570,8 @@
         {
             "x": 54,
             "y": 34,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -42584,7 +42584,7 @@
             "x": 54,
             "y": 35,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -42597,7 +42597,7 @@
             "x": 54,
             "y": 36,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -42610,7 +42610,7 @@
             "x": 54,
             "y": 37,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -42623,7 +42623,7 @@
             "x": 54,
             "y": 38,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -42636,7 +42636,7 @@
             "x": 54,
             "y": 39,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -42649,7 +42649,7 @@
             "x": 54,
             "y": 40,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -42662,7 +42662,7 @@
             "x": 54,
             "y": 41,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -42675,7 +42675,7 @@
             "x": 54,
             "y": 42,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -42765,8 +42765,8 @@
         {
             "x": 54,
             "y": 49,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -42778,8 +42778,8 @@
         {
             "x": 54,
             "y": 50,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -43350,8 +43350,8 @@
         {
             "x": 55,
             "y": 34,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -43364,7 +43364,7 @@
             "x": 55,
             "y": 35,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -43377,7 +43377,7 @@
             "x": 55,
             "y": 36,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -43390,7 +43390,7 @@
             "x": 55,
             "y": 37,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -43403,7 +43403,7 @@
             "x": 55,
             "y": 38,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -43416,7 +43416,7 @@
             "x": 55,
             "y": 39,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -43429,7 +43429,7 @@
             "x": 55,
             "y": 40,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -43442,7 +43442,7 @@
             "x": 55,
             "y": 41,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -43455,7 +43455,7 @@
             "x": 55,
             "y": 42,
             "isWalkable": true,
-            "nodeType": 0,
+            "nodeType": 2,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -43532,8 +43532,8 @@
         {
             "x": 55,
             "y": 48,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -43545,8 +43545,8 @@
         {
             "x": 55,
             "y": 49,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -44130,8 +44130,8 @@
         {
             "x": 56,
             "y": 34,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -44143,8 +44143,8 @@
         {
             "x": 56,
             "y": 35,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -44156,8 +44156,8 @@
         {
             "x": 56,
             "y": 36,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -44169,8 +44169,8 @@
         {
             "x": 56,
             "y": 37,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -44182,8 +44182,8 @@
         {
             "x": 56,
             "y": 38,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -44195,8 +44195,8 @@
         {
             "x": 56,
             "y": 39,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -44208,8 +44208,8 @@
         {
             "x": 56,
             "y": 40,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -44221,8 +44221,8 @@
         {
             "x": 56,
             "y": 41,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -44234,8 +44234,8 @@
         {
             "x": 56,
             "y": 42,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -44247,8 +44247,8 @@
         {
             "x": 56,
             "y": 43,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -44260,8 +44260,8 @@
         {
             "x": 56,
             "y": 44,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -44273,8 +44273,8 @@
         {
             "x": 56,
             "y": 45,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -44286,8 +44286,8 @@
         {
             "x": 56,
             "y": 46,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -44299,8 +44299,8 @@
         {
             "x": 56,
             "y": 47,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -44312,8 +44312,8 @@
         {
             "x": 56,
             "y": 48,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
