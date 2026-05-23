@@ -4,7 +4,8 @@ using UnityEngine;
 public class PathVisualizer : MonoBehaviour
 {
     [SerializeField] private GameObject arrowPrefab;
-    [SerializeField] private float spacing = 0.3f;
+    [SerializeField] private GameObject destinationPrefab; // New prefab for the destination
+    [SerializeField] private float spacing = 1.5f; // Increased spacing so they aren't very close
 
     private readonly List<GameObject> spawnedArrows = new List<GameObject>();
     private Material arrowMaterial;
@@ -236,8 +237,11 @@ public class PathVisualizer : MonoBehaviour
         // Final arrow at destination
         Vector3 lastSegment = worldPath[worldPath.Count - 1] - worldPath[worldPath.Count - 2];
         Vector3 lastDir = lastSegment.sqrMagnitude > 0.0001f ? lastSegment.normalized : Vector3.forward;
+        
+        GameObject prefabToUse = destinationPrefab != null ? destinationPrefab : arrowPrefab;
+        
         GameObject lastArrow = Instantiate(
-            arrowPrefab,
+            prefabToUse,
             worldPath[worldPath.Count - 1],
             Quaternion.LookRotation(lastDir),
             transform);
