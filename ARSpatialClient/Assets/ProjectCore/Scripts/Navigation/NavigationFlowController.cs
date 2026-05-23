@@ -351,7 +351,7 @@ public class NavigationFlowController : MonoBehaviour
 
         List<Vector3> worldPath = new List<Vector3>();
         foreach (CampusApiClient.PathPointPayload point in response.path)
-            worldPath.Add(new Vector3(point.x, point.y, point.z));
+            worldPath.Add(new Vector3(-point.x, point.y, point.z)); // Negate X to correct map mirror
 
         // --- AR ALIGNMENT (stable, no hardcoded vertical offsets, no rotation_y dependency) ---
         // Backend points are in map space. We map them into world space by:
@@ -384,11 +384,14 @@ public class NavigationFlowController : MonoBehaviour
                 }
             }
 
-            // 2) Initialize compass if not running
-            if (!Input.compass.enabled)
-                Input.compass.enabled = true;
-
+            // 2) Compute map heading from first segment
             Vector3 mapStart = worldPath[0];
+            Vector3 mapNext = worldPath.Count > 1 ? worldPath[1] : worldPath[0];
+
+            Vector3 mapDir = new Vector3(mapNext.x - mapStart.x, 0f, mapNext.z - mapStart.z);
+            if (mapDir.sqrMagnitude < 0.0001f)
+                mapDir = Vector3.forward;
+            mapDir.Normalize();
 
             // 3) Compute camera heading (project forward onto XZ)
             Transform cam = Camera.main != null ? Camera.main.transform : null;
@@ -398,18 +401,12 @@ public class NavigationFlowController : MonoBehaviour
                 camDir = Vector3.forward;
             camDir.Normalize();
 
+            float mapYaw = Mathf.Atan2(mapDir.x, mapDir.z) * Mathf.Rad2Deg;
             float camYaw = Mathf.Atan2(camDir.x, camDir.z) * Mathf.Rad2Deg;
-            
-            // 4) Align using Compass Data (Assuming Map +Z is True North)
-            float trueHeading = Input.compass.trueHeading;
-            // North in AR world is offset by the camera's true heading
-            float northYaw = camYaw - trueHeading;
-            
-            // Map +Z is 0 degrees. So yawOffset is just northYaw.
-            float yawOffset = northYaw;
+            float yawOffset = camYaw - mapYaw;
             Quaternion rotationOffset = Quaternion.Euler(0f, yawOffset, 0f);
 
-            Debug.Log($"[NavigationFlowController] AnchorPos={worldAnchorPos} camDirYaw={camYaw:F1} trueHeading={trueHeading:F1} yawOffset={yawOffset:F1}");
+            Debug.Log($"[NavigationFlowController] AnchorPos={worldAnchorPos} mapDirYaw={mapYaw:F1} camDirYaw={camYaw:F1} yawOffset={yawOffset:F1}");
 
             // 5) Transform all points:
             // translate so mapStart lands at worldAnchorPos, then rotate around Y around origin (using translated vectors)

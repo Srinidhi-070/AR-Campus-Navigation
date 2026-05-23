@@ -24,6 +24,7 @@ class ChatService:
         self._indexed_ids: List[str] = []
         self._indexed_text: List[str] = []
         self._embeddings = None
+        self._ollama_unavailable = False
 
         if SentenceTransformer is not None and np is not None:
             try:
@@ -143,6 +144,10 @@ class ChatService:
         return best_id, round(min(0.89, max(0.35, best_score)), 4)
 
     async def _ask_ollama(self, query: str, history: List[ChatMessage], locations) -> Optional[str]:
+        # Skip Ollama entirely if we already know it's unavailable
+        if self._ollama_unavailable:
+            return None
+
         history_text = "\n".join(
             f"{'User' if message.role == 'user' else 'Assistant'}: {message.content}"
             for message in history[-6:]
@@ -164,7 +169,7 @@ class ChatService:
         )
 
         try:
-            async with httpx.AsyncClient(timeout=30.0) as client:
+            async with httpx.AsyncClient(timeout=5.0) as client:
                 response = await client.post(
                     self._ollama_url,
                     json={"model": self._ollama_model, "prompt": prompt, "stream": False},
@@ -173,6 +178,9 @@ class ChatService:
                 return None
             return response.json().get("response", "")
         except Exception:
+            # Mark Ollama as unavailable so future calls skip instantly
+            self._ollama_unavailable = True
+            print("[ChatService] Ollama unreachable, disabling LLM for this session. Using fast keyword/semantic matching.")
             return None
 
     def _parse_llm_response(self, text: str) -> Dict[str, Optional[str]]:
