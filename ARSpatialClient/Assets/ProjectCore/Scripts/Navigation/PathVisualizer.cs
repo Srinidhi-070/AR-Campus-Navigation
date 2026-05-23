@@ -51,6 +51,16 @@ public class PathVisualizer : MonoBehaviour
                 Debug.LogWarning("[PathVisualizer] Destination prefab not found in Resources/Prefabs/reached destination.");
         }
 
+        // Auto-load stair prefab if not assigned
+        if (stairPrefab == null)
+        {
+            stairPrefab = Resources.Load<GameObject>("Prefabs/ArrowPrefab"); // Load the original prefab for stairs
+            if (stairPrefab != null)
+                Debug.Log("[PathVisualizer] Stair prefab loaded from Resources/Prefabs/ArrowPrefab");
+            else
+                Debug.LogWarning("[PathVisualizer] Stair prefab not found in Resources/Prefabs/ArrowPrefab.");
+        }
+
         // Fallback to legacy behavior if custom prefabs fail
         if (arrowPrefab == null)
             CreateFallbackArrow();
