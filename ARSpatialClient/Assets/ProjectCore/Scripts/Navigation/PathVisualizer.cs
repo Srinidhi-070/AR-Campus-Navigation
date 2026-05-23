@@ -283,10 +283,18 @@ public class PathVisualizer : MonoBehaviour
     {
         // Destroy the component only, not the gameObject, otherwise we might delete the whole model!
         var cameras = obj.GetComponentsInChildren<Camera>(true);
-        foreach (var cam in cameras) Destroy(cam);
+        foreach (var cam in cameras) 
+        {
+            cam.enabled = false; // Disable immediately to prevent 1-frame hijack
+            Destroy(cam);
+        }
 
         var lights = obj.GetComponentsInChildren<Light>(true);
-        foreach (var light in lights) Destroy(light);
+        foreach (var light in lights) 
+        {
+            light.enabled = false;
+            Destroy(light);
+        }
     }
 
     // ── Staircase Visualization ──────────────────────────────────────────
