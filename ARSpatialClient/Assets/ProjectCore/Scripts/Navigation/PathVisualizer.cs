@@ -5,6 +5,7 @@ public class PathVisualizer : MonoBehaviour
 {
     [SerializeField] private GameObject arrowPrefab;
     [SerializeField] private GameObject destinationPrefab; // New prefab for the destination
+    [SerializeField] private Vector3 m_ModelScaleMultiplier = new Vector3(100f, 100f, 100f); // Allows easy resizing of imported 3D models
     [SerializeField] private float spacing = 1.5f; // Increased spacing so they aren't very close
 
     private readonly List<GameObject> spawnedArrows = new List<GameObject>();
@@ -235,6 +236,7 @@ public class PathVisualizer : MonoBehaviour
             {
                 Vector3 pos = Vector3.Lerp(start, end, j / (float)steps);
                 GameObject arrowInstance = Instantiate(arrowPrefab, pos, Quaternion.LookRotation(dir), transform);
+                arrowInstance.transform.localScale = m_ModelScaleMultiplier;
                 StripRogueComponents(arrowInstance);
                 ApplyMaterial(arrowInstance, arrowMaterial);
                 
@@ -255,6 +257,7 @@ public class PathVisualizer : MonoBehaviour
             worldPath[worldPath.Count - 1],
             Quaternion.LookRotation(lastDir),
             transform);
+        lastArrow.transform.localScale = m_ModelScaleMultiplier;
         StripRogueComponents(lastArrow);
         ApplyMaterial(lastArrow, destinationMaterial);
 
