@@ -267,10 +267,9 @@ public class PathVisualizer : MonoBehaviour
 
     private void StripRogueComponents(GameObject obj)
     {
-        // 3D models downloaded or exported from C4D/Blender often contain hidden Cameras and Lights.
-        // If instantiated, these cameras take over the AR view, causing a "blue screen".
+        // Destroy the component only, not the gameObject, otherwise we might delete the whole model!
         var cameras = obj.GetComponentsInChildren<Camera>(true);
-        foreach (var cam in cameras) Destroy(cam.gameObject);
+        foreach (var cam in cameras) Destroy(cam);
 
         var lights = obj.GetComponentsInChildren<Light>(true);
         foreach (var light in lights) Destroy(light);
