@@ -5,7 +5,7 @@ public class PathVisualizer : MonoBehaviour
 {
     [SerializeField] private GameObject arrowPrefab;
     [SerializeField] private GameObject destinationPrefab; // New prefab for the destination
-    [SerializeField] private Vector3 m_ModelScaleMultiplier = new Vector3(100f, 100f, 100f); // Allows easy resizing of imported 3D models
+    [SerializeField] private Vector3 m_ModelScaleMultiplier = new Vector3(5f, 5f, 5f); // Allows easy resizing of imported 3D models
     [SerializeField] private float spacing = 1.5f; // Increased spacing so they aren't very close
 
     private readonly List<GameObject> spawnedArrows = new List<GameObject>();
