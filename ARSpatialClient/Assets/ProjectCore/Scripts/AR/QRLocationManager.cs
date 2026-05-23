@@ -19,6 +19,7 @@ public class QRLocationManager : MonoBehaviour
     public string CurrentBuilding { get; private set; } = "";
     public int    CurrentFloor    { get; private set; } = 0;
     public float  ScanCameraRotationY { get; private set; } = 0f;
+    public float  ScanCompassHeading  { get; private set; } = 0f;
     public bool   HasLocation     => !string.IsNullOrEmpty(CurrentNodeId);
 
     // ── Event fired when location changes ─────────────────────────────────────
@@ -45,7 +46,8 @@ public class QRLocationManager : MonoBehaviour
         if (Camera.main != null)
         {
             ScanCameraRotationY = Camera.main.transform.eulerAngles.y;
-            Debug.Log($"[QRLocation] Camera Y rotation at scan: {ScanCameraRotationY}°");
+            ScanCompassHeading  = Input.compass.trueHeading;
+            Debug.Log($"[QRLocation] Camera Y rotation at scan: {ScanCameraRotationY}° | Compass: {ScanCompassHeading}°");
         }
 
         Debug.Log($"[QRLocation] Location set → Node: {CurrentNodeId} | Building: {CurrentBuilding} | Floor: {CurrentFloor}");
