@@ -396,13 +396,12 @@ public class NavigationFlowController : MonoBehaviour
             float mapYaw = Mathf.Atan2(mapDir.x, mapDir.z) * Mathf.Rad2Deg;
 
             // 3) Use QR scan-time camera rotation for alignment.
-            // When scanning a QR code, the user faces the WALL. The first path segment
-            // goes the OPPOSITE direction (into the corridor behind the user).
-            // So: scanRotation + 180° = the direction the first segment should point in AR space.
+            // The scan rotation captures which AR direction the user was facing when
+            // they scanned the QR code. We align the first path segment to match.
             float scanYaw = 0f;
             if (m_QRLocationManager != null && m_QRLocationManager.HasLocation)
             {
-                scanYaw = m_QRLocationManager.ScanCameraRotationY + 180f;
+                scanYaw = m_QRLocationManager.ScanCameraRotationY;
             }
             else
             {
