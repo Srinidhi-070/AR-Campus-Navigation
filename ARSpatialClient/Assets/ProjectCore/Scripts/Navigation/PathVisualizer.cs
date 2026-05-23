@@ -32,17 +32,26 @@ public class PathVisualizer : MonoBehaviour
         // Auto-load arrow prefab if not assigned
         if (arrowPrefab == null)
         {
-            arrowPrefab = Resources.Load<GameObject>("Prefabs/ArrowPrefab");
+            arrowPrefab = Resources.Load<GameObject>("Prefabs/arrow"); // Load the new arrow prefab
             if (arrowPrefab != null)
-            {
-                Debug.Log("[PathVisualizer] Arrow prefab loaded from Resources");
-            }
+                Debug.Log("[PathVisualizer] Arrow prefab loaded from Resources/Prefabs/arrow");
             else
-            {
-                Debug.LogWarning("[PathVisualizer] Arrow prefab not found in Resources/Prefabs/. Creating fallback arrow.");
-                CreateFallbackArrow();
-            }
+                Debug.LogWarning("[PathVisualizer] Arrow prefab not found in Resources/Prefabs/arrow.");
         }
+        
+        // Auto-load destination prefab if not assigned
+        if (destinationPrefab == null)
+        {
+            destinationPrefab = Resources.Load<GameObject>("Prefabs/reached destination"); // Load the new destination prefab
+            if (destinationPrefab != null)
+                Debug.Log("[PathVisualizer] Destination prefab loaded from Resources/Prefabs/reached destination");
+            else
+                Debug.LogWarning("[PathVisualizer] Destination prefab not found in Resources/Prefabs/reached destination.");
+        }
+
+        // Fallback to legacy behavior if custom prefabs fail
+        if (arrowPrefab == null)
+            CreateFallbackArrow();
 
         EnsureArrowMaterial();
         EnsureTransitionMaterials();
