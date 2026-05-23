@@ -5,6 +5,7 @@ public class PathVisualizer : MonoBehaviour
 {
     [SerializeField] private GameObject arrowPrefab;
     [SerializeField] private GameObject destinationPrefab; // New prefab for the destination
+    [SerializeField] private GameObject stairPrefab; // Original prefab used specifically for stairs
     [SerializeField] private Vector3 m_ModelScaleMultiplier = new Vector3(5f, 5f, 5f); // Allows easy resizing of imported 3D models
     [SerializeField] private float spacing = 1.5f; // Increased spacing so they aren't very close
 
@@ -328,9 +329,14 @@ public class PathVisualizer : MonoBehaviour
             // Spawn a vertical arrow for the rise
             Vector3 riseDir = transition.goingUp ? Vector3.up : Vector3.down;
             Vector3 risePos = (stepStart + stepTop) * 0.5f;
-            GameObject riseArrow = Instantiate(arrowPrefab, risePos, Quaternion.LookRotation(riseDir, horizontalDir), transform);
+            
+            GameObject prefabToUse = stairPrefab != null ? stairPrefab : arrowPrefab;
+            Vector3 baseScale = stairPrefab != null ? Vector3.one : m_ModelScaleMultiplier;
+
+            GameObject riseArrow = Instantiate(prefabToUse, risePos, Quaternion.LookRotation(riseDir, horizontalDir), transform);
+            if (prefabToUse == arrowPrefab) StripRogueComponents(riseArrow);
             ApplyMaterial(riseArrow, staircaseMaterial);
-            riseArrow.transform.localScale = Vector3.one * 0.8f;
+            riseArrow.transform.localScale = baseScale * 0.8f;
             riseArrow.SetActive(true);
             spawnedArrows.Add(riseArrow);
 
@@ -346,9 +352,10 @@ public class PathVisualizer : MonoBehaviour
                 if (treadDir.sqrMagnitude > 0.001f)
                 {
                     Vector3 treadPos = (stepTop + treadEnd) * 0.5f;
-                    GameObject treadArrow = Instantiate(arrowPrefab, treadPos, Quaternion.LookRotation(treadDir.normalized), transform);
+                    GameObject treadArrow = Instantiate(prefabToUse, treadPos, Quaternion.LookRotation(treadDir.normalized), transform);
+                    if (prefabToUse == arrowPrefab) StripRogueComponents(treadArrow);
                     ApplyMaterial(treadArrow, staircaseMaterial);
-                    treadArrow.transform.localScale = Vector3.one * 0.7f;
+                    treadArrow.transform.localScale = baseScale * 0.7f;
                     treadArrow.SetActive(true);
                     spawnedArrows.Add(treadArrow);
                 }
@@ -396,10 +403,14 @@ public class PathVisualizer : MonoBehaviour
             float t = (i + 0.5f) / arrowCount;
             Vector3 pos = Vector3.Lerp(bottom, top, t);
             
+            GameObject prefabToUse = stairPrefab != null ? stairPrefab : arrowPrefab;
+            Vector3 baseScale = stairPrefab != null ? Vector3.one : m_ModelScaleMultiplier;
+
             // Use forward direction for LookRotation since arrows point up/down
-            GameObject arrow = Instantiate(arrowPrefab, pos, Quaternion.LookRotation(arrowDir, Vector3.forward), transform);
+            GameObject arrow = Instantiate(prefabToUse, pos, Quaternion.LookRotation(arrowDir, Vector3.forward), transform);
+            if (prefabToUse == arrowPrefab) StripRogueComponents(arrow);
             ApplyMaterial(arrow, liftMaterial);
-            arrow.transform.localScale = Vector3.one * 0.9f;
+            arrow.transform.localScale = baseScale * 0.9f;
             arrow.SetActive(true);
             spawnedArrows.Add(arrow);
         }
