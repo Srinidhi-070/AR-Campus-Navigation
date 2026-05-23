@@ -351,7 +351,7 @@ public class NavigationFlowController : MonoBehaviour
 
         List<Vector3> worldPath = new List<Vector3>();
         foreach (CampusApiClient.PathPointPayload point in response.path)
-            worldPath.Add(new Vector3(-point.x, point.y, point.z)); // Negate X to correct map mirror
+            worldPath.Add(new Vector3(point.x, point.y, point.z));
 
         // --- AR ALIGNMENT (stable, no hardcoded vertical offsets, no rotation_y dependency) ---
         // Backend points are in map space. We map them into world space by:
@@ -393,20 +393,33 @@ public class NavigationFlowController : MonoBehaviour
                 mapDir = Vector3.forward;
             mapDir.Normalize();
 
-            // 3) Compute camera heading (project forward onto XZ)
-            Transform cam = Camera.main != null ? Camera.main.transform : null;
-            Vector3 camForward = cam != null ? cam.forward : Vector3.forward;
-            Vector3 camDir = new Vector3(camForward.x, 0f, camForward.z);
-            if (camDir.sqrMagnitude < 0.0001f)
-                camDir = Vector3.forward;
-            camDir.Normalize();
-
             float mapYaw = Mathf.Atan2(mapDir.x, mapDir.z) * Mathf.Rad2Deg;
-            float camYaw = Mathf.Atan2(camDir.x, camDir.z) * Mathf.Rad2Deg;
-            float yawOffset = camYaw - mapYaw;
+
+            // 3) Use QR scan-time camera rotation for alignment.
+            // When scanning a QR code, the user faces the WALL. The first path segment
+            // goes the OPPOSITE direction (into the corridor behind the user).
+            // So: scanRotation + 180° = the direction the first segment should point in AR space.
+            float scanYaw = 0f;
+            if (m_QRLocationManager != null && m_QRLocationManager.HasLocation)
+            {
+                scanYaw = m_QRLocationManager.ScanCameraRotationY + 180f;
+            }
+            else
+            {
+                // Fallback: use current camera forward if no QR scan data
+                Transform cam = Camera.main != null ? Camera.main.transform : null;
+                Vector3 camForward = cam != null ? cam.forward : Vector3.forward;
+                Vector3 camDir = new Vector3(camForward.x, 0f, camForward.z);
+                if (camDir.sqrMagnitude < 0.0001f)
+                    camDir = Vector3.forward;
+                camDir.Normalize();
+                scanYaw = Mathf.Atan2(camDir.x, camDir.z) * Mathf.Rad2Deg;
+            }
+
+            float yawOffset = scanYaw - mapYaw;
             Quaternion rotationOffset = Quaternion.Euler(0f, yawOffset, 0f);
 
-            Debug.Log($"[NavigationFlowController] AnchorPos={worldAnchorPos} mapDirYaw={mapYaw:F1} camDirYaw={camYaw:F1} yawOffset={yawOffset:F1}");
+            Debug.Log($"[NavigationFlowController] AnchorPos={worldAnchorPos} mapYaw={mapYaw:F1} scanYaw={scanYaw:F1} yawOffset={yawOffset:F1}");
 
             // 5) Transform all points:
             // translate so mapStart lands at worldAnchorPos, then rotate around Y around origin (using translated vectors)
