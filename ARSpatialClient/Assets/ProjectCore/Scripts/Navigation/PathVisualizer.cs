@@ -235,6 +235,7 @@ public class PathVisualizer : MonoBehaviour
             {
                 Vector3 pos = Vector3.Lerp(start, end, j / (float)steps);
                 GameObject arrowInstance = Instantiate(arrowPrefab, pos, Quaternion.LookRotation(dir), transform);
+                StripRogueComponents(arrowInstance);
                 ApplyMaterial(arrowInstance, arrowMaterial);
                 
 
@@ -254,6 +255,7 @@ public class PathVisualizer : MonoBehaviour
             worldPath[worldPath.Count - 1],
             Quaternion.LookRotation(lastDir),
             transform);
+        StripRogueComponents(lastArrow);
         ApplyMaterial(lastArrow, destinationMaterial);
 
 
@@ -261,6 +263,17 @@ public class PathVisualizer : MonoBehaviour
         spawnedArrows.Add(lastArrow);
         
         Debug.Log($"[PathVisualizer] ✅ Spawned {spawnedArrows.Count} path elements");
+    }
+
+    private void StripRogueComponents(GameObject obj)
+    {
+        // 3D models downloaded or exported from C4D/Blender often contain hidden Cameras and Lights.
+        // If instantiated, these cameras take over the AR view, causing a "blue screen".
+        var cameras = obj.GetComponentsInChildren<Camera>(true);
+        foreach (var cam in cameras) Destroy(cam.gameObject);
+
+        var lights = obj.GetComponentsInChildren<Light>(true);
+        foreach (var light in lights) Destroy(light);
     }
 
     // ── Staircase Visualization ──────────────────────────────────────────
