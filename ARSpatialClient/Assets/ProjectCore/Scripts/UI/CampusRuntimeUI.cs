@@ -324,7 +324,7 @@ public class CampusRuntimeUI : MonoBehaviour
         
         DirectionText.text = string.Empty;
         DirectionText.fontSize = 64;
-        DirectionText.alignment = TextAlignmentOptions.BottomCenter;
+        DirectionText.alignment = TextAlignmentOptions.Center;
         DirectionText.color = new Color(0.35f, 0.55f, 1f, 1f); // Vibrant blue to match image
         DirectionText.enableWordWrapping = true;
         DirectionText.overflowMode = TextOverflowModes.Ellipsis;
@@ -345,7 +345,7 @@ public class CampusRuntimeUI : MonoBehaviour
         
         StatusText.text = "Loading campus map...";
         StatusText.fontSize = 28;
-        StatusText.alignment = TextAlignmentOptions.TopCenter;
+        StatusText.alignment = TextAlignmentOptions.Center;
         StatusText.color = Color.white;
         StatusText.enableWordWrapping = true;
 
