@@ -253,11 +253,11 @@ public class CampusRuntimeUI : MonoBehaviour
 
     private void BuildMenuPanel()
     {
-        MenuPanel = CreatePanel("MenuPanel", NavigationChrome.transform, new Color(0.06f, 0.08f, 0.12f, 0.95f));
+        MenuPanel = CreatePanel("MenuPanel", NavigationChrome.transform, new Color(0.98f, 0.98f, 0.99f, 0.98f)); // Clean white panel
         
         Outline panelOutline = MenuPanel.AddComponent<Outline>();
-        panelOutline.effectColor = new Color(0.2f, 0.3f, 0.4f, 0.3f);
-        panelOutline.effectDistance = new Vector2(1.5f, -1.5f);
+        panelOutline.effectColor = new Color(0, 0, 0, 0.1f);
+        panelOutline.effectDistance = new Vector2(2f, -2f);
 
         RectTransform rt = MenuPanel.GetComponent<RectTransform>();
         rt.anchorMin = new Vector2(0, 1);
@@ -266,14 +266,20 @@ public class CampusRuntimeUI : MonoBehaviour
         rt.anchoredPosition = new Vector2(36, -176);
         rt.sizeDelta = new Vector2(660, 620);
 
-        CreateLabel(MenuPanel.transform, "MenuTitle", "Navigate To", 44, TextAlignmentOptions.Left, new Vector2(36, -24), new Vector2(-24, -84));
-        CreateLabel(MenuPanel.transform, "BuildingLabel", "Building", 28, TextAlignmentOptions.Left, new Vector2(36, -106), new Vector2(-24, -144));
+        TextMeshProUGUI title = CreateLabel(MenuPanel.transform, "MenuTitle", "Navigate To", 44, TextAlignmentOptions.Left, new Vector2(36, -24), new Vector2(-24, -84));
+        title.color = Color.black;
+        title.fontStyle = FontStyles.Bold;
+
+        TextMeshProUGUI bLabel = CreateLabel(MenuPanel.transform, "BuildingLabel", "Building", 28, TextAlignmentOptions.Left, new Vector2(36, -106), new Vector2(-24, -144));
+        bLabel.color = new Color(0.4f, 0.4f, 0.45f, 1f);
         BuildingDropdown = CreateDropdown(MenuPanel.transform, "BuildingDropdown", new Vector2(36, -156), new Vector2(-36, -236));
 
-        CreateLabel(MenuPanel.transform, "FloorLabel", "Floor", 28, TextAlignmentOptions.Left, new Vector2(36, -258), new Vector2(-24, -296));
+        TextMeshProUGUI fLabel = CreateLabel(MenuPanel.transform, "FloorLabel", "Floor", 28, TextAlignmentOptions.Left, new Vector2(36, -258), new Vector2(-24, -296));
+        fLabel.color = new Color(0.4f, 0.4f, 0.45f, 1f);
         FloorDropdown = CreateDropdown(MenuPanel.transform, "FloorDropdown", new Vector2(36, -308), new Vector2(-36, -388));
 
-        CreateLabel(MenuPanel.transform, "RoomLabel", "Destination", 28, TextAlignmentOptions.Left, new Vector2(36, -410), new Vector2(-24, -448));
+        TextMeshProUGUI rLabel = CreateLabel(MenuPanel.transform, "RoomLabel", "Destination", 28, TextAlignmentOptions.Left, new Vector2(36, -410), new Vector2(-24, -448));
+        rLabel.color = new Color(0.4f, 0.4f, 0.45f, 1f);
         RoomDropdown = CreateDropdown(MenuPanel.transform, "RoomDropdown", new Vector2(36, -460), new Vector2(-36, -540));
 
         NavigateButton = CreateButton(MenuPanel.transform, "NavigateButton", "NAVIGATE");
@@ -282,6 +288,7 @@ public class CampusRuntimeUI : MonoBehaviour
         navRT.anchorMax = new Vector2(1, 1);
         navRT.offsetMin = new Vector2(36, -600);
         navRT.offsetMax = new Vector2(-36, -540);
+        NavigateButton.GetComponent<Image>().color = new Color(0.6f, 0.45f, 0.9f, 1f); // Purple button
     }
 
     private void BuildBottomBar()
@@ -711,12 +718,16 @@ public class CampusRuntimeUI : MonoBehaviour
 
     private TMP_Dropdown CreateDropdown(Transform parent, string name, Vector2 offsetMin, Vector2 offsetMax)
     {
-        GameObject go = CreatePanel(name, parent, new Color(0.1f, 0.12f, 0.18f, 1f));
+        GameObject go = CreatePanel(name, parent, new Color(1f, 1f, 1f, 1f)); // White dropdown button
         RectTransform rt = go.GetComponent<RectTransform>();
         rt.anchorMin = new Vector2(0, 1);
         rt.anchorMax = new Vector2(1, 1);
         rt.offsetMin = offsetMin;
         rt.offsetMax = offsetMax;
+
+        Outline outline = go.AddComponent<Outline>();
+        outline.effectColor = new Color(0, 0, 0, 0.05f);
+        outline.effectDistance = new Vector2(1, -1);
 
         TMP_Dropdown dropdown = go.AddComponent<TMP_Dropdown>();
         dropdown.interactable = true;
@@ -734,7 +745,7 @@ public class CampusRuntimeUI : MonoBehaviour
         labelRT.offsetMax = new Vector2(-48, -10);
         TextMeshProUGUI label = labelGO.GetComponent<TextMeshProUGUI>();
         label.fontSize = 28;
-        label.color = Color.white;
+        label.color = new Color(0.2f, 0.2f, 0.25f, 1f); // Dark gray text
         label.alignment = TextAlignmentOptions.Left;
         label.raycastTarget = false; // Don't block dropdown clicks
 
@@ -749,7 +760,7 @@ public class CampusRuntimeUI : MonoBehaviour
         TextMeshProUGUI arrow = arrowGO.GetComponent<TextMeshProUGUI>();
         arrow.text = "▼";
         arrow.fontSize = 24;
-        arrow.color = Color.white;
+        arrow.color = new Color(0.6f, 0.45f, 0.9f, 1f); // Purple arrow
         arrow.alignment = TextAlignmentOptions.Center;
         arrow.raycastTarget = false; // Don't block dropdown clicks
 
@@ -768,14 +779,14 @@ public class CampusRuntimeUI : MonoBehaviour
         templateRT.anchoredPosition = new Vector2(0, 2);
         templateRT.sizeDelta = new Vector2(0, 300);
         
-        // Template background — distinctly lighter than menu panel so it's visible
+        // Template background
         Image templateBg = template.GetComponent<Image>();
-        templateBg.color = new Color(0.10f, 0.12f, 0.18f, 1f);
+        templateBg.color = new Color(1f, 1f, 1f, 1f); // White popup
         template.SetActive(false);
         
-        // Add visible border outline so dropdown popup is clearly separate
+        // Add visible border outline
         Outline templateOutline = template.AddComponent<Outline>();
-        templateOutline.effectColor = new Color(0.0f, 0.66f, 0.72f, 0.6f);
+        templateOutline.effectColor = new Color(0, 0, 0, 0.08f);
         templateOutline.effectDistance = new Vector2(2, 2);
         
         // Canvas override for sorting — ensures popup renders above everything
@@ -791,7 +802,7 @@ public class CampusRuntimeUI : MonoBehaviour
         scrollRect.scrollSensitivity = 30f;
         scrollRect.movementType = ScrollRect.MovementType.Clamped;
 
-        // Viewport — visible white background so Mask works correctly
+        // Viewport
         GameObject viewport = new GameObject("Viewport", typeof(RectTransform), typeof(Image));
         viewport.transform.SetParent(template.transform, false);
         RectTransform viewportRT = viewport.GetComponent<RectTransform>();
@@ -800,9 +811,10 @@ public class CampusRuntimeUI : MonoBehaviour
         viewportRT.offsetMin = new Vector2(2, 2);
         viewportRT.offsetMax = new Vector2(-2, -2);
         Image viewportImage = viewport.GetComponent<Image>();
-        viewportImage.color = new Color(0.08f, 0.09f, 0.14f, 1f); // Opaque dark bg
+        viewportImage.color = new Color(1f, 1f, 1f, 1f); // White bg
         Mask viewportMask = viewport.AddComponent<Mask>();
-        viewportMask.showMaskGraphic = true; // Show the dark background
+        viewportMask.showMaskGraphic = true;
+
         scrollRect.viewport = viewportRT;
 
         // Content container — grows with items via ContentSizeFitter
@@ -834,7 +846,7 @@ public class CampusRuntimeUI : MonoBehaviour
         RectTransform itemRT = item.GetComponent<RectTransform>();
         itemRT.sizeDelta = new Vector2(0, 80);
         Image itemBg = item.GetComponent<Image>();
-        itemBg.color = new Color(0.16f, 0.18f, 0.28f, 1f); // Clearly lighter than template bg
+        itemBg.color = new Color(1f, 1f, 1f, 1f); // White item
         
         LayoutElement itemLayout = item.AddComponent<LayoutElement>();
         itemLayout.minHeight = 80;
@@ -852,19 +864,19 @@ public class CampusRuntimeUI : MonoBehaviour
         checkRT.offsetMin = Vector2.zero;
         checkRT.offsetMax = Vector2.zero;
         Image checkImg = checkmark.GetComponent<Image>();
-        checkImg.color = new Color(0.0f, 0.66f, 0.72f, 0.35f); // Teal highlight
+        checkImg.color = new Color(0.65f, 0.45f, 0.95f, 1f); // Solid Purple highlight
         checkImg.raycastTarget = false;
         toggle.graphic = checkImg;
         
         ColorBlock toggleColors = toggle.colors;
         toggleColors.normalColor = Color.white;
-        toggleColors.highlightedColor = new Color(0.8f, 0.95f, 0.97f, 1f);
-        toggleColors.pressedColor = new Color(0.6f, 0.9f, 0.92f, 1f);
-        toggleColors.selectedColor = new Color(0.7f, 0.93f, 0.95f, 1f);
+        toggleColors.highlightedColor = new Color(0.95f, 0.92f, 1f, 1f); // Light purple on hover
+        toggleColors.pressedColor = new Color(0.85f, 0.75f, 0.98f, 1f);
+        toggleColors.selectedColor = Color.white;
         toggleColors.colorMultiplier = 1f;
         toggle.colors = toggleColors;
 
-        // Item label — large, bright text
+        // Item label
         GameObject itemLabelGO = new GameObject("Item Label", typeof(RectTransform), typeof(TextMeshProUGUI));
         itemLabelGO.transform.SetParent(item.transform, false);
         RectTransform itemLabelRT = itemLabelGO.GetComponent<RectTransform>();
@@ -874,7 +886,7 @@ public class CampusRuntimeUI : MonoBehaviour
         itemLabelRT.offsetMax = new Vector2(-16, -4);
         TextMeshProUGUI itemLabel = itemLabelGO.GetComponent<TextMeshProUGUI>();
         itemLabel.fontSize = 32;
-        itemLabel.color = Color.white;
+        itemLabel.color = new Color(0.3f, 0.25f, 0.35f, 1f); // Dark purple/gray text
         itemLabel.alignment = TextAlignmentOptions.MidlineLeft;
         itemLabel.raycastTarget = false;
 
