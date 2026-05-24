@@ -382,7 +382,7 @@ public class CampusRuntimeUI : MonoBehaviour
         chatRT.anchorMin = new Vector2(0.5f, 0f);
         chatRT.anchorMax = new Vector2(0.5f, 0f);
         chatRT.pivot = new Vector2(0.5f, 0f);
-        chatRT.anchoredPosition = new Vector2(0, 60); 
+        chatRT.anchoredPosition = new Vector2(0, 90); // Pushed up further to clear safe area
         chatRT.sizeDelta = new Vector2(400, 90);
 
         // Retry button (hidden by default)
@@ -1035,8 +1035,8 @@ public class DrawerAnimator : MonoBehaviour
     public RectTransform floatingToastRect;
     public TextMeshProUGUI directionText;
     
-    public float expandedHeight = 320f;
-    public float collapsedHeight = 150f;
+    public float expandedHeight = 330f;
+    public float collapsedHeight = 220f;
     public float toastOffset = 20f;
     public float animationSpeed = 10f;
 
