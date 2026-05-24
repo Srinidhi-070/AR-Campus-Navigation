@@ -39,6 +39,7 @@ public class CampusRuntimeUI : MonoBehaviour
     public TextMeshProUGUI DirectionText { get; private set; }
 
     private bool m_Built;
+    private Sprite m_RoundedSprite;
 
     public void EnsureBuilt()
     {
@@ -459,9 +460,48 @@ public class CampusRuntimeUI : MonoBehaviour
         go.transform.SetParent(parent, false);
         Image img = go.GetComponent<Image>();
         img.color = color;
-        img.sprite = Resources.GetBuiltinResource<Sprite>("UI/Skin/UISprite.psd");
+        img.sprite = GetRoundedSprite();
         img.type = Image.Type.Sliced;
         return go;
+    }
+
+    private Sprite GetRoundedSprite()
+    {
+        if (m_RoundedSprite != null) return m_RoundedSprite;
+
+        int size = 64;
+        int cornerRadius = 24;
+        Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
+        Color[] pixels = new Color[size * size];
+
+        for (int y = 0; y < size; y++)
+        {
+            for (int x = 0; x < size; x++)
+            {
+                bool isCorner = false;
+                int cx = -1, cy = -1;
+
+                if (x < cornerRadius && y < cornerRadius) { cx = cornerRadius; cy = cornerRadius; isCorner = true; }
+                else if (x >= size - cornerRadius && y < cornerRadius) { cx = size - 1 - cornerRadius; cy = cornerRadius; isCorner = true; }
+                else if (x < cornerRadius && y >= size - cornerRadius) { cx = cornerRadius; cy = size - 1 - cornerRadius; isCorner = true; }
+                else if (x >= size - cornerRadius && y >= size - cornerRadius) { cx = size - 1 - cornerRadius; cy = size - 1 - cornerRadius; isCorner = true; }
+
+                if (isCorner)
+                {
+                    float dist = Vector2.Distance(new Vector2(x, y), new Vector2(cx, cy));
+                    pixels[y * size + x] = dist <= cornerRadius ? Color.white : Color.clear;
+                }
+                else
+                {
+                    pixels[y * size + x] = Color.white;
+                }
+            }
+        }
+        tex.SetPixels(pixels);
+        tex.Apply();
+
+        m_RoundedSprite = Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 100, 0, SpriteMeshType.FullRect, new Vector4(cornerRadius, cornerRadius, cornerRadius, cornerRadius));
+        return m_RoundedSprite;
     }
 
     private Button CreateButton(Transform parent, string name, string label, string iconResourcePath = null)
