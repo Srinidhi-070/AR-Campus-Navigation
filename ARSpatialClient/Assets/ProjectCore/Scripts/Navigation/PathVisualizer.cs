@@ -136,7 +136,7 @@ public class PathVisualizer : MonoBehaviour
         if (shader == null) return null;
 
         arrowMaterial = new Material(shader);
-        Color color = new Color(0f, 0.95f, 1f, 1f); // Cyan
+        Color color = new Color(1f, 0.05f, 0.8f, 1f); // Neon Pink (Highly visible in AR)
         SetMaterialColor(arrowMaterial, color);
         return arrowMaterial;
     }
@@ -146,25 +146,25 @@ public class PathVisualizer : MonoBehaviour
         Shader shader = FindBestShader();
         if (shader == null) return;
 
-        // Staircase: warm orange
+        // Staircase: High-visibility neon orange/gold
         if (staircaseMaterial == null)
         {
             staircaseMaterial = new Material(shader);
-            SetMaterialColor(staircaseMaterial, new Color(1f, 0.6f, 0.1f, 1f));
+            SetMaterialColor(staircaseMaterial, new Color(1f, 0.7f, 0f, 1f));
         }
 
-        // Lift: purple/violet
+        // Lift: Electric Violet
         if (liftMaterial == null)
         {
             liftMaterial = new Material(shader);
-            SetMaterialColor(liftMaterial, new Color(0.6f, 0.3f, 1f, 1f));
+            SetMaterialColor(liftMaterial, new Color(0.7f, 0.1f, 1f, 1f));
         }
 
-        // Destination marker: green
+        // Destination marker: Bright Neon Green
         if (destinationMaterial == null)
         {
             destinationMaterial = new Material(shader);
-            SetMaterialColor(destinationMaterial, new Color(0.2f, 1f, 0.4f, 1f));
+            SetMaterialColor(destinationMaterial, new Color(0.1f, 1f, 0.2f, 1f));
         }
     }
 
@@ -186,6 +186,13 @@ public class PathVisualizer : MonoBehaviour
         if (mat.HasProperty("_Color"))
             mat.SetColor("_Color", color);
         mat.color = color;
+        
+        // Add emission for an attractive AR glow effect
+        if (mat.HasProperty("_EmissionColor"))
+        {
+            mat.EnableKeyword("_EMISSION");
+            mat.SetColor("_EmissionColor", color * 1.5f); // Boost intensity for AR visibility
+        }
     }
 
     private void ApplyMaterial(GameObject instance, Material material)
