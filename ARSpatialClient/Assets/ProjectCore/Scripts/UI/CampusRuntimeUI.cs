@@ -187,7 +187,15 @@ public class CampusRuntimeUI : MonoBehaviour
         // ── Safe-area chrome container ────────────────────────────────────────
         NavigationChrome = new GameObject("NavigationChrome", typeof(RectTransform));
         NavigationChrome.transform.SetParent(canvasGO.transform, false);
-        ApplySafeArea(NavigationChrome.GetComponent<RectTransform>());
+        
+        // Full stretch anchor
+        RectTransform chromeRT = NavigationChrome.GetComponent<RectTransform>();
+        chromeRT.anchorMin = Vector2.zero;
+        chromeRT.anchorMax = Vector2.one;
+        chromeRT.offsetMin = Vector2.zero;
+        chromeRT.offsetMax = Vector2.zero;
+        
+        ApplySafeArea(chromeRT);
 
         // ── Build layers ─────────────────────────────────────────────────────
         BuildMenuOverlay();
@@ -202,15 +210,21 @@ public class CampusRuntimeUI : MonoBehaviour
 
     private void ApplySafeArea(RectTransform rt)
     {
-        Rect   sa      = Screen.safeArea;
-        float  sw      = Mathf.Max(1, Screen.width);
-        float  sh      = Mathf.Max(1, Screen.height);
-        Vector2 aMin   = new Vector2(sa.xMin / sw, sa.yMin / sh);
-        Vector2 aMax   = new Vector2(sa.xMax / sw, sa.yMax / sh);
-        rt.anchorMin   = aMin;
-        rt.anchorMax   = aMax;
-        rt.offsetMin   = Vector2.zero;
-        rt.offsetMax   = Vector2.zero;
+        Rect sa = Screen.safeArea;
+        float sw = Screen.width;
+        float sh = Screen.height;
+        if (sw > 0 && sh > 0)
+        {
+            rt.anchorMin = new Vector2(sa.xMin / sw, sa.yMin / sh);
+            rt.anchorMax = new Vector2(sa.xMax / sw, sa.yMax / sh);
+        }
+        else
+        {
+            rt.anchorMin = Vector2.zero;
+            rt.anchorMax = Vector2.one;
+        }
+        rt.offsetMin = Vector2.zero;
+        rt.offsetMax = Vector2.zero;
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -302,21 +316,9 @@ public class CampusRuntimeUI : MonoBehaviour
 
     private void BuildMenuPanel()
     {
-        // Drop-shadow layer
-        GameObject shadow   = MakeGlassPanel("MenuPanel_Shadow", NavigationChrome.transform, k_Shadow);
-        RectTransform shadowRT = shadow.GetComponent<RectTransform>();
-        shadowRT.anchorMin  = new Vector2(0, 1);
-        shadowRT.anchorMax  = new Vector2(0, 1);
-        shadowRT.pivot      = new Vector2(0, 1);
-        shadowRT.anchoredPosition = new Vector2(k_Margin + 6f, -(k_Margin + k_FabSize + 20f) - 6f);
-        shadowRT.sizeDelta  = new Vector2(660, 660);
-
-        // Glass drawer
-        MenuPanel           = MakeGlassPanel("MenuPanel", NavigationChrome.transform, k_GlassLight);
-        Outline border      = MenuPanel.AddComponent<Outline>();
-        border.effectColor  = k_Border;
-        border.effectDistance = new Vector2(1.5f, -1.5f);
-
+        // Container to hold both panel and shadow so they hide together
+        MenuPanel = new GameObject("MenuContainer", typeof(RectTransform));
+        MenuPanel.transform.SetParent(NavigationChrome.transform, false);
         RectTransform rt    = MenuPanel.GetComponent<RectTransform>();
         rt.anchorMin        = new Vector2(0, 1);
         rt.anchorMax        = new Vector2(0, 1);
@@ -324,28 +326,49 @@ public class CampusRuntimeUI : MonoBehaviour
         rt.anchoredPosition = new Vector2(k_Margin, -(k_Margin + k_FabSize + 20f));
         rt.sizeDelta        = new Vector2(660, 660);
 
+        // Drop-shadow layer
+        GameObject shadow   = MakeGlassPanel("MenuPanel_Shadow", MenuPanel.transform, k_Shadow);
+        RectTransform shadowRT = shadow.GetComponent<RectTransform>();
+        shadowRT.anchorMin  = Vector2.zero;
+        shadowRT.anchorMax  = Vector2.one;
+        shadowRT.offsetMin  = new Vector2(6, -6);
+        shadowRT.offsetMax  = new Vector2(6, -6);
+
+        // Glass drawer
+        GameObject drawer   = MakeGlassPanel("MenuDrawer", MenuPanel.transform, k_GlassLight);
+        RectTransform drawerRT = drawer.GetComponent<RectTransform>();
+        drawerRT.anchorMin  = Vector2.zero;
+        drawerRT.anchorMax  = Vector2.one;
+        drawerRT.offsetMin  = Vector2.zero;
+        drawerRT.offsetMax  = Vector2.zero;
+
+        Outline border      = drawer.AddComponent<Outline>();
+        border.effectColor  = k_Border;
+        border.effectDistance = new Vector2(1.5f, -1.5f);
+
+
         // Title
-        TextMeshProUGUI title = MakeLabel(MenuPanel.transform, "MenuTitle",
+        TextMeshProUGUI title = MakeLabel(drawer.transform, "MenuTitle",
             "Navigate To", 40, TextAlignmentOptions.Left, FontStyles.Bold, k_TextPrimary);
         AnchorStretchTop(title.GetComponent<RectTransform>(), 28, 28, 28, 88);
 
         // ── Building ──────────────────────────────────────────────────────────
-        MakeFieldLabel(MenuPanel.transform, "Building", offsetFromTop: 100);
-        BuildingDropdown = MakeDropdown(MenuPanel.transform, "BuildingDropdown",
+        MakeFieldLabel(drawer.transform, "Building", offsetFromTop: 100);
+        BuildingDropdown = MakeDropdown(drawer.transform, "BuildingDropdown",
             new Vector2(28, -148), new Vector2(-28, -228));
 
         // ── Floor ─────────────────────────────────────────────────────────────
-        MakeFieldLabel(MenuPanel.transform, "Floor", offsetFromTop: 248);
-        FloorDropdown = MakeDropdown(MenuPanel.transform, "FloorDropdown",
+        MakeFieldLabel(drawer.transform, "Floor", offsetFromTop: 248);
+        FloorDropdown = MakeDropdown(drawer.transform, "FloorDropdown",
             new Vector2(28, -296), new Vector2(-28, -376));
 
         // ── Destination ───────────────────────────────────────────────────────
-        MakeFieldLabel(MenuPanel.transform, "Destination", offsetFromTop: 396);
-        RoomDropdown = MakeDropdown(MenuPanel.transform, "RoomDropdown",
+        MakeFieldLabel(drawer.transform, "Destination", offsetFromTop: 396);
+        RoomDropdown = MakeDropdown(drawer.transform, "RoomDropdown",
             new Vector2(28, -444), new Vector2(-28, -524));
 
         // ── Navigate button ───────────────────────────────────────────────────
-        NavigateButton = MakeAccentButton(MenuPanel.transform, "NavigateButton", "NAVIGATE");
+        NavigateButton = MakeAccentButton(drawer.transform, "NavigateButton", "NAVIGATE");
         RectTransform navRT = NavigateButton.GetComponent<RectTransform>();
         navRT.anchorMin     = new Vector2(0, 1);
         navRT.anchorMax     = new Vector2(1, 1);
@@ -370,24 +393,36 @@ public class CampusRuntimeUI : MonoBehaviour
     {
         // ── ASK AI pill FAB ──────────────────────────────────────────────────
         // Positioned just above the status strip, centred horizontally.
+        // Pill button Container
+        GameObject chatContainer = new GameObject("ChatContainer", typeof(RectTransform));
+        chatContainer.transform.SetParent(NavigationChrome.transform, false);
+        RectTransform chatContainerRT = chatContainer.GetComponent<RectTransform>();
+        chatContainerRT.anchorMin = new Vector2(0.5f, 0);
+        chatContainerRT.anchorMax = new Vector2(0.5f, 0);
+        chatContainerRT.pivot = new Vector2(0.5f, 0);
+        chatContainerRT.anchoredPosition = new Vector2(0, 158f);
+        chatContainerRT.sizeDelta = new Vector2(360, 80);
+
         // Shadow
-        GameObject chatShadow   = MakeRect("ChatButton_Shadow", NavigationChrome.transform);
+        GameObject chatShadow   = MakeRect("ChatButton_Shadow", chatContainer.transform);
         Image chatShadowImg     = chatShadow.AddComponent<Image>();
         chatShadowImg.color     = k_Shadow;
         chatShadowImg.raycastTarget = false;
         RectTransform chatShadowRT  = chatShadow.GetComponent<RectTransform>();
-        chatShadowRT.anchorMin  = new Vector2(0.5f, 0);
-        chatShadowRT.anchorMax  = new Vector2(0.5f, 0);
-        chatShadowRT.pivot      = new Vector2(0.5f, 0);
-        chatShadowRT.anchoredPosition = new Vector2(4, 160f);
-        chatShadowRT.sizeDelta  = new Vector2(364, 84);
+        chatShadowRT.anchorMin  = Vector2.zero;
+        chatShadowRT.anchorMax  = Vector2.one;
+        chatShadowRT.offsetMin  = new Vector2(-2, -4);
+        chatShadowRT.offsetMax  = new Vector2(2, -4);
 
         // Pill button
-        GameObject chatGO       = MakeRect("ChatButton", NavigationChrome.transform);
+        GameObject chatGO       = MakeRect("ChatButton", chatContainer.transform);
         Image chatImg           = chatGO.AddComponent<Image>();
-        // Gradient-look: single vivid accent color (true gradient needs shader;
-        // this gives the vivid Material You "dynamic color" feel)
         chatImg.color           = k_AccentA;
+        chatImg.sprite          = Resources.GetBuiltinResource<Sprite>("UI/Skin/Background.psd");
+        chatImg.type            = Image.Type.Sliced;
+        chatShadowImg.sprite    = chatImg.sprite;
+        chatShadowImg.type      = Image.Type.Sliced;
+        
         ChatButton              = chatGO.AddComponent<Button>();
         ChatButton.targetGraphic = chatImg;
 
@@ -399,11 +434,10 @@ public class CampusRuntimeUI : MonoBehaviour
         ChatButton.colors       = chatCB;
 
         RectTransform chatRT    = chatGO.GetComponent<RectTransform>();
-        chatRT.anchorMin        = new Vector2(0.5f, 0);
-        chatRT.anchorMax        = new Vector2(0.5f, 0);
-        chatRT.pivot            = new Vector2(0.5f, 0);
-        chatRT.anchoredPosition = new Vector2(0, 158f);
-        chatRT.sizeDelta        = new Vector2(360, 80);
+        chatRT.anchorMin        = Vector2.zero;
+        chatRT.anchorMax        = Vector2.one;
+        chatRT.offsetMin        = Vector2.zero;
+        chatRT.offsetMax        = Vector2.zero;
 
         // Border shimmer around the pill
         Outline chatBorder      = chatGO.AddComponent<Outline>();
@@ -417,27 +451,42 @@ public class CampusRuntimeUI : MonoBehaviour
 
         // ── Status strip ─────────────────────────────────────────────────────
         // A narrow glass pill docked to the very bottom edge.
-        GameObject statusShadow = MakeRect("StatusStrip_Shadow", NavigationChrome.transform);
-        statusShadow.AddComponent<Image>().color = k_Shadow;
-        statusShadow.GetComponent<Image>().raycastTarget = false;
-        RectTransform ssShadowRT = statusShadow.GetComponent<RectTransform>();
-        ssShadowRT.anchorMin = new Vector2(0.5f, 0);
-        ssShadowRT.anchorMax = new Vector2(0.5f, 0);
-        ssShadowRT.pivot     = new Vector2(0.5f, 0);
-        ssShadowRT.anchoredPosition = new Vector2(4, k_Margin - 4);
-        ssShadowRT.sizeDelta = new Vector2(1036, 144);
+        // Status strip Container
+        GameObject statusContainer = new GameObject("StatusContainer", typeof(RectTransform));
+        statusContainer.transform.SetParent(NavigationChrome.transform, false);
+        RectTransform statusContainerRT = statusContainer.GetComponent<RectTransform>();
+        statusContainerRT.anchorMin = new Vector2(0.5f, 0);
+        statusContainerRT.anchorMax = new Vector2(0.5f, 0);
+        statusContainerRT.pivot = new Vector2(0.5f, 0);
+        statusContainerRT.anchoredPosition = new Vector2(0, k_Margin);
+        statusContainerRT.sizeDelta = new Vector2(1032, 140);
 
-        GameObject statusStrip  = MakeGlassPanel("StatusStrip", NavigationChrome.transform, k_Glass);
+        GameObject statusShadow = MakeRect("StatusStrip_Shadow", statusContainer.transform);
+        Image ssShadowImg       = statusShadow.AddComponent<Image>();
+        ssShadowImg.color       = k_Shadow;
+        ssShadowImg.raycastTarget = false;
+        RectTransform ssShadowRT = statusShadow.GetComponent<RectTransform>();
+        ssShadowRT.anchorMin = Vector2.zero;
+        ssShadowRT.anchorMax = Vector2.one;
+        ssShadowRT.offsetMin = new Vector2(4, -4);
+        ssShadowRT.offsetMax = new Vector2(4, -4);
+
+        GameObject statusStrip  = MakeGlassPanel("StatusStrip", statusContainer.transform, k_Glass);
+        Image ssImg = statusStrip.GetComponent<Image>();
+        ssImg.sprite = Resources.GetBuiltinResource<Sprite>("UI/Skin/Background.psd");
+        ssImg.type = Image.Type.Sliced;
+        ssShadowImg.sprite = ssImg.sprite;
+        ssShadowImg.type = Image.Type.Sliced;
+        
         Outline ssBorder        = statusStrip.AddComponent<Outline>();
         ssBorder.effectColor    = k_Border;
         ssBorder.effectDistance = new Vector2(1.5f, -1.5f);
 
         RectTransform ssRT      = statusStrip.GetComponent<RectTransform>();
-        ssRT.anchorMin          = new Vector2(0.5f, 0);
-        ssRT.anchorMax          = new Vector2(0.5f, 0);
-        ssRT.pivot              = new Vector2(0.5f, 0);
-        ssRT.anchoredPosition   = new Vector2(0, k_Margin);
-        ssRT.sizeDelta          = new Vector2(1032, 140);
+        ssRT.anchorMin          = Vector2.zero;
+        ssRT.anchorMax          = Vector2.one;
+        ssRT.offsetMin          = Vector2.zero;
+        ssRT.offsetMax          = Vector2.zero;
 
         // Direction text (top half of strip)
         GameObject dirGO        = new GameObject("DirectionText", typeof(RectTransform), typeof(TextMeshProUGUI));
@@ -622,7 +671,10 @@ public class CampusRuntimeUI : MonoBehaviour
     {
         GameObject go = new GameObject(name, typeof(RectTransform), typeof(Image));
         go.transform.SetParent(parent, false);
-        go.GetComponent<Image>().color = color;
+        Image img = go.GetComponent<Image>();
+        img.color = color;
+        img.sprite = Resources.GetBuiltinResource<Sprite>("UI/Skin/Background.psd");
+        img.type = Image.Type.Sliced;
         return go;
     }
 
@@ -659,6 +711,11 @@ public class CampusRuntimeUI : MonoBehaviour
         GameObject go   = new GameObject(name, typeof(RectTransform), typeof(TextMeshProUGUI));
         go.transform.SetParent(parent, false);
         TextMeshProUGUI tmp = go.GetComponent<TextMeshProUGUI>();
+        
+        // Load default TMPro Font to fix invisible text
+        TMP_FontAsset defaultFont = Resources.Load<TMP_FontAsset>("Fonts & Materials/LiberationSans SDF");
+        if (defaultFont != null) tmp.font = defaultFont;
+        
         tmp.text            = text;
         tmp.fontSize        = fontSize;
         tmp.alignment       = alignment;
