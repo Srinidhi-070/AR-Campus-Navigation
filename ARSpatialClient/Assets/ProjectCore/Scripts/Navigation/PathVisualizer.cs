@@ -6,8 +6,8 @@ public class PathVisualizer : MonoBehaviour
     [SerializeField] private GameObject arrowPrefab;
     [SerializeField] private GameObject destinationPrefab; // New prefab for the destination
     [SerializeField] private GameObject stairPrefab; // Original prefab used specifically for stairs
-    [SerializeField] private Vector3 m_ModelScaleMultiplier = new Vector3(2f, 2f, 2f); // Reduced to prevent giant arrows
-    [SerializeField] private float spacing = 3.0f; // Increased spacing so they don't stack
+    [SerializeField] private Vector3 m_ModelScaleMultiplier = new Vector3(1f, 1f, 1f); // Reverted to 1 since we are using old arrows
+    [SerializeField] private float spacing = 1.5f; // Reverted spacing for old arrows
 
     private readonly List<GameObject> spawnedArrows = new List<GameObject>();
     private Material arrowMaterial;
@@ -31,15 +31,13 @@ public class PathVisualizer : MonoBehaviour
 
     void Awake()
     {
-        // Auto-load arrow prefab if not assigned
+        // Reverting all prefabs to the original reliable ArrowPrefab
         if (arrowPrefab == null)
-            arrowPrefab = CreateSanitizedTemplate("Prefabs/arrow", "ArrowTemplate");
+            arrowPrefab = CreateSanitizedTemplate("Prefabs/ArrowPrefab", "ArrowTemplate");
         
-        // Auto-load destination prefab if not assigned
         if (destinationPrefab == null)
-            destinationPrefab = CreateSanitizedTemplate("Prefabs/reached destination", "DestinationTemplate");
+            destinationPrefab = CreateSanitizedTemplate("Prefabs/ArrowPrefab", "DestinationTemplate");
 
-        // Auto-load stair prefab if not assigned
         if (stairPrefab == null)
             stairPrefab = CreateSanitizedTemplate("Prefabs/ArrowPrefab", "StairTemplate");
 
