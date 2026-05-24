@@ -33,15 +33,15 @@ public class PathVisualizer : MonoBehaviour
         EnsureArrowMaterial();
         EnsureTransitionMaterials();
 
-        // Load the beautiful 3D model prefabs
+        // Load the procedurally generated 3D arrows
         if (arrowPrefab == null)
-            arrowPrefab = CreateSanitizedTemplate("Prefabs/arrow", "ArrowTemplate", arrowMaterial);
+            arrowPrefab = CreateSanitizedTemplate("Prefabs/ProceduralArrow", "ArrowTemplate", arrowMaterial);
         
         if (destinationPrefab == null)
             destinationPrefab = CreateSanitizedTemplate("Prefabs/reached destination", "DestinationTemplate", destinationMaterial);
 
         if (stairPrefab == null)
-            stairPrefab = CreateSanitizedTemplate("Prefabs/ArrowPrefab", "StairTemplate", staircaseMaterial);
+            stairPrefab = CreateSanitizedTemplate("Prefabs/ProceduralArrow", "StairTemplate", staircaseMaterial);
 
         // Fallback to legacy behavior if custom prefabs fail
         if (arrowPrefab == null)
