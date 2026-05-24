@@ -6,7 +6,7 @@ public class PathVisualizer : MonoBehaviour
     [SerializeField] private GameObject arrowPrefab;
     [SerializeField] private GameObject destinationPrefab;
     [SerializeField] private GameObject stairPrefab;
-    [SerializeField] private float spacing = 0.6f; // Tighter spacing for chevron arrows
+    [SerializeField] private float spacing = 0.35f; // Tighter spacing for chevron arrows
 
     private readonly List<GameObject> spawnedArrows = new List<GameObject>();
     private Material arrowMaterial;
@@ -85,16 +85,16 @@ public class PathVisualizer : MonoBehaviour
         // Left Arm of the chevron
         GameObject leftArm = GameObject.CreatePrimitive(PrimitiveType.Cube);
         leftArm.transform.SetParent(arrow.transform, false);
-        leftArm.transform.localScale = new Vector3(0.08f, 0.02f, 0.35f);
-        leftArm.transform.localPosition = new Vector3(-0.12f, 0f, 0f);
-        leftArm.transform.localRotation = Quaternion.Euler(0, 45, 0);
+        leftArm.transform.localScale = new Vector3(0.12f, 0.01f, 0.35f);
+        leftArm.transform.localPosition = new Vector3(-0.11f, 0f, 0f);
+        leftArm.transform.localRotation = Quaternion.Euler(0, 55, 0);
         
         // Right Arm of the chevron
         GameObject rightArm = GameObject.CreatePrimitive(PrimitiveType.Cube);
         rightArm.transform.SetParent(arrow.transform, false);
-        rightArm.transform.localScale = new Vector3(0.08f, 0.02f, 0.35f);
-        rightArm.transform.localPosition = new Vector3(0.12f, 0f, 0f);
-        rightArm.transform.localRotation = Quaternion.Euler(0, -45, 0);
+        rightArm.transform.localScale = new Vector3(0.12f, 0.01f, 0.35f);
+        rightArm.transform.localPosition = new Vector3(0.11f, 0f, 0f);
+        rightArm.transform.localRotation = Quaternion.Euler(0, -55, 0);
         
         if (arrowMat != null)
         {
@@ -122,7 +122,7 @@ public class PathVisualizer : MonoBehaviour
         if (shader == null) return null;
 
         arrowMaterial = new Material(shader);
-        Color color = new Color(0f, 1f, 1f, 1f); // Pure Neon Cyan
+        Color color = new Color(1f, 0.45f, 0f, 1f); // Vibrant Orange
         SetMaterialColor(arrowMaterial, color);
         return arrowMaterial;
     }
