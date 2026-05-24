@@ -48,10 +48,10 @@ public class PathVisualizer : MonoBehaviour
             curvedArrow135Prefab = CreateSanitizedTemplate("Prefabs/ProceduralCurvedArrow_135", "CurvedArrow135Template", arrowMaterial);
         
         if (destinationPrefab == null)
-            destinationPrefab = CreateSanitizedTemplate("Prefabs/ProceduralDestination", "DestinationTemplate", destinationMaterial);
+            destinationPrefab = CreateSanitizedTemplate("Prefabs/ProceduralDestination_V2", "DestinationTemplate", destinationMaterial);
 
         if (stairPrefab == null)
-            stairPrefab = CreateSanitizedTemplate("Prefabs/ProceduralArrow", "StairTemplate", staircaseMaterial);
+            stairPrefab = CreateSanitizedTemplate("Prefabs/ProceduralStairs", "StairTemplate", staircaseMaterial);
 
         // Fallback to legacy behavior if custom prefabs fail
         if (arrowPrefab == null)
@@ -274,13 +274,13 @@ public class PathVisualizer : MonoBehaviour
                 
                 if (absAngle > 20f) // Sharp turn
                 {
-                    GameObject prefabToUse = curvedArrow45Prefab;
-                    if (absAngle > 60f) prefabToUse = curvedArrow90Prefab;
-                    if (absAngle > 110f) prefabToUse = curvedArrow135Prefab;
+                    GameObject curvedPrefab = curvedArrow45Prefab;
+                    if (absAngle > 60f) curvedPrefab = curvedArrow90Prefab;
+                    if (absAngle > 110f) curvedPrefab = curvedArrow135Prefab;
 
-                    if (prefabToUse != null)
+                    if (curvedPrefab != null)
                     {
-                        GameObject curvedInstance = Instantiate(prefabToUse, end, Quaternion.LookRotation(dir), transform);
+                        GameObject curvedInstance = Instantiate(curvedPrefab, end, Quaternion.LookRotation(dir), transform);
                         
                         if (angle < 0) // Left turn
                         {
