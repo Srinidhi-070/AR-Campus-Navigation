@@ -15,23 +15,23 @@ public class FixAppIcon
         }
 
         // 1. Set global default icon
-        PlayerSettings.defaultIcon = icon;
+        PlayerSettings.SetIconsForTargetGroup(BuildTargetGroup.Unknown, new Texture2D[] { icon });
 
         // 2. Set Adaptive Icons for Android
-        UnityEditor.Android.AndroidPlatformIcon[] adaptiveIcons = PlayerSettings.GetPlatformIcons(BuildTargetGroup.Android, UnityEditor.Android.AndroidPlatformIconKind.Adaptive) as UnityEditor.Android.AndroidPlatformIcon[];
+        PlatformIcon[] adaptiveIcons = PlayerSettings.GetPlatformIcons(BuildTargetGroup.Android, UnityEditor.Android.AndroidPlatformIconKind.Adaptive);
         if (adaptiveIcons != null)
         {
             foreach (var i in adaptiveIcons)
             {
                 // Background icon is index 0, foreground is index 1.
-                // We set the foreground to our icon.
-                i.SetTextures(new Texture2D[] { null, icon });
+                // We set both to our icon to be safe, or just foreground
+                i.SetTextures(new Texture2D[] { icon, icon });
             }
             PlayerSettings.SetPlatformIcons(BuildTargetGroup.Android, UnityEditor.Android.AndroidPlatformIconKind.Adaptive, adaptiveIcons);
         }
 
         // 3. Set Legacy Icons for Android
-        UnityEditor.Android.AndroidPlatformIcon[] legacyIcons = PlayerSettings.GetPlatformIcons(BuildTargetGroup.Android, UnityEditor.Android.AndroidPlatformIconKind.Legacy) as UnityEditor.Android.AndroidPlatformIcon[];
+        PlatformIcon[] legacyIcons = PlayerSettings.GetPlatformIcons(BuildTargetGroup.Android, UnityEditor.Android.AndroidPlatformIconKind.Legacy);
         if (legacyIcons != null)
         {
             foreach (var i in legacyIcons)
@@ -42,7 +42,7 @@ public class FixAppIcon
         }
 
         // 4. Set Round Icons for Android
-        UnityEditor.Android.AndroidPlatformIcon[] roundIcons = PlayerSettings.GetPlatformIcons(BuildTargetGroup.Android, UnityEditor.Android.AndroidPlatformIconKind.Round) as UnityEditor.Android.AndroidPlatformIcon[];
+        PlatformIcon[] roundIcons = PlayerSettings.GetPlatformIcons(BuildTargetGroup.Android, UnityEditor.Android.AndroidPlatformIconKind.Round);
         if (roundIcons != null)
         {
             foreach (var i in roundIcons)
