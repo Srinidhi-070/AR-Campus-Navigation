@@ -4,12 +4,9 @@ using UnityEngine;
 public class PathVisualizer : MonoBehaviour
 {
     [SerializeField] private GameObject arrowPrefab;
-    [SerializeField] private GameObject curvedArrow45Prefab;
-    [SerializeField] private GameObject curvedArrow90Prefab;
-    [SerializeField] private GameObject curvedArrow135Prefab;
-    [SerializeField] private GameObject destinationPrefab; // New prefab for the destination
-    [SerializeField] private GameObject stairPrefab; // Original prefab used specifically for stairs
-    [SerializeField] private float spacing = 1.5f; // Reverted spacing for old arrows
+    [SerializeField] private GameObject destinationPrefab;
+    [SerializeField] private GameObject stairPrefab;
+    [SerializeField] private float spacing = 0.6f; // Tighter spacing for chevron arrows
 
     private readonly List<GameObject> spawnedArrows = new List<GameObject>();
     private Material arrowMaterial;
@@ -36,28 +33,15 @@ public class PathVisualizer : MonoBehaviour
         EnsureArrowMaterial();
         EnsureTransitionMaterials();
 
-        // Load the procedurally generated 3D arrows
+        // Use the new procedural Chevron arrow
         if (arrowPrefab == null)
-            arrowPrefab = CreateSanitizedTemplate("Prefabs/ProceduralArrow", "ArrowTemplate", arrowMaterial, 0.3f);
-        
-        if (curvedArrow45Prefab == null)
-            curvedArrow45Prefab = CreateSanitizedTemplate("Prefabs/ProceduralCurvedArrow_45", "CurvedArrow45Template", arrowMaterial, 0.3f);
-        if (curvedArrow90Prefab == null)
-            curvedArrow90Prefab = CreateSanitizedTemplate("Prefabs/ProceduralCurvedArrow_90", "CurvedArrow90Template", arrowMaterial, 0.3f);
-        if (curvedArrow135Prefab == null)
-            curvedArrow135Prefab = CreateSanitizedTemplate("Prefabs/ProceduralCurvedArrow_135", "CurvedArrow135Template", arrowMaterial, 0.3f);
+            CreateChevronArrow();
         
         if (destinationPrefab == null)
             destinationPrefab = CreateSanitizedTemplate("Prefabs/ProceduralDestination_V2", "DestinationTemplate", destinationMaterial, 0.6f);
 
         if (stairPrefab == null)
             stairPrefab = CreateSanitizedTemplate("Prefabs/ProceduralStairs", "StairTemplate", staircaseMaterial, 0.4f);
-
-        // Fallback to legacy behavior if custom prefabs fail
-        if (arrowPrefab == null)
-            CreateFallbackArrow();
-
-        // Ensure materials were already called at the start of Awake
     }
 
     private GameObject CreateSanitizedTemplate(string resourcePath, string templateName, Material mat, float scale = 1.0f)
@@ -90,41 +74,42 @@ public class PathVisualizer : MonoBehaviour
         return template;
     }
 
-    // ── Fallback Arrow ───────────────────────────────────────────────────
-    private void CreateFallbackArrow()
+    // ── Procedural Chevron Arrow ─────────────────────────────────────────
+    private void CreateChevronArrow()
     {
-        GameObject arrow = new GameObject("FallbackArrow");
+        GameObject arrow = new GameObject("ChevronArrow");
         
-        // Create cone for arrow head
-        GameObject cone = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-        cone.transform.SetParent(arrow.transform, false);
-        cone.transform.localPosition = new Vector3(0, 0, 0.2f);
-        cone.transform.localRotation = Quaternion.Euler(90, 0, 0);
-        cone.transform.localScale = new Vector3(0.15f, 0.05f, 0.15f);
-        
-        // Create cylinder for arrow shaft
-        GameObject shaft = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-        shaft.transform.SetParent(arrow.transform, false);
-        shaft.transform.localPosition = Vector3.zero;
-        shaft.transform.localRotation = Quaternion.Euler(90, 0, 0);
-        shaft.transform.localScale = new Vector3(0.05f, 0.1f, 0.05f);
-        
+        // Material
         Material arrowMat = EnsureArrowMaterial();
+
+        // Left Arm of the chevron
+        GameObject leftArm = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        leftArm.transform.SetParent(arrow.transform, false);
+        leftArm.transform.localScale = new Vector3(0.08f, 0.02f, 0.35f);
+        leftArm.transform.localPosition = new Vector3(-0.12f, 0f, 0f);
+        leftArm.transform.localRotation = Quaternion.Euler(0, 45, 0);
+        
+        // Right Arm of the chevron
+        GameObject rightArm = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        rightArm.transform.SetParent(arrow.transform, false);
+        rightArm.transform.localScale = new Vector3(0.08f, 0.02f, 0.35f);
+        rightArm.transform.localPosition = new Vector3(0.12f, 0f, 0f);
+        rightArm.transform.localRotation = Quaternion.Euler(0, -45, 0);
+        
         if (arrowMat != null)
         {
-            cone.GetComponent<Renderer>().material = arrowMat;
-            shaft.GetComponent<Renderer>().material = arrowMat;
+            leftArm.GetComponent<Renderer>().material = arrowMat;
+            rightArm.GetComponent<Renderer>().material = arrowMat;
         }
         
-        // Remove colliders (not needed for visual arrows)
-        Destroy(cone.GetComponent<Collider>());
-        Destroy(shaft.GetComponent<Collider>());
+        Destroy(leftArm.GetComponent<Collider>());
+        Destroy(rightArm.GetComponent<Collider>());
         
         arrowPrefab = arrow;
         arrow.SetActive(false);
         DontDestroyOnLoad(arrow);
         
-        Debug.Log("[PathVisualizer] Fallback arrow created (Oriented to Z-Forward)");
+        Debug.Log("[PathVisualizer] Chevron arrow created successfully");
     }
 
     // ── Materials ─────────────────────────────────────────────────────────
@@ -273,48 +258,13 @@ public class PathVisualizer : MonoBehaviour
             // ── Normal segment — render regular arrows ──
             Vector3 dir = (end - start) / distance;
             
-            // Optional: Draw a curved arrow at the corner (if there is a next segment)
-            bool spawnedCurved = false;
-            if (i < worldPath.Count - 2 && curvedArrow90Prefab != null && !transitionSegments.Contains(i+1))
-            {
-                Vector3 nextEnd = worldPath[i + 2];
-                Vector3 nextDir = (nextEnd - end).normalized;
-                
-                float angle = Vector3.SignedAngle(dir, nextDir, Vector3.up);
-                float absAngle = Mathf.Abs(angle);
-                
-                // Only spawn if it's a sharp turn AND we haven't spawned one very recently (prevents spam on smoothed curves)
-                if (absAngle > 20f && Vector3.Distance(end, lastCurvedArrowPos) > 2.0f)
-                {
-                    GameObject curvedPrefab = curvedArrow45Prefab;
-                    if (absAngle > 60f) curvedPrefab = curvedArrow90Prefab;
-                    if (absAngle > 110f) curvedPrefab = curvedArrow135Prefab;
-
-                    if (curvedPrefab != null)
-                    {
-                        GameObject curvedInstance = Instantiate(curvedPrefab, end, Quaternion.LookRotation(dir), transform);
-                        if (angle < 0) curvedInstance.transform.localScale = new Vector3(-0.3f, 0.3f, 0.3f); // mirror and scale
-                        else curvedInstance.transform.localScale = new Vector3(0.3f, 0.3f, 0.3f);
-                        
-                        curvedInstance.SetActive(true);
-                        spawnedArrows.Add(curvedInstance);
-                        lastCurvedArrowPos = end;
-                        spawnedCurved = true;
-                    }
-                }
-            }
+            // Removed old curved arrow logic since chevrons curve naturally around corners
 
             int steps = Mathf.Max(1, Mathf.FloorToInt(distance / spacing));
 
             for (int j = 0; j < steps; j++)
             {
-                // Skip the last straight arrow if we just spawned a curved one right at the end
-                if (spawnedCurved && j == steps - 1) continue;
-
                 Vector3 pos = Vector3.Lerp(start, end, j / (float)steps);
-                
-                // Skip straight arrows that are too close to the recently spawned curved arrow
-                if (Vector3.Distance(pos, lastCurvedArrowPos) < 0.8f) continue;
 
                 GameObject arrowInstance = Instantiate(arrowPrefab, pos, Quaternion.LookRotation(dir), transform);
                 arrowInstance.SetActive(true);
