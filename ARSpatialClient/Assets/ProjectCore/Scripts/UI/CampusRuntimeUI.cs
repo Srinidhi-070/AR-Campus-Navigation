@@ -394,6 +394,12 @@ public class CampusRuntimeUI : MonoBehaviour
         retryRT.anchoredPosition = Vector2.zero;
         retryRT.sizeDelta = new Vector2(280, 70);
         RetryButton.gameObject.SetActive(false);
+
+        // Add dynamic drawer animation
+        DrawerAnimator drawerAnim = statusPill.AddComponent<DrawerAnimator>();
+        drawerAnim.targetRect = pillRT;
+        drawerAnim.directionText = DirectionText;
+        drawerAnim.floatingToastRect = toastRT;
     }
 
     private void BuildChatPanel()
@@ -1020,6 +1026,38 @@ public class CampusRuntimeUI : MonoBehaviour
         rt.pivot = new Vector2(0.5f, 0f);
         rt.offsetMin = new Vector2(left, 0);
         rt.offsetMax = new Vector2(-right, height);
+    }
+}
+
+public class DrawerAnimator : MonoBehaviour
+{
+    public RectTransform targetRect;
+    public RectTransform floatingToastRect;
+    public TextMeshProUGUI directionText;
+    
+    public float expandedHeight = 320f;
+    public float collapsedHeight = 150f;
+    public float toastOffset = 20f;
+    public float animationSpeed = 10f;
+
+    void Update()
+    {
+        if (targetRect == null || directionText == null) return;
+        
+        // If there is no navigation text, shrink the drawer
+        float targetHeight = string.IsNullOrEmpty(directionText.text) ? collapsedHeight : expandedHeight;
+        
+        float currentHeight = targetRect.sizeDelta.y;
+        float newHeight = Mathf.Lerp(currentHeight, targetHeight, Time.deltaTime * animationSpeed);
+        targetRect.sizeDelta = new Vector2(targetRect.sizeDelta.x, newHeight);
+        
+        if (floatingToastRect != null)
+        {
+            floatingToastRect.anchoredPosition = new Vector2(
+                floatingToastRect.anchoredPosition.x,
+                newHeight + toastOffset
+            );
+        }
     }
 }
 
