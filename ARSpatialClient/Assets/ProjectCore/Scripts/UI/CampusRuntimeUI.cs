@@ -292,8 +292,8 @@ public class CampusRuntimeUI : MonoBehaviour
         pillRT.anchorMin = new Vector2(0f, 0f);
         pillRT.anchorMax = new Vector2(1f, 0f);
         pillRT.pivot = new Vector2(0.5f, 0f);
-        pillRT.anchoredPosition = new Vector2(0, 24);
-        pillRT.sizeDelta = new Vector2(-48, 340); // 24px margin on sides, 340px tall
+        pillRT.anchoredPosition = new Vector2(0, -24); // Shift down to hide bottom rounded corners
+        pillRT.sizeDelta = new Vector2(0, 364); // Full width, height compensated for shift
         
         Outline pillOutline = statusPill.AddComponent<Outline>();
         pillOutline.effectColor = new Color(0.2f, 0.3f, 0.4f, 0.4f);
