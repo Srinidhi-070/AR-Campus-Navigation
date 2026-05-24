@@ -1,125 +1,132 @@
-# AR Campus Navigation System
-
-**Status**: Working — AR navigation functional on device  
-**Platform**: Unity 2022.3+ | Android (ARCore)
+<div align="center">
+  <img src="Documentation/Images/trailix_logo.png" alt="Trailix Logo" width="250" />
+  <h1>Trailix</h1>
+  <p><strong>Advanced Spatial Navigation and Augmented Reality Client</strong></p>
+  
+  [![Unity](https://img.shields.io/badge/Unity-2022.3.62f3-black.svg?style=for-the-badge&logo=unity)](#)
+  [![Platform](https://img.shields.io/badge/Platform-Android_ARCore-34A853.svg?style=for-the-badge&logo=android)](#)
+  [![Backend](https://img.shields.io/badge/Backend-FastAPI-009688.svg?style=for-the-badge&logo=fastapi)](#)
+</div>
 
 ---
 
-## Project Structure
+## Overview
 
-```
-AR_Spatial_Client/
-├── ARBackend/              # Python FastAPI backend
-│   ├── main.py            # API server entry point
-│   ├── services/          # Graph & chat services
-│   ├── schemas.py         # Pydantic data models
-│   └── nodes.json         # Campus graph data
-│
-├── ARSpatialClient/       # Unity project
-│   ├── Assets/
-│   │   ├── ProjectCore/   # Main application code
-│   │   │   ├── Scenes/    # CampusNavigation.unity
-│   │   │   ├── Scripts/   # C# scripts (Core, AR, Navigation, UI, etc.)
-│   │   │   └── Resources/ # Icons, prefabs, nodes.json (offline fallback)
-│   │   └── Editor/        # Floor Map Editor, Icon Generator
-│   └── ProjectSettings/
-│
-├── Builds/                # Android APK builds
-└── Documentation/         # All documentation files
+**Trailix** is an enterprise-grade Augmented Reality (AR) spatial navigation system designed for complex indoor and outdoor campus environments. By leveraging Unity AR Foundation and a lightweight Python FastAPI backend, Trailix provides users with precise, contextual routing overlays directly through their mobile device camera.
+
+The system is built upon a dual-layer architecture:
+1. **Trailix AR Client (Unity)**: Handles spatial tracking, environmental understanding, camera rendering, and dynamic 3D path visualization using procedural chevron arrays.
+2. **Trailix Spatial Backend (Python)**: Manages coordinate graphs, localized points of interest, shortest-path calculation (Dijkstra/A* algorithms), and QR code spatial anchoring.
+
+---
+
+## System Architecture
+
+The interaction between the user device and the server infrastructure is strictly localized and asynchronous to ensure low-latency path updates during physical movement.
+
+```mermaid
+sequenceDiagram
+    participant User as Trailix Client (Android)
+    participant QR as Physical QR Anchor
+    participant Server as FastAPI Backend
+    
+    User->>QR: Scan QR Code (Image Tracking)
+    QR-->>User: Return Node ID & Location Data
+    User->>Server: POST /api/navigate (Current Node, Destination Node)
+    Server-->>User: 200 OK (JSON Path Array & Floor Transitions)
+    User->>User: Generate 3D Waypoints
+    User->>User: Instantiate Procedural Chevrons
+    User->>User: Start Anchor Tracking & Visualizer Animation
 ```
 
 ---
 
 ## Core Features
 
-- [x] AR Navigation with ARCore (QR-initiated, arrow-based path rendering)
-- [x] Floor Map Editor (Unity Editor tool for authoring campus graphs)
-- [x] QR Code Scanning (XRCpuImage-based, no WebCamTexture)
-- [x] Backend API (FastAPI — locations, A* pathfinding, AI chat)
-- [x] Runtime UI System (built entirely at runtime via CampusRuntimeInstaller)
-- [x] Offline Fallback (local Dijkstra pathfinding from bundled nodes.json)
-- [x] AI Chat Navigation (Ollama LLM + semantic matching)
-- [x] Multi-floor Navigation (staircase/lift node connectivity)
+### Augmented Reality Visualizer
+* **Procedural Path Generation**: Renders dynamic, low-profile chevron arrows that curve naturally along the calculated route.
+* **Flow Animation**: Arrows animate along the path trajectory to provide clear directional queues without obstructing the physical environment.
+* **Elevation Transitions**: Detects and highlights floor transitions (staircases and elevators) using distinct visual materials.
+
+### Spatial Anchoring
+* **QR-Based Localization**: Instantly calibrates the AR coordinate system to the physical world using precise QR payload decoding.
+* **Persistent Drift Correction**: Continuously monitors the ARCore tracking state to minimize spatial drift over long distances.
+
+### Dynamic User Interface
+* **Contextual Drawers**: The bottom navigation drawer expands and collapses smoothly based on the current tracking state, protecting the bottom safe-area (gesture bar) of modern mobile devices.
+* **Floating State Toasts**: Provides non-intrusive status updates (e.g., "Scanning...", "Navigation Active").
 
 ---
 
-## Quick Start
+## Project Structure
 
-### 1. Backend Setup
+The repository is organized into distinct sub-projects to decouple the backend infrastructure from the frontend rendering client.
 
-#### Option A: Docker (recommended)
-```bash
-cd ARBackend
-docker compose up --build
-```
-
-#### Option B: Local Python
-```bash
-cd ARBackend
-pip install -r requirements.txt
-python main.py
-# Server runs on http://0.0.0.0:8000
-```
-
-**API Endpoints:**
-- `GET /locations` — All campus nodes
-- `POST /get-path` — A* pathfinding between two nodes
-- `POST /chat` — AI destination resolution (requires Ollama)
-
-### 2. Unity Setup
-1. Open project in Unity 2022.3+
-2. Run `Tools → Generate UI Icons`
-3. Set Backend URL: `CampusApp → Base Url → http://YOUR_LAN_IP:8000`
-4. `File → Build Settings → Build`
-
-### 3. Android Device
-```bash
-adb install Builds/ARCampusNav.apk
-# Or use: install_to_device.bat
+```text
+Trailix/
+├── ARBackend/                      # Python Server Infrastructure
+│   ├── main.py                     # FastAPI Application Entry
+│   ├── requirements.txt            # Python Dependencies
+│   ├── nodes.json                  # Topographical Graph Data
+│   └── services/                   # Pathfinding and Graph Logic
+│
+├── ARSpatialClient/                # Unity AR Application
+│   ├── Assets/
+│   │   ├── Editor/                 # Custom Unity Editor Tooling
+│   │   └── ProjectCore/
+│   │       ├── Scripts/            # Core C# Logic (UI, Navigation, Networking)
+│   │       ├── Textures/           # Sprites and Application Icons
+│   │       └── Scenes/             # Unity Scene Configurations
+│   └── Assembly-CSharp.csproj      # Managed Assembly Definitions
+│
+└── Documentation/                  # Build and Deployment Guides
+    └── Images/                     # Repository Assets
 ```
 
 ---
 
-## Architecture
+## Local Development & Deployment
 
-### Runtime Flow
-```
-AppController (singleton, DontDestroyOnLoad)
-  └── CampusRuntimeInstaller
-        ├── ARFoundationBootstrap (XR Origin, ARSession, Plane Detection)
-        ├── CampusRuntimeUI (all UI built at runtime)
-        ├── QRScanner → QRScannerUI (XRCpuImage + ZXing)
-        ├── QRLocationManager (single source of truth for user position)
-        ├── NavigationFlowController (pathfinding orchestration)
-        ├── PathVisualizer (AR arrow rendering)
-        ├── ChatManager (AI chat integration)
-        └── ModeManager (navigation / scanner / chat mode switching)
-```
+### Backend Initialization
 
-### Key Design Decisions
-- **No scene-based UI**: All UI is created at runtime to avoid legacy conflicts
-- **QR-only initialization**: Navigation requires a QR scan to establish position
-- **XRCpuImage for QR**: Avoids WebCamTexture to prevent ARCore camera hardware deadlock
-- **Offline-first**: Falls back to local Dijkstra if backend is unreachable
+1. Navigate to the backend directory:
+   ```bash
+   cd ARBackend
+   ```
+2. Install the required dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. Start the FastAPI server:
+   ```bash
+   python main.py
+   ```
+   *The server will initialize on port 8000. Ensure the IP address is accessible from the mobile device on the local network.*
 
----
+### Unity Client Compilation
 
-## Technical Details
-
-| Property | Value |
-|----------|-------|
-| Unity Version | 2022.3.62f3 |
-| Android Min SDK | API 24 (Android 7.0) |
-| Scripting Backend | IL2CPP |
-| Architecture | ARM64 |
-| Backend | Python 3.8+ / FastAPI / Uvicorn |
-| Package Name | com.srinidhi.arcampusnav |
+1. Open `ARSpatialClient` using **Unity 2022.3.62f3**.
+2. Update the API Endpoint:
+   Navigate to `Assets/ProjectCore/Scripts/Networking/CampusApiClient.cs` and ensure the `BaseUrl` points to your active backend IP address.
+3. Apply the App Icon:
+   Select `Tools > Fix App Icon` from the Unity Editor top menu bar to forcefully generate the Android Adaptive Icons from the high-resolution logo.
+4. Build the Project:
+   Select `File > Build Settings`, ensure `Android` is the target platform, and click **Build**.
+5. Install via ADB:
+   Connect your Android device and run the installation script:
+   ```bash
+   .\install_to_device.bat
+   ```
 
 ---
 
-## Troubleshooting
+## Automated Tooling
 
-- **Phone can't reach backend**: Ensure both devices are on the same Wi-Fi, backend URL uses LAN IP (not `127.0.0.1`), and firewall allows TCP port 8000
-- **AR not tracking**: Ensure adequate lighting and textured surfaces for ARCore
-- **QR not scanning**: Hold phone steady, ensure QR code is well-lit and within the scanning box
-- **Runtime logs**: `adb logcat -s Unity`
+* **Icon Generation**: `Tools > Fix App Icon` automatically parses the 500x500 logo and applies it to the Android Adaptive, Legacy, and Round manifest properties.
+* **Build Validation**: The `.csproj` environments are strictly separated (`Assembly-CSharp` vs `Assembly-CSharp-Editor`) to prevent Editor scripts from leaking into the production Android build.
+
+---
+
+## License
+
+Copyright 2026. All Rights Reserved. Trailix Spatial Navigation System.
