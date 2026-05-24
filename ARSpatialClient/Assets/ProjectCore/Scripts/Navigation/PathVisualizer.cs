@@ -137,7 +137,7 @@ public class PathVisualizer : MonoBehaviour
         if (shader == null) return null;
 
         arrowMaterial = new Material(shader);
-        Color color = new Color(1f, 0.05f, 0.8f, 1f); // Neon Pink (Highly visible in AR)
+        Color color = new Color(0f, 1f, 1f, 1f); // Pure Neon Cyan
         SetMaterialColor(arrowMaterial, color);
         return arrowMaterial;
     }
@@ -147,34 +147,35 @@ public class PathVisualizer : MonoBehaviour
         Shader shader = FindBestShader();
         if (shader == null) return;
 
-        // Staircase: High-visibility neon orange/gold
+        // Staircase: High-visibility neon yellow
         if (staircaseMaterial == null)
         {
             staircaseMaterial = new Material(shader);
-            SetMaterialColor(staircaseMaterial, new Color(1f, 0.7f, 0f, 1f));
+            SetMaterialColor(staircaseMaterial, new Color(1f, 1f, 0f, 1f));
         }
 
         // Lift: Electric Violet
         if (liftMaterial == null)
         {
             liftMaterial = new Material(shader);
-            SetMaterialColor(liftMaterial, new Color(0.7f, 0.1f, 1f, 1f));
+            SetMaterialColor(liftMaterial, new Color(1f, 0f, 1f, 1f));
         }
 
         // Destination marker: Bright Neon Green
         if (destinationMaterial == null)
         {
             destinationMaterial = new Material(shader);
-            SetMaterialColor(destinationMaterial, new Color(0.1f, 1f, 0.2f, 1f));
+            SetMaterialColor(destinationMaterial, new Color(0f, 1f, 0f, 1f));
         }
     }
 
     private Shader FindBestShader()
     {
         Shader shader = Shader.Find("Universal Render Pipeline/Unlit");
-        if (shader == null) shader = Shader.Find("Universal Render Pipeline/Lit");
-        if (shader == null) shader = Shader.Find("Standard");
+        if (shader == null) shader = Shader.Find("Unlit/Color"); // Crucial: AR needs unlit!
+        if (shader == null) shader = Shader.Find("Mobile/Unlit (Supports Lightmap)");
         if (shader == null) shader = Shader.Find("Sprites/Default");
+        if (shader == null) shader = Shader.Find("Standard"); // Fallback if nothing else exists
         if (shader == null)
             Debug.LogError("[PathVisualizer] Could not find a shader for AR path visuals.");
         return shader;
