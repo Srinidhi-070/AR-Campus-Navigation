@@ -43,6 +43,53 @@ public class QRScannerUI : MonoBehaviour
     // Coroutine tracking
     private Coroutine m_PulseCoroutine;
 
+    private Sprite m_RoundedSprite;
+    public Sprite GetRoundedSprite()
+    {
+        if (m_RoundedSprite != null) return m_RoundedSprite;
+
+        int size = 128;
+        int cornerRadius = 32;
+        Texture2D tex = new Texture2D(size, size, TextureFormat.RGBA32, false);
+        Color[] pixels = new Color[size * size];
+
+        for (int y = 0; y < size; y++)
+        {
+            for (int x = 0; x < size; x++)
+            {
+                if (x < cornerRadius && y < cornerRadius)
+                {
+                    float dist = Vector2.Distance(new Vector2(x, y), new Vector2(cornerRadius, cornerRadius));
+                    pixels[y * size + x] = dist <= cornerRadius ? Color.white : Color.clear;
+                }
+                else if (x >= size - cornerRadius && y < cornerRadius)
+                {
+                    float dist = Vector2.Distance(new Vector2(x, y), new Vector2(size - cornerRadius - 1, cornerRadius));
+                    pixels[y * size + x] = dist <= cornerRadius ? Color.white : Color.clear;
+                }
+                else if (x < cornerRadius && y >= size - cornerRadius)
+                {
+                    float dist = Vector2.Distance(new Vector2(x, y), new Vector2(cornerRadius, size - cornerRadius - 1));
+                    pixels[y * size + x] = dist <= cornerRadius ? Color.white : Color.clear;
+                }
+                else if (x >= size - cornerRadius && y >= size - cornerRadius)
+                {
+                    float dist = Vector2.Distance(new Vector2(x, y), new Vector2(size - cornerRadius - 1, size - cornerRadius - 1));
+                    pixels[y * size + x] = dist <= cornerRadius ? Color.white : Color.clear;
+                }
+                else
+                {
+                    pixels[y * size + x] = Color.white;
+                }
+            }
+        }
+        tex.SetPixels(pixels);
+        tex.Apply();
+
+        m_RoundedSprite = Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 100, 0, SpriteMeshType.FullRect, new Vector4(cornerRadius, cornerRadius, cornerRadius, cornerRadius));
+        return m_RoundedSprite;
+    }
+
     /// <summary>
     /// Creates the QR scanner UI at runtime.
     /// </summary>
@@ -51,7 +98,7 @@ public class QRScannerUI : MonoBehaviour
         m_OnQRDetected = onQRDetected;
         m_OnClose = onClose;
 
-        // ── Full-screen panel — TRANSPARENT so AR camera passthrough is visible ──
+        // ── Full-screen panel ──
         m_ScannerPanel = new GameObject("QRScannerPanel");
         m_ScannerPanel.transform.SetParent(parent, false);
 
@@ -61,9 +108,8 @@ public class QRScannerUI : MonoBehaviour
         panelRT.offsetMin = Vector2.zero;
         panelRT.offsetMax = Vector2.zero;
 
-        // Semi-transparent dark overlay — lets AR camera show through
         Image panelBg = m_ScannerPanel.AddComponent<Image>();
-        panelBg.color = new Color(0f, 0f, 0f, 0.55f);
+        panelBg.color = new Color(0.04f, 0.05f, 0.08f, 0.7f); // Dark overlay
 
         // Camera feed RawImage — hidden because AR camera renders the real world behind this panel
         GameObject feedObj = new GameObject("CameraFeed");
@@ -75,39 +121,121 @@ public class QRScannerUI : MonoBehaviour
         feedRT.offsetMax = Vector2.zero;
         m_CameraFeed = feedObj.AddComponent<RawImage>();
         m_CameraFeed.color = Color.white;
-        m_CameraFeed.gameObject.SetActive(false); // Hidden — AR camera passthrough is our "feed"
+        m_CameraFeed.gameObject.SetActive(false);
 
-        // ── Scanning Box (proper box with animated corners) ──
-        m_ScanningBox = CreateScanningBox(m_ScannerPanel.transform);
+        // ── Center Scanner Card (The clear/rounded area) ──
+        GameObject cardObj = new GameObject("ScannerCard");
+        cardObj.transform.SetParent(m_ScannerPanel.transform, false);
+        RectTransform cardRT = cardObj.AddComponent<RectTransform>();
+        cardRT.anchorMin = new Vector2(0.5f, 0.5f);
+        cardRT.anchorMax = new Vector2(0.5f, 0.5f);
+        cardRT.pivot = new Vector2(0.5f, 0.5f);
+        cardRT.sizeDelta = new Vector2(800, 1400); // Tall portrait card
 
-        // ── Title — positioned below notch/front camera safe area ──
-        m_TitleText = CreateText(m_ScannerPanel.transform, "Title", "Scan QR Code", 44,
-            new Vector2(0, 1), new Vector2(1, 1), new Vector2(20, -140), new Vector2(-20, -90));
+        Image cardBg = cardObj.AddComponent<Image>();
+        cardBg.sprite = GetRoundedSprite();
+        cardBg.type = Image.Type.Sliced;
+        cardBg.color = new Color(0.2f, 0.22f, 0.25f, 0.3f); // Slight tint, mostly clear to see camera
+
+        // ── Title Text ──
+        m_TitleText = CreateText(cardObj.transform, "Title", "Scan the QR code\nto locate yourself", 48,
+            new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(-300, -250), new Vector2(300, -100));
         m_TitleText.alignment = TextAlignmentOptions.Center;
         m_TitleText.fontStyle = FontStyles.Bold;
 
-        // ── Instructions below title ──
-        m_InstructionText = CreateText(m_ScannerPanel.transform, "Instructions",
-            "Point camera at QR code", 28,
-            new Vector2(0, 1), new Vector2(1, 1), new Vector2(20, -190), new Vector2(-20, -145));
+        // ── Scanning Box Brackets ──
+        m_ScanningBox = CreateScanningBox(cardObj.transform);
+
+        // ── Instruction / Result Text (Optional, below brackets) ──
+        m_InstructionText = CreateText(cardObj.transform, "Instructions", "", 32,
+            new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-300, -380), new Vector2(300, -320));
         m_InstructionText.alignment = TextAlignmentOptions.Center;
-        m_InstructionText.color = new Color(0.85f, 0.85f, 0.85f, 1f);
+        m_InstructionText.color = new Color(0.8f, 0.82f, 0.85f, 1f);
 
-        // ── Result text at bottom ──
-        m_ResultText = CreateText(m_ScannerPanel.transform, "Result", "", 34,
-            new Vector2(0, 0), new Vector2(1, 0), new Vector2(20, 100), new Vector2(-20, 180));
+        m_ResultText = CreateText(cardObj.transform, "Result", "", 34,
+            new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-300, -450), new Vector2(300, -380));
         m_ResultText.alignment = TextAlignmentOptions.Center;
-        m_ResultText.color = new Color(0.2f, 1f, 0.4f, 1f);
+        m_ResultText.color = new Color(0.25f, 0.85f, 0.4f, 1f);
 
-        // ── Close button — top right, below notch ──
-        m_CloseButton = CreateCloseButton(m_ScannerPanel.transform);
+        // ── Enter Manually Pill Button ──
+        Button manualBtn = CreatePillButton(cardObj.transform, "ManualButton", "Enter manually");
+        RectTransform manualRT = manualBtn.GetComponent<RectTransform>();
+        manualRT.anchorMin = new Vector2(0.5f, 0);
+        manualRT.anchorMax = new Vector2(0.5f, 0);
+        manualRT.pivot = new Vector2(0.5f, 0);
+        manualRT.anchoredPosition = new Vector2(0, 150);
+        manualRT.sizeDelta = new Vector2(400, 100);
 
+        // ── Top Buttons (Back & Flashlight) ──
+        m_CloseButton = CreateCircularButton(m_ScannerPanel.transform, "CloseButton", "←", new Vector2(0, 1), new Vector2(60, -60));
+        m_CloseButton.onClick.AddListener(() => {
+            if (m_OnClose != null) m_OnClose();
+            else CloseScanner();
+        });
+
+        Button flashlightBtn = CreateCircularButton(m_ScannerPanel.transform, "FlashlightButton", "☼", new Vector2(1, 1), new Vector2(-60, -60));
+        
         m_ScannerPanel.SetActive(false);
     }
 
-    // ── Dim overlay is now the panel background itself (semi-transparent) ──
-    // The scanning box corner brackets are drawn on top and the AR camera
-    // passthrough is visible through the semi-transparent panel.
+    private Button CreatePillButton(Transform parent, string name, string label)
+    {
+        GameObject btnObj = new GameObject(name);
+        btnObj.transform.SetParent(parent, false);
+        
+        Image img = btnObj.AddComponent<Image>();
+        img.sprite = GetRoundedSprite();
+        img.type = Image.Type.Sliced;
+        img.color = new Color(0.3f, 0.33f, 0.38f, 0.9f); // Gray translucent pill
+
+        Button btn = btnObj.AddComponent<Button>();
+        btn.targetGraphic = img;
+
+        ColorBlock cb = btn.colors;
+        cb.normalColor = Color.white;
+        cb.highlightedColor = new Color(0.8f, 0.8f, 0.8f, 1f);
+        cb.pressedColor = new Color(0.6f, 0.6f, 0.6f, 1f);
+        cb.colorMultiplier = 1f;
+        btn.colors = cb;
+
+        TextMeshProUGUI txt = CreateText(btnObj.transform, "Text", label, 36, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        txt.alignment = TextAlignmentOptions.Center;
+        txt.fontStyle = FontStyles.Bold;
+
+        return btn;
+    }
+
+    private Button CreateCircularButton(Transform parent, string name, string label, Vector2 anchor, Vector2 anchoredPos)
+    {
+        GameObject btnObj = new GameObject(name);
+        btnObj.transform.SetParent(parent, false);
+        RectTransform rt = btnObj.AddComponent<RectTransform>();
+        rt.anchorMin = anchor;
+        rt.anchorMax = anchor;
+        rt.pivot = anchor;
+        rt.anchoredPosition = anchoredPos;
+        rt.sizeDelta = new Vector2(120, 120);
+
+        Image img = btnObj.AddComponent<Image>();
+        img.sprite = GetRoundedSprite();
+        img.type = Image.Type.Sliced;
+        img.color = new Color(0.2f, 0.22f, 0.25f, 0.8f);
+
+        Button btn = btnObj.AddComponent<Button>();
+        btn.targetGraphic = img;
+
+        ColorBlock cb = btn.colors;
+        cb.normalColor = Color.white;
+        cb.pressedColor = new Color(0.7f, 0.7f, 0.7f, 1f);
+        cb.colorMultiplier = 1f;
+        btn.colors = cb;
+
+        TextMeshProUGUI txt = CreateText(btnObj.transform, "Text", label, 52, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
+        txt.alignment = TextAlignmentOptions.Center;
+        txt.fontStyle = FontStyles.Bold;
+
+        return btn;
+    }
 
     // ── Scanning Box with 4 solid corner brackets ──
     private GameObject CreateScanningBox(Transform parent)
@@ -119,12 +247,12 @@ public class QRScannerUI : MonoBehaviour
         boxRT.anchorMin = new Vector2(0.5f, 0.5f);
         boxRT.anchorMax = new Vector2(0.5f, 0.5f);
         boxRT.pivot = new Vector2(0.5f, 0.5f);
-        boxRT.anchoredPosition = Vector2.zero;
+        boxRT.anchoredPosition = new Vector2(0, 50); // Shift up slightly
         boxRT.sizeDelta = new Vector2(560, 560);
 
-        Color bracketColor = new Color(0f, 0.9f, 0.85f, 1f); // Cyan-teal
-        float cornerLen = 70f;
-        float thickness = 6f;
+        Color bracketColor = new Color(0.6f, 0.65f, 0.7f, 1f); // Subtle greyish-white like the image
+        float cornerLen = 80f;
+        float thickness = 12f;
 
         m_CornerImages = new Image[8]; // 2 per corner (H + V)
         int idx = 0;
@@ -142,9 +270,6 @@ public class QRScannerUI : MonoBehaviour
         m_CornerImages[idx++] = CreateBracketLine(box.transform, "BR_H", new Vector2(1, 0), cornerLen, thickness, bracketColor, false, true);
         m_CornerImages[idx++] = CreateBracketLine(box.transform, "BR_V", new Vector2(1, 0), thickness, cornerLen, bracketColor, false, true);
 
-        // Subtle border lines connecting corners (thin guide lines)
-        CreateGuideLines(box.transform);
-
         return box;
     }
 
@@ -160,73 +285,11 @@ public class QRScannerUI : MonoBehaviour
         rt.anchoredPosition = Vector2.zero;
         rt.sizeDelta = new Vector2(width, height);
         Image img = go.AddComponent<Image>();
+        img.sprite = GetRoundedSprite(); // Round the bracket lines!
+        img.type = Image.Type.Sliced;
         img.color = color;
         img.raycastTarget = false;
         return img;
-    }
-
-    private void CreateGuideLines(Transform parent)
-    {
-        Color lineColor = new Color(1f, 1f, 1f, 0.12f);
-        // Top line
-        CreateBracketLine(parent, "Top", new Vector2(0, 1), 0, 1, lineColor, true, false)
-            .rectTransform.anchorMax = new Vector2(1, 1);
-        // Bottom line
-        CreateBracketLine(parent, "Bottom", new Vector2(0, 0), 0, 1, lineColor, true, true)
-            .rectTransform.anchorMax = new Vector2(1, 0);
-        // Left line
-        CreateBracketLine(parent, "Left", new Vector2(0, 0), 1, 0, lineColor, true, true)
-            .rectTransform.anchorMax = new Vector2(0, 1);
-        // Right line
-        CreateBracketLine(parent, "Right", new Vector2(1, 0), 1, 0, lineColor, false, true)
-            .rectTransform.anchorMax = new Vector2(1, 1);
-    }
-
-    private Button CreateCloseButton(Transform parent)
-    {
-        GameObject btnObj = new GameObject("CloseButton");
-        btnObj.transform.SetParent(parent, false);
-
-        RectTransform btnRT = btnObj.AddComponent<RectTransform>();
-        btnRT.anchorMin = new Vector2(1, 1);
-        btnRT.anchorMax = new Vector2(1, 1);
-        btnRT.pivot = new Vector2(1, 1);
-        btnRT.anchoredPosition = new Vector2(-20, -100); // Lower to avoid notch/front camera
-        btnRT.sizeDelta = new Vector2(90, 90);
-
-        Image btnImg = btnObj.AddComponent<Image>();
-        btnImg.color = new Color(0.9f, 0.15f, 0.15f, 0.92f);
-
-        Button btn = btnObj.AddComponent<Button>();
-        btn.targetGraphic = btnImg;
-
-        ColorBlock cb = btn.colors;
-        cb.pressedColor = new Color(0.7f, 0.1f, 0.1f, 1f);
-        btn.colors = cb;
-
-        // X text
-        GameObject txtObj = new GameObject("Text");
-        txtObj.transform.SetParent(btnObj.transform, false);
-        RectTransform txtRT = txtObj.AddComponent<RectTransform>();
-        txtRT.anchorMin = Vector2.zero;
-        txtRT.anchorMax = Vector2.one;
-        txtRT.offsetMin = Vector2.zero;
-        txtRT.offsetMax = Vector2.zero;
-
-        TextMeshProUGUI txt = txtObj.AddComponent<TextMeshProUGUI>();
-        txt.text = "X";
-        txt.fontSize = 52;
-        txt.alignment = TextAlignmentOptions.Center;
-        txt.color = Color.white;
-        txt.fontStyle = FontStyles.Bold;
-        txt.raycastTarget = false;
-
-        btn.onClick.AddListener(() => {
-            if (m_OnClose != null) m_OnClose();
-            else CloseScanner();
-        });
-
-        return btn;
     }
 
     private TextMeshProUGUI CreateText(Transform parent, string name, string text, float fontSize,
