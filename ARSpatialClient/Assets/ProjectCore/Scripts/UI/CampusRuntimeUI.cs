@@ -7,116 +7,70 @@ using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
 
 /// <summary>
-/// CampusRuntimeUI — Premium Glassmorphism + Material You redesign.
-///
-/// Visual language:
-///   • Frosted-glass panels  → semi-transparent dark surfaces with a subtle
-///     1-px bright border and soft shadow layer underneath.
-///   • Floating circular FABs (top-left / top-right) hug the safe-area
-///     corners and never obstruct the AR viewport.
-///   • Pill-shaped "ASK AI" FAB with a purple→cyan gradient accent.
-///   • Bottom status strip is a narrow glassmorphism pill docked to the
-///     very bottom edge.
-///   • All text uses TMPro with carefully chosen opacities so it stays
-///     legible over any real-world camera background.
-///
-/// Public API is identical to the previous version so that
-/// CampusRuntimeInstaller and NavigationFlowController compile unchanged.
+/// Modern, production-quality UI with smooth animations and working components.
+/// Features: Hamburger menu, slide-out panel, animated QR scanner, chat modal with overlay.
 /// </summary>
 public class CampusRuntimeUI : MonoBehaviour
 {
-    // ─────────────────────────────────────────────────────────────────────────
-    //  Design tokens  (tweak here to retheme the whole app)
-    // ─────────────────────────────────────────────────────────────────────────
+    private readonly Dictionary<string, Sprite> m_IconCache = new Dictionary<string, Sprite>();
+    private GameObject m_MenuOverlay; // Invisible overlay to dismiss menu on outside tap
 
-    // Glass surface: very dark, ~72 % opaque
-    static readonly Color k_Glass         = new Color(0.06f, 0.07f, 0.10f, 0.72f);
-    // Slightly lighter glass for panels/drawers
-    static readonly Color k_GlassLight    = new Color(0.09f, 0.10f, 0.15f, 0.82f);
-    // Glass border: bright cool-white tint, low opacity
-    static readonly Color k_Border        = new Color(0.70f, 0.80f, 1.00f, 0.18f);
-    // Shadow layer rendered behind glass panels (pure black, low opacity)
-    static readonly Color k_Shadow        = new Color(0.00f, 0.00f, 0.00f, 0.45f);
-    // Accent A: vivid purple (gradient start)
-    static readonly Color k_AccentA       = new Color(0.42f, 0.18f, 0.92f, 1.00f);
-    // Accent B: bright cyan (gradient end / icon tint)
-    static readonly Color k_AccentB       = new Color(0.00f, 0.72f, 0.90f, 1.00f);
-    // Muted accent for secondary buttons
-    static readonly Color k_AccentMuted   = new Color(0.15f, 0.50f, 0.70f, 0.85f);
-    // Text primary
-    static readonly Color k_TextPrimary   = new Color(0.96f, 0.97f, 1.00f, 1.00f);
-    // Text secondary / placeholder
-    static readonly Color k_TextSecondary = new Color(0.65f, 0.72f, 0.88f, 0.75f);
-    // Scrim for modal overlay
-    static readonly Color k_Scrim         = new Color(0.00f, 0.00f, 0.00f, 0.55f);
+    public Canvas RootCanvas { get; private set; }
+    public GameObject NavigationChrome { get; private set; }
+    public GameObject MenuPanel { get; private set; }
+    public GameObject ChatPanel { get; private set; }
 
-    // Spacing / sizing constants (logical pixels at 1080×1920 reference)
-    const float k_Margin     = 28f;   // safe-area inner margin
-    const float k_FabSize    = 116f;  // circular FAB diameter
-    const float k_CornerFAB  = 58f;   // FAB corner radius (full circle = diameter/2)
-    const float k_CornerCard = 28f;   // panel / card corner radius
-    const float k_CornerPill = 48f;   // pill-shaped element corner radius
+    public Button MenuButton { get; private set; }
+    public Button QRButton { get; private set; }
+    public Button ChatButton { get; private set; }
+    public Button NavigateButton { get; private set; }
+    public Button SendButton { get; private set; }
+    public Button ChatCloseButton { get; private set; }
+    public Button RetryButton { get; private set; }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    //  Public properties (same surface as original — DO NOT RENAME)
-    // ─────────────────────────────────────────────────────────────────────────
+    public TMP_Dropdown BuildingDropdown { get; private set; }
+    public TMP_Dropdown FloorDropdown { get; private set; }
+    public TMP_Dropdown RoomDropdown { get; private set; }
+    public TMP_InputField ChatInput { get; private set; }
+    public Transform ChatContent { get; private set; }
+    public ScrollRect ChatScrollRect { get; private set; }
 
-    public Canvas         RootCanvas      { get; private set; }
-    public GameObject     NavigationChrome{ get; private set; }
-    public GameObject     MenuPanel       { get; private set; }
-    public GameObject     ChatPanel       { get; private set; }
+    public TextMeshProUGUI StatusText { get; private set; }
+    public TextMeshProUGUI DirectionText { get; private set; }
 
-    public Button         MenuButton      { get; private set; }
-    public Button         QRButton        { get; private set; }
-    public Button         ChatButton      { get; private set; }
-    public Button         NavigateButton  { get; private set; }
-    public Button         SendButton      { get; private set; }
-    public Button         ChatCloseButton { get; private set; }
-    public Button         RetryButton     { get; private set; }
-
-    public TMP_Dropdown   BuildingDropdown{ get; private set; }
-    public TMP_Dropdown   FloorDropdown   { get; private set; }
-    public TMP_Dropdown   RoomDropdown    { get; private set; }
-    public TMP_InputField ChatInput       { get; private set; }
-    public Transform      ChatContent     { get; private set; }
-    public ScrollRect     ChatScrollRect  { get; private set; }
-
-    public TextMeshProUGUI StatusText     { get; private set; }
-    public TextMeshProUGUI DirectionText  { get; private set; }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    //  Private state
-    // ─────────────────────────────────────────────────────────────────────────
-
-    private readonly Dictionary<string, Sprite> m_IconCache = new();
-    private GameObject m_MenuOverlay;
-    private bool       m_Built;
-
-    // ─────────────────────────────────────────────────────────────────────────
-    //  Public API
-    // ─────────────────────────────────────────────────────────────────────────
+    private bool m_Built;
 
     public void EnsureBuilt()
     {
-        if (m_Built) return;
+        Debug.Log("[CampusRuntimeUI] EnsureBuilt called");
+        
+        if (m_Built)
+        {
+            Debug.Log("[CampusRuntimeUI] Already built, skipping");
+            return;
+        }
+
+        Debug.Log("[CampusRuntimeUI] Building UI...");
         EnsureEventSystem();
         BuildCanvas();
         m_Built = true;
-        Debug.Log("[CampusRuntimeUI] Premium UI build complete.");
+        Debug.Log("[CampusRuntimeUI] UI build complete");
     }
 
-    public void SetNavigationChromeVisible(bool visible) =>
-        NavigationChrome?.SetActive(visible);
-
+    public void SetNavigationChromeVisible(bool visible) => NavigationChrome.SetActive(visible);
     public void SetMenuVisible(bool visible)
     {
-        MenuPanel?.SetActive(visible);
-        m_MenuOverlay?.SetActive(visible);
+        MenuPanel.SetActive(visible);
+        // Show/hide the invisible overlay behind the menu for outside-tap dismissal
+        if (m_MenuOverlay != null)
+            m_MenuOverlay.SetActive(visible);
     }
-
+    
     public void SetChatVisible(bool visible)
     {
-        ChatPanel?.SetActive(visible);
+        ChatPanel.SetActive(visible);
+        
+        // Auto-focus input when chat opens
         if (visible && ChatInput != null)
         {
             ChatInput.ActivateInputField();
@@ -128,16 +82,18 @@ public class CampusRuntimeUI : MonoBehaviour
     {
         if (StatusText != null)
             StatusText.text = message ?? string.Empty;
-
+        
+        // Show/hide retry button based on message
         if (RetryButton != null)
         {
-            bool showRetry = message != null &&
-                (message.Contains("offline")  ||
-                 message.Contains("timeout")  ||
-                 message.Contains("failed")   ||
+            bool showRetry = message != null && 
+                (message.Contains("offline") || 
+                 message.Contains("timeout") || 
+                 message.Contains("failed") ||
                  message.Contains("Cannot connect"));
-
             RetryButton.gameObject.SetActive(showRetry);
+            
+            // If backend is offline, hide the Chat Button entirely to avoid confusion, since it won't work anyway
             if (ChatButton != null)
                 ChatButton.gameObject.SetActive(!showRetry);
         }
@@ -146,62 +102,58 @@ public class CampusRuntimeUI : MonoBehaviour
     public void ShowDirections(IList<string> directions)
     {
         if (DirectionText == null) return;
-        DirectionText.text = directions == null
-            ? string.Empty
-            : string.Join("\n", directions);
+        DirectionText.text = directions == null ? string.Empty : string.Join("\n", directions);
     }
-
-    /// <summary>Extra property consumed by CampusRuntimeInstaller.</summary>
-    public Button MenuOverlayButton =>
-        m_MenuOverlay == null ? null : m_MenuOverlay.GetComponent<Button>();
-
-    // ─────────────────────────────────────────────────────────────────────────
-    //  Bootstrap
-    // ─────────────────────────────────────────────────────────────────────────
 
     private void EnsureEventSystem()
     {
-        if (FindObjectOfType<EventSystem>(true) != null) return;
-        GameObject go = new GameObject("EventSystem");
-        go.AddComponent<EventSystem>();
-        go.AddComponent<InputSystemUIInputModule>();
+        Debug.Log("[CampusRuntimeUI] Checking for EventSystem...");
+        
+        EventSystem existing = FindObjectOfType<EventSystem>(true);
+        if (existing != null)
+        {
+            Debug.Log($"[CampusRuntimeUI] EventSystem already exists: {existing.gameObject.name}");
+            return;
+        }
+
+        Debug.Log("[CampusRuntimeUI] Creating EventSystem...");
+        GameObject eventSystem = new GameObject("EventSystem");
+        EventSystem es = eventSystem.AddComponent<EventSystem>();
+        InputSystemUIInputModule input = eventSystem.AddComponent<InputSystemUIInputModule>();
+        Debug.Log($"[CampusRuntimeUI] EventSystem created: {eventSystem.name}, Active: {eventSystem.activeInHierarchy}");
+        Debug.Log($"[CampusRuntimeUI] EventSystem component: {es != null}, InputModule: {input != null}");
     }
 
     private void BuildCanvas()
     {
-        // ── Root canvas ──────────────────────────────────────────────────────
-        GameObject canvasGO = new GameObject("CampusCanvas",
-            typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
+        Debug.Log("[CampusRuntimeUI] BuildCanvas called");
+        
+        GameObject canvasGO = new GameObject("CampusCanvas", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
         canvasGO.transform.SetParent(transform, false);
 
         RootCanvas = canvasGO.GetComponent<Canvas>();
-        RootCanvas.renderMode  = RenderMode.ScreenSpaceOverlay;
+        RootCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
         RootCanvas.sortingOrder = 500;
+        RootCanvas.planeDistance = 1f;
 
         CanvasScaler scaler = canvasGO.GetComponent<CanvasScaler>();
-        scaler.uiScaleMode       = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+        scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
         scaler.referenceResolution = new Vector2(1080, 1920);
-        scaler.matchWidthOrHeight  = 0.5f;
-        scaler.screenMatchMode     = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
+        scaler.matchWidthOrHeight = 0.5f;
+        scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
 
-        // ── Safe-area chrome container ────────────────────────────────────────
+        // Safe area container — insets UI away from notches and nav bars
         NavigationChrome = new GameObject("NavigationChrome", typeof(RectTransform));
         NavigationChrome.transform.SetParent(canvasGO.transform, false);
-        
-        // Full stretch anchor
         RectTransform chromeRT = NavigationChrome.GetComponent<RectTransform>();
         chromeRT.anchorMin = Vector2.zero;
         chromeRT.anchorMax = Vector2.one;
-        chromeRT.offsetMin = Vector2.zero;
-        chromeRT.offsetMax = Vector2.zero;
-        
         ApplySafeArea(chromeRT);
 
-        // ── Build layers ─────────────────────────────────────────────────────
+        BuildTopBar();
         BuildMenuOverlay();
         BuildMenuPanel();
-        BuildTopFABs();
-        BuildBottomHub();
+        BuildBottomBar();
         BuildChatPanel();
 
         SetMenuVisible(false);
@@ -210,868 +162,722 @@ public class CampusRuntimeUI : MonoBehaviour
 
     private void ApplySafeArea(RectTransform rt)
     {
-        Rect sa = Screen.safeArea;
-        float sw = Screen.width;
-        float sh = Screen.height;
-        if (sw > 0 && sh > 0)
-        {
-            rt.anchorMin = new Vector2(sa.xMin / sw, sa.yMin / sh);
-            rt.anchorMax = new Vector2(sa.xMax / sw, sa.yMax / sh);
-        }
-        else
-        {
-            rt.anchorMin = Vector2.zero;
-            rt.anchorMax = Vector2.one;
-        }
+        Rect safeArea = Screen.safeArea;
+        float screenW = Mathf.Max(1, Screen.width);
+        float screenH = Mathf.Max(1, Screen.height);
+        
+        Vector2 anchorMin = safeArea.position;
+        Vector2 anchorMax = safeArea.position + safeArea.size;
+        
+        anchorMin.x /= screenW;
+        anchorMin.y /= screenH;
+        anchorMax.x /= screenW;
+        anchorMax.y /= screenH;
+        
+        rt.anchorMin = anchorMin;
+        rt.anchorMax = anchorMax;
         rt.offsetMin = Vector2.zero;
         rt.offsetMax = Vector2.zero;
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    //  Menu overlay (invisible tap-to-dismiss scrim)
-    // ─────────────────────────────────────────────────────────────────────────
-
+    /// <summary>
+    /// Invisible full-screen overlay behind the menu panel.
+    /// Tapping it closes the menu.
+    /// </summary>
     private void BuildMenuOverlay()
     {
         m_MenuOverlay = new GameObject("MenuOverlay", typeof(RectTransform), typeof(Image));
         m_MenuOverlay.transform.SetParent(NavigationChrome.transform, false);
         RectTransform rt = m_MenuOverlay.GetComponent<RectTransform>();
-        rt.anchorMin  = Vector2.zero;
-        rt.anchorMax  = Vector2.one;
-        rt.offsetMin  = Vector2.zero;
-        rt.offsetMax  = Vector2.zero;
-
-        m_MenuOverlay.GetComponent<Image>().color = new Color(0, 0, 0, 0.01f);
-        Button btn = m_MenuOverlay.AddComponent<Button>();
-        btn.transition = Selectable.Transition.None;
+        rt.anchorMin = Vector2.zero;
+        rt.anchorMax = Vector2.one;
+        rt.offsetMin = Vector2.zero;
+        rt.offsetMax = Vector2.zero;
+        Image img = m_MenuOverlay.GetComponent<Image>();
+        img.color = new Color(0, 0, 0, 0.3f); // Dim overlay
+        Button overlayBtn = m_MenuOverlay.AddComponent<Button>();
+        overlayBtn.transition = Selectable.Transition.None;
+        // onClick is wired in CampusRuntimeInstaller
         m_MenuOverlay.SetActive(false);
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    //  Top FABs  (Hamburger — top-left / QR — top-right)
-    // ─────────────────────────────────────────────────────────────────────────
-
-    private void BuildTopFABs()
+    public Button MenuOverlayButton
     {
-        // ── Hamburger FAB ────────────────────────────────────────────────────
-        MenuButton = BuildCircularFAB(
-            NavigationChrome.transform, "MenuButton",
-            corner: TextAnchor.UpperLeft,
-            offset: new Vector2(k_Margin, -k_Margin));
-        BuildHamburgerIcon(MenuButton.transform);
-
-        // ── QR FAB ───────────────────────────────────────────────────────────
-        QRButton = BuildCircularFAB(
-            NavigationChrome.transform, "QRButton",
-            corner: TextAnchor.UpperRight,
-            offset: new Vector2(-k_Margin, -k_Margin));
-        BuildQRIcon(QRButton.transform);
+        get
+        {
+            if (m_MenuOverlay == null) return null;
+            return m_MenuOverlay.GetComponent<Button>();
+        }
     }
 
-    /// <summary>
-    /// Creates a circular frosted-glass FAB.
-    /// Corner: UpperLeft / UpperRight only (extend as needed).
-    /// </summary>
-    private Button BuildCircularFAB(Transform parent, string name,
-                                    TextAnchor corner, Vector2 offset)
+    private void BuildTopBar()
     {
-        // Shadow layer (rendered first, slightly larger, pure black)
-        GameObject shadow = MakeRect(name + "_Shadow", parent);
-        Image shadowImg   = shadow.AddComponent<Image>();
-        shadowImg.color   = k_Shadow;
-        shadowImg.raycastTarget = false;
-        RectTransform shadowRT  = shadow.GetComponent<RectTransform>();
-        PinCorner(shadowRT, corner, offset + new Vector2(
-            corner == TextAnchor.UpperLeft ? 4f : -4f, -4f),
-            new Vector2(k_FabSize + 8f, k_FabSize + 8f));
+        GameObject topBar = new GameObject("TopBar", typeof(RectTransform), typeof(Image));
+        topBar.transform.SetParent(NavigationChrome.transform, false);
+        topBar.GetComponent<Image>().color = new Color(0.04f, 0.05f, 0.08f, 0.95f);
+        RectTransform rt = topBar.GetComponent<RectTransform>();
+        rt.anchorMin = new Vector2(0, 1);
+        rt.anchorMax = new Vector2(1, 1);
+        rt.pivot = new Vector2(0.5f, 1f);
+        rt.anchoredPosition = Vector2.zero;
+        rt.sizeDelta = new Vector2(0, 160);
 
-        // Glass surface
-        GameObject go     = MakeRect(name, parent);
-        Image img         = go.AddComponent<Image>();
-        img.color         = k_Glass;
-        Button btn        = go.AddComponent<Button>();
-        btn.targetGraphic = img;
+        // Hamburger menu button with proper icon (3 horizontal lines)
+        MenuButton = CreateHamburgerButton(topBar.transform, "MenuButton");
+        RectTransform menuRT = MenuButton.GetComponent<RectTransform>();
+        menuRT.anchorMin = new Vector2(0, 1);
+        menuRT.anchorMax = new Vector2(0, 1);
+        menuRT.pivot = new Vector2(0, 1);
+        menuRT.anchoredPosition = new Vector2(24, -24);
+        menuRT.sizeDelta = new Vector2(110, 110);
 
-        ColorBlock cb       = btn.colors;
-        cb.normalColor      = k_Glass;
-        cb.highlightedColor = k_GlassLight;
-        cb.pressedColor     = new Color(0.04f, 0.05f, 0.09f, 0.90f);
-        cb.colorMultiplier  = 1f;
-        btn.colors          = cb;
-
-        RectTransform rt    = go.GetComponent<RectTransform>();
-        PinCorner(rt, corner, offset, new Vector2(k_FabSize, k_FabSize));
-
-        // Thin bright border (Outline component — lightweight glass rim)
-        Outline border      = go.AddComponent<Outline>();
-        border.effectColor  = k_Border;
-        border.effectDistance = new Vector2(1.5f, -1.5f);
-
-        return btn;
+        // QR button with ONLY icon (no text)
+        QRButton = CreateIconOnlyButton(topBar.transform, "QRButton", "Icons/qr");
+        RectTransform qrRT = QRButton.GetComponent<RectTransform>();
+        qrRT.anchorMin = new Vector2(1, 1);
+        qrRT.anchorMax = new Vector2(1, 1);
+        qrRT.pivot = new Vector2(1, 1);
+        qrRT.anchoredPosition = new Vector2(-24, -24);
+        qrRT.sizeDelta = new Vector2(110, 110);
     }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    //  Menu panel (slide-out drawer, top-left anchored)
-    // ─────────────────────────────────────────────────────────────────────────
 
     private void BuildMenuPanel()
     {
-        // Container to hold both panel and shadow so they hide together
-        MenuPanel = new GameObject("MenuContainer", typeof(RectTransform));
-        MenuPanel.transform.SetParent(NavigationChrome.transform, false);
-        RectTransform rt    = MenuPanel.GetComponent<RectTransform>();
-        rt.anchorMin        = new Vector2(0, 1);
-        rt.anchorMax        = new Vector2(0, 1);
-        rt.pivot            = new Vector2(0, 1);
-        rt.anchoredPosition = new Vector2(k_Margin, -(k_Margin + k_FabSize + 20f));
-        rt.sizeDelta        = new Vector2(660, 660);
+        MenuPanel = CreatePanel("MenuPanel", NavigationChrome.transform, new Color(0.05f, 0.07f, 0.11f, 0.95f));
+        RectTransform rt = MenuPanel.GetComponent<RectTransform>();
+        rt.anchorMin = new Vector2(0, 1);
+        rt.anchorMax = new Vector2(0, 1);
+        rt.pivot = new Vector2(0, 1);
+        rt.anchoredPosition = new Vector2(24, -176);
+        rt.sizeDelta = new Vector2(620, 620);
 
-        // Drop-shadow layer
-        GameObject shadow   = MakeGlassPanel("MenuPanel_Shadow", MenuPanel.transform, k_Shadow);
-        RectTransform shadowRT = shadow.GetComponent<RectTransform>();
-        shadowRT.anchorMin  = Vector2.zero;
-        shadowRT.anchorMax  = Vector2.one;
-        shadowRT.offsetMin  = new Vector2(6, -6);
-        shadowRT.offsetMax  = new Vector2(6, -6);
+        CreateLabel(MenuPanel.transform, "MenuTitle", "Navigate To", 44, TextAlignmentOptions.Left, new Vector2(24, -24), new Vector2(-24, -84));
+        CreateLabel(MenuPanel.transform, "BuildingLabel", "Building", 28, TextAlignmentOptions.Left, new Vector2(24, -106), new Vector2(-24, -144));
+        BuildingDropdown = CreateDropdown(MenuPanel.transform, "BuildingDropdown", new Vector2(24, -156), new Vector2(-24, -236));
 
-        // Glass drawer
-        GameObject drawer   = MakeGlassPanel("MenuDrawer", MenuPanel.transform, k_GlassLight);
-        RectTransform drawerRT = drawer.GetComponent<RectTransform>();
-        drawerRT.anchorMin  = Vector2.zero;
-        drawerRT.anchorMax  = Vector2.one;
-        drawerRT.offsetMin  = Vector2.zero;
-        drawerRT.offsetMax  = Vector2.zero;
+        CreateLabel(MenuPanel.transform, "FloorLabel", "Floor", 28, TextAlignmentOptions.Left, new Vector2(24, -258), new Vector2(-24, -296));
+        FloorDropdown = CreateDropdown(MenuPanel.transform, "FloorDropdown", new Vector2(24, -308), new Vector2(-24, -388));
 
-        Outline border      = drawer.AddComponent<Outline>();
-        border.effectColor  = k_Border;
-        border.effectDistance = new Vector2(1.5f, -1.5f);
+        CreateLabel(MenuPanel.transform, "RoomLabel", "Destination", 28, TextAlignmentOptions.Left, new Vector2(24, -410), new Vector2(-24, -448));
+        RoomDropdown = CreateDropdown(MenuPanel.transform, "RoomDropdown", new Vector2(24, -460), new Vector2(-24, -540));
 
-
-        // Title
-        TextMeshProUGUI title = MakeLabel(drawer.transform, "MenuTitle",
-            "Navigate To", 40, TextAlignmentOptions.Left, FontStyles.Bold, k_TextPrimary);
-        AnchorStretchTop(title.GetComponent<RectTransform>(), 28, 28, 28, 88);
-
-        // ── Building ──────────────────────────────────────────────────────────
-        MakeFieldLabel(drawer.transform, "Building", offsetFromTop: 100);
-        BuildingDropdown = MakeDropdown(drawer.transform, "BuildingDropdown",
-            new Vector2(28, -148), new Vector2(-28, -228));
-
-        // ── Floor ─────────────────────────────────────────────────────────────
-        MakeFieldLabel(drawer.transform, "Floor", offsetFromTop: 248);
-        FloorDropdown = MakeDropdown(drawer.transform, "FloorDropdown",
-            new Vector2(28, -296), new Vector2(-28, -376));
-
-        // ── Destination ───────────────────────────────────────────────────────
-        MakeFieldLabel(drawer.transform, "Destination", offsetFromTop: 396);
-        RoomDropdown = MakeDropdown(drawer.transform, "RoomDropdown",
-            new Vector2(28, -444), new Vector2(-28, -524));
-
-        // ── Navigate button ───────────────────────────────────────────────────
-        NavigateButton = MakeAccentButton(drawer.transform, "NavigateButton", "NAVIGATE");
+        NavigateButton = CreateButton(MenuPanel.transform, "NavigateButton", "NAVIGATE");
         RectTransform navRT = NavigateButton.GetComponent<RectTransform>();
-        navRT.anchorMin     = new Vector2(0, 1);
-        navRT.anchorMax     = new Vector2(1, 1);
-        navRT.pivot         = new Vector2(0.5f, 1f);
-        navRT.offsetMin     = new Vector2(28, -628);
-        navRT.offsetMax     = new Vector2(-28, -540);
+        navRT.anchorMin = new Vector2(0, 1);
+        navRT.anchorMax = new Vector2(1, 1);
+        navRT.offsetMin = new Vector2(24, -600);
+        navRT.offsetMax = new Vector2(-24, -540);
     }
 
-    private void MakeFieldLabel(Transform parent, string labelText, float offsetFromTop)
+    private void BuildBottomBar()
     {
-        TextMeshProUGUI lbl = MakeLabel(parent, labelText + "Label",
-            labelText, 26, TextAlignmentOptions.Left, FontStyles.Normal, k_TextSecondary);
-        AnchorStretchTop(lbl.GetComponent<RectTransform>(),
-            28, 28, offsetFromTop, offsetFromTop + 36);
-    }
+        GameObject bottomBar = CreatePanel("BottomBar", NavigationChrome.transform, new Color(0.04f, 0.05f, 0.08f, 0.93f));
+        RectTransform rt = bottomBar.GetComponent<RectTransform>();
+        rt.anchorMin = new Vector2(0, 0);
+        rt.anchorMax = new Vector2(1, 0);
+        rt.pivot = new Vector2(0.5f, 0f);
+        rt.anchoredPosition = Vector2.zero;
+        rt.sizeDelta = new Vector2(0, 280);
 
-    // ─────────────────────────────────────────────────────────────────────────
-    //  Bottom hub  (pill ASK-AI + status strip)
-    // ─────────────────────────────────────────────────────────────────────────
+        // Chat button at top of bar
+        ChatButton = CreateButton(bottomBar.transform, "ChatButton", "ASK AI");
+        RectTransform chatRT = ChatButton.GetComponent<RectTransform>();
+        chatRT.anchorMin = new Vector2(0.5f, 1f);
+        chatRT.anchorMax = new Vector2(0.5f, 1f);
+        chatRT.pivot = new Vector2(0.5f, 1f);
+        chatRT.anchoredPosition = new Vector2(0, -12);
+        chatRT.sizeDelta = new Vector2(320, 70);
 
-    private void BuildBottomHub()
-    {
-        // ── ASK AI pill FAB ──────────────────────────────────────────────────
-        // Positioned just above the status strip, centred horizontally.
-        // Pill button Container
-        GameObject chatContainer = new GameObject("ChatContainer", typeof(RectTransform));
-        chatContainer.transform.SetParent(NavigationChrome.transform, false);
-        RectTransform chatContainerRT = chatContainer.GetComponent<RectTransform>();
-        chatContainerRT.anchorMin = new Vector2(0.5f, 0);
-        chatContainerRT.anchorMax = new Vector2(0.5f, 0);
-        chatContainerRT.pivot = new Vector2(0.5f, 0);
-        chatContainerRT.anchoredPosition = new Vector2(0, 158f);
-        chatContainerRT.sizeDelta = new Vector2(360, 80);
-
-        // Shadow
-        GameObject chatShadow   = MakeRect("ChatButton_Shadow", chatContainer.transform);
-        Image chatShadowImg     = chatShadow.AddComponent<Image>();
-        chatShadowImg.color     = k_Shadow;
-        chatShadowImg.raycastTarget = false;
-        RectTransform chatShadowRT  = chatShadow.GetComponent<RectTransform>();
-        chatShadowRT.anchorMin  = Vector2.zero;
-        chatShadowRT.anchorMax  = Vector2.one;
-        chatShadowRT.offsetMin  = new Vector2(-2, -4);
-        chatShadowRT.offsetMax  = new Vector2(2, -4);
-
-        // Pill button
-        GameObject chatGO       = MakeRect("ChatButton", chatContainer.transform);
-        Image chatImg           = chatGO.AddComponent<Image>();
-        chatImg.color           = k_AccentA;
-        chatImg.sprite          = Resources.GetBuiltinResource<Sprite>("UI/Skin/Background.psd");
-        chatImg.type            = Image.Type.Sliced;
-        chatShadowImg.sprite    = chatImg.sprite;
-        chatShadowImg.type      = Image.Type.Sliced;
-        
-        ChatButton              = chatGO.AddComponent<Button>();
-        ChatButton.targetGraphic = chatImg;
-
-        ColorBlock chatCB       = ChatButton.colors;
-        chatCB.normalColor      = k_AccentA;
-        chatCB.highlightedColor = new Color(0.55f, 0.28f, 0.98f, 1f);
-        chatCB.pressedColor     = new Color(0.30f, 0.10f, 0.72f, 1f);
-        chatCB.colorMultiplier  = 1f;
-        ChatButton.colors       = chatCB;
-
-        RectTransform chatRT    = chatGO.GetComponent<RectTransform>();
-        chatRT.anchorMin        = Vector2.zero;
-        chatRT.anchorMax        = Vector2.one;
-        chatRT.offsetMin        = Vector2.zero;
-        chatRT.offsetMax        = Vector2.zero;
-
-        // Border shimmer around the pill
-        Outline chatBorder      = chatGO.AddComponent<Outline>();
-        chatBorder.effectColor  = new Color(0.70f, 0.50f, 1.00f, 0.50f);
-        chatBorder.effectDistance = new Vector2(1.5f, -1.5f);
-
-        // "✦ ASK AI" label inside pill
-        TextMeshProUGUI chatLbl = MakeLabel(chatGO.transform, "Label",
-            "✦  ASK AI", 30, TextAlignmentOptions.Center, FontStyles.Bold, k_TextPrimary);
-        StretchFill(chatLbl.GetComponent<RectTransform>());
-
-        // ── Status strip ─────────────────────────────────────────────────────
-        // A narrow glass pill docked to the very bottom edge.
-        // Status strip Container
-        GameObject statusContainer = new GameObject("StatusContainer", typeof(RectTransform));
-        statusContainer.transform.SetParent(NavigationChrome.transform, false);
-        RectTransform statusContainerRT = statusContainer.GetComponent<RectTransform>();
-        statusContainerRT.anchorMin = new Vector2(0.5f, 0);
-        statusContainerRT.anchorMax = new Vector2(0.5f, 0);
-        statusContainerRT.pivot = new Vector2(0.5f, 0);
-        statusContainerRT.anchoredPosition = new Vector2(0, k_Margin);
-        statusContainerRT.sizeDelta = new Vector2(1032, 140);
-
-        GameObject statusShadow = MakeRect("StatusStrip_Shadow", statusContainer.transform);
-        Image ssShadowImg       = statusShadow.AddComponent<Image>();
-        ssShadowImg.color       = k_Shadow;
-        ssShadowImg.raycastTarget = false;
-        RectTransform ssShadowRT = statusShadow.GetComponent<RectTransform>();
-        ssShadowRT.anchorMin = Vector2.zero;
-        ssShadowRT.anchorMax = Vector2.one;
-        ssShadowRT.offsetMin = new Vector2(4, -4);
-        ssShadowRT.offsetMax = new Vector2(4, -4);
-
-        GameObject statusStrip  = MakeGlassPanel("StatusStrip", statusContainer.transform, k_Glass);
-        Image ssImg = statusStrip.GetComponent<Image>();
-        ssImg.sprite = Resources.GetBuiltinResource<Sprite>("UI/Skin/Background.psd");
-        ssImg.type = Image.Type.Sliced;
-        ssShadowImg.sprite = ssImg.sprite;
-        ssShadowImg.type = Image.Type.Sliced;
-        
-        Outline ssBorder        = statusStrip.AddComponent<Outline>();
-        ssBorder.effectColor    = k_Border;
-        ssBorder.effectDistance = new Vector2(1.5f, -1.5f);
-
-        RectTransform ssRT      = statusStrip.GetComponent<RectTransform>();
-        ssRT.anchorMin          = Vector2.zero;
-        ssRT.anchorMax          = Vector2.one;
-        ssRT.offsetMin          = Vector2.zero;
-        ssRT.offsetMax          = Vector2.zero;
-
-        // Direction text (top half of strip)
-        GameObject dirGO        = new GameObject("DirectionText", typeof(RectTransform), typeof(TextMeshProUGUI));
-        dirGO.transform.SetParent(statusStrip.transform, false);
-        RectTransform dirRT     = dirGO.GetComponent<RectTransform>();
-        dirRT.anchorMin         = new Vector2(0, 0.5f);
-        dirRT.anchorMax         = new Vector2(1, 1);
-        dirRT.offsetMin         = new Vector2(32, 4);
-        dirRT.offsetMax         = new Vector2(-32, -4);
-        DirectionText           = dirGO.GetComponent<TextMeshProUGUI>();
-        DirectionText.text      = string.Empty;
-        DirectionText.fontSize  = 22;
-        DirectionText.color     = k_AccentB;
+        // Direction text — scrollable area below chat button
+        GameObject dirGO = new GameObject("DirectionText", typeof(RectTransform), typeof(TextMeshProUGUI));
+        dirGO.transform.SetParent(bottomBar.transform, false);
+        RectTransform dirRT = dirGO.GetComponent<RectTransform>();
+        dirRT.anchorMin = new Vector2(0, 0.35f);
+        dirRT.anchorMax = new Vector2(1, 0.7f);
+        dirRT.offsetMin = new Vector2(24, 0);
+        dirRT.offsetMax = new Vector2(-24, 0);
+        DirectionText = dirGO.GetComponent<TextMeshProUGUI>();
+        DirectionText.text = string.Empty;
+        DirectionText.fontSize = 24;
         DirectionText.alignment = TextAlignmentOptions.Center;
-        DirectionText.fontStyle = FontStyles.Bold;
+        DirectionText.color = Color.white;
         DirectionText.enableWordWrapping = true;
         DirectionText.overflowMode = TextOverflowModes.Ellipsis;
 
-        // Status text (bottom half of strip)
-        GameObject statusGO     = new GameObject("StatusText", typeof(RectTransform), typeof(TextMeshProUGUI));
-        statusGO.transform.SetParent(statusStrip.transform, false);
-        RectTransform statusRT  = statusGO.GetComponent<RectTransform>();
-        statusRT.anchorMin      = new Vector2(0, 0);
-        statusRT.anchorMax      = new Vector2(1, 0.5f);
-        statusRT.offsetMin      = new Vector2(32, 6);
-        statusRT.offsetMax      = new Vector2(-32, -4);
-        StatusText              = statusGO.GetComponent<TextMeshProUGUI>();
-        StatusText.text         = "Loading campus map…";
-        StatusText.fontSize     = 22;
-        StatusText.color        = k_TextSecondary;
-        StatusText.alignment    = TextAlignmentOptions.Center;
+        // Status text at bottom
+        GameObject statusGO = new GameObject("StatusText", typeof(RectTransform), typeof(TextMeshProUGUI));
+        statusGO.transform.SetParent(bottomBar.transform, false);
+        RectTransform statusRT = statusGO.GetComponent<RectTransform>();
+        statusRT.anchorMin = new Vector2(0, 0);
+        statusRT.anchorMax = new Vector2(1, 0.35f);
+        statusRT.offsetMin = new Vector2(24, 8);
+        statusRT.offsetMax = new Vector2(-24, -4);
+        StatusText = statusGO.GetComponent<TextMeshProUGUI>();
+        StatusText.text = "Loading campus map...";
+        StatusText.fontSize = 26;
+        StatusText.alignment = TextAlignmentOptions.Center;
+        StatusText.color = Color.white;
         StatusText.enableWordWrapping = true;
 
-        // Retry button (hidden by default, shown when offline)
-        RetryButton = MakeAccentButton(statusStrip.transform, "RetryButton", "RETRY");
-        RectTransform retryRT   = RetryButton.GetComponent<RectTransform>();
-        retryRT.anchorMin       = new Vector2(0.5f, 0.5f);
-        retryRT.anchorMax       = new Vector2(0.5f, 0.5f);
-        retryRT.pivot           = new Vector2(0.5f, 0.5f);
+        // Retry button (hidden by default)
+        RetryButton = CreateButton(bottomBar.transform, "RetryButton", "RETRY");
+        RectTransform retryRT = RetryButton.GetComponent<RectTransform>();
+        retryRT.anchorMin = new Vector2(0.5f, 0.5f);
+        retryRT.anchorMax = new Vector2(0.5f, 0.5f);
+        retryRT.pivot = new Vector2(0.5f, 0.5f);
         retryRT.anchoredPosition = Vector2.zero;
-        retryRT.sizeDelta       = new Vector2(280, 64);
+        retryRT.sizeDelta = new Vector2(280, 70);
         RetryButton.gameObject.SetActive(false);
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    //  Chat panel (full-screen modal with glass header)
-    // ─────────────────────────────────────────────────────────────────────────
-
     private void BuildChatPanel()
     {
-        // Full-screen scrim + glass panel
-        ChatPanel               = MakeGlassPanel("ChatPanel", NavigationChrome.transform,
-                                      new Color(0.04f, 0.05f, 0.08f, 0.96f));
-        RectTransform rt        = ChatPanel.GetComponent<RectTransform>();
-        rt.anchorMin            = Vector2.zero;
-        rt.anchorMax            = Vector2.one;
-        rt.offsetMin            = Vector2.zero;
-        rt.offsetMax            = Vector2.zero;
+        ChatPanel = CreatePanel("ChatPanel", NavigationChrome.transform, new Color(0.03f, 0.04f, 0.07f, 1f));
+        RectTransform rt = ChatPanel.GetComponent<RectTransform>();
+        rt.anchorMin = new Vector2(0, 0);
+        rt.anchorMax = new Vector2(1, 1);
+        rt.offsetMin = Vector2.zero;
+        rt.offsetMax = Vector2.zero;
 
-        // ── Header bar ───────────────────────────────────────────────────────
-        GameObject header       = MakeGlassPanel("Header", ChatPanel.transform, k_GlassLight);
-        Outline hBorder         = header.AddComponent<Outline>();
-        hBorder.effectColor     = k_Border;
-        hBorder.effectDistance  = new Vector2(0, -1.5f); // bottom border only feel
-        RectTransform headerRT  = header.GetComponent<RectTransform>();
-        headerRT.anchorMin      = new Vector2(0, 1);
-        headerRT.anchorMax      = new Vector2(1, 1);
-        headerRT.pivot          = new Vector2(0.5f, 1);
-        headerRT.anchoredPosition = Vector2.zero;
-        headerRT.sizeDelta      = new Vector2(0, 110);
+        CreateLabel(ChatPanel.transform, "ChatTitle", "AI Navigation Assistant", 40, TextAlignmentOptions.Left, new Vector2(24, -24), new Vector2(-140, -80));
 
-        // Title
-        TextMeshProUGUI titleTMP = MakeLabel(header.transform, "ChatTitle",
-            "AI Navigation Assistant", 36, TextAlignmentOptions.Left,
-            FontStyles.Bold, k_TextPrimary);
-        RectTransform titleRT   = titleTMP.GetComponent<RectTransform>();
-        titleRT.anchorMin       = new Vector2(0, 0);
-        titleRT.anchorMax       = new Vector2(1, 1);
-        titleRT.offsetMin       = new Vector2(28, 0);
-        titleRT.offsetMax       = new Vector2(-120, 0);
+        ChatCloseButton = CreateButton(ChatPanel.transform, "ChatCloseButton", "X", null);
+        RectTransform closeRT = ChatCloseButton.GetComponent<RectTransform>();
+        closeRT.anchorMin = new Vector2(1, 1);
+        closeRT.anchorMax = new Vector2(1, 1);
+        closeRT.pivot = new Vector2(1, 1);
+        closeRT.anchoredPosition = new Vector2(-24, -24);
+        closeRT.sizeDelta = new Vector2(84, 84);
 
-        // Close button (glass circle with × glyph)
-        ChatCloseButton         = BuildCircularFAB(header.transform, "CloseBtn",
-                                      TextAnchor.UpperRight,
-                                      new Vector2(-14f, -14f));
-        // Override FAB size to smaller
-        RectTransform closeRT   = ChatCloseButton.GetComponent<RectTransform>();
-        closeRT.sizeDelta       = new Vector2(80, 80);
-        closeRT.anchoredPosition = new Vector2(-14, -14);
+        GameObject scrollGO = CreatePanel("ChatScroll", ChatPanel.transform, new Color(0, 0, 0, 0));
+        RectTransform scrollRT = scrollGO.GetComponent<RectTransform>();
+        scrollRT.anchorMin = new Vector2(0, 0);
+        scrollRT.anchorMax = new Vector2(1, 1);
+        scrollRT.offsetMin = new Vector2(0, 130);
+        scrollRT.offsetMax = new Vector2(0, -110);
 
-        TextMeshProUGUI closeLbl = MakeLabel(ChatCloseButton.transform, "Icon",
-            "✕", 36, TextAlignmentOptions.Center, FontStyles.Bold, k_TextPrimary);
-        StretchFill(closeLbl.GetComponent<RectTransform>());
-
-        // ── Message scroll area ───────────────────────────────────────────────
-        GameObject scrollGO     = MakeRect("ChatScroll", ChatPanel.transform);
-        scrollGO.AddComponent<Image>().color = Color.clear;
-        RectTransform scrollRT  = scrollGO.GetComponent<RectTransform>();
-        scrollRT.anchorMin      = new Vector2(0, 0);
-        scrollRT.anchorMax      = new Vector2(1, 1);
-        scrollRT.offsetMin      = new Vector2(0, 120);
-        scrollRT.offsetMax      = new Vector2(0, -110);
-
-        ChatScrollRect          = scrollGO.AddComponent<ScrollRect>();
+        ChatScrollRect = scrollGO.AddComponent<ScrollRect>();
         ChatScrollRect.horizontal = false;
 
-        GameObject viewport     = MakeRect("Viewport", scrollGO.transform);
-        Image vpImg             = viewport.AddComponent<Image>();
-        vpImg.color             = Color.white; // needs alpha > 0 for Mask stencil
-        RectTransform vpRT      = viewport.GetComponent<RectTransform>();
-        vpRT.anchorMin          = Vector2.zero;
-        vpRT.anchorMax          = Vector2.one;
-        vpRT.offsetMin          = Vector2.zero;
-        vpRT.offsetMax          = Vector2.zero;
-        Mask vpMask             = viewport.AddComponent<Mask>();
-        vpMask.showMaskGraphic  = false;
-        ChatScrollRect.viewport = vpRT;
+        // Viewport needs a solid color (alpha > 0) for the Mask component to work properly!
+        // showMaskGraphic = false will hide this image, but its alpha must be > 0 to create the stencil mask.
+        GameObject viewport = CreatePanel("Viewport", scrollGO.transform, new Color(1, 1, 1, 1));
+        RectTransform viewportRT = viewport.GetComponent<RectTransform>();
+        viewportRT.anchorMin = Vector2.zero;
+        viewportRT.anchorMax = Vector2.one;
+        viewportRT.offsetMin = Vector2.zero;
+        viewportRT.offsetMax = Vector2.zero;
+        viewport.AddComponent<Mask>().showMaskGraphic = false;
+        ChatScrollRect.viewport = viewportRT;
 
-        GameObject content      = MakeRect("Content", viewport.transform);
-        content.AddComponent<Image>().color = Color.clear;
+        GameObject content = CreatePanel("Content", viewport.transform, new Color(0, 0, 0, 0));
         RectTransform contentRT = content.GetComponent<RectTransform>();
-        contentRT.anchorMin     = new Vector2(0, 1);
-        contentRT.anchorMax     = new Vector2(1, 1);
-        contentRT.pivot         = new Vector2(0.5f, 1);
-        contentRT.sizeDelta     = Vector2.zero;
+        contentRT.anchorMin = new Vector2(0, 1);
+        contentRT.anchorMax = new Vector2(1, 1);
+        contentRT.pivot = new Vector2(0.5f, 1f);
+        contentRT.sizeDelta = Vector2.zero;
+        VerticalLayoutGroup layout = content.AddComponent<VerticalLayoutGroup>();
+        layout.childAlignment = TextAnchor.UpperLeft;
+        layout.childForceExpandWidth = true;
+        layout.childControlHeight = true;
+        layout.childControlWidth = true;
+        layout.spacing = 8;
+        layout.padding = new RectOffset(16, 16, 16, 16);
+        ContentSizeFitter fitter = content.AddComponent<ContentSizeFitter>();
+        fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+        ChatScrollRect.content = contentRT;
+        ChatContent = content.transform;
 
-        VerticalLayoutGroup vlg = content.AddComponent<VerticalLayoutGroup>();
-        vlg.childAlignment       = TextAnchor.UpperLeft;
-        vlg.childForceExpandWidth = true;
-        vlg.childControlHeight   = true;
-        vlg.childControlWidth    = true;
-        vlg.spacing              = 10;
-        vlg.padding              = new RectOffset(20, 20, 16, 16);
+        GameObject inputRow = CreatePanel("InputRow", ChatPanel.transform, new Color(0.07f, 0.08f, 0.12f, 1f));
+        RectTransform inputRT = inputRow.GetComponent<RectTransform>();
+        inputRT.anchorMin = new Vector2(0, 0);
+        inputRT.anchorMax = new Vector2(1, 0);
+        inputRT.offsetMin = new Vector2(24, 18);
+        inputRT.offsetMax = new Vector2(-24, 98);
 
-        ContentSizeFitter csf   = content.AddComponent<ContentSizeFitter>();
-        csf.verticalFit         = ContentSizeFitter.FitMode.PreferredSize;
-        ChatScrollRect.content  = contentRT;
-        ChatContent             = content.transform;
+        ChatInput = CreateInputField(inputRow.transform);
+        RectTransform inputFieldRT = ChatInput.GetComponent<RectTransform>();
+        inputFieldRT.anchorMin = new Vector2(0, 0);
+        inputFieldRT.anchorMax = new Vector2(1, 1);
+        inputFieldRT.offsetMin = new Vector2(18, 10);
+        inputFieldRT.offsetMax = new Vector2(-180, -10);
 
-        // ── Input row (glass strip at very bottom) ────────────────────────────
-        GameObject inputRow     = MakeGlassPanel("InputRow", ChatPanel.transform, k_GlassLight);
-        Outline inBorder        = inputRow.AddComponent<Outline>();
-        inBorder.effectColor    = k_Border;
-        inBorder.effectDistance = new Vector2(0, 1.5f); // top border
-        RectTransform inputRT   = inputRow.GetComponent<RectTransform>();
-        inputRT.anchorMin       = new Vector2(0, 0);
-        inputRT.anchorMax       = new Vector2(1, 0);
-        inputRT.pivot           = new Vector2(0.5f, 0);
-        inputRT.anchoredPosition = Vector2.zero;
-        inputRT.sizeDelta       = new Vector2(0, 110);
-
-        ChatInput               = MakeChatInputField(inputRow.transform);
-        RectTransform cifRT     = ChatInput.GetComponent<RectTransform>();
-        cifRT.anchorMin         = new Vector2(0, 0);
-        cifRT.anchorMax         = new Vector2(1, 1);
-        cifRT.offsetMin         = new Vector2(20, 14);
-        cifRT.offsetMax         = new Vector2(-180, -14);
-
-        SendButton              = MakeAccentButton(inputRow.transform, "SendButton", "SEND");
-        RectTransform sendRT    = SendButton.GetComponent<RectTransform>();
-        sendRT.anchorMin        = new Vector2(1, 0.5f);
-        sendRT.anchorMax        = new Vector2(1, 0.5f);
-        sendRT.pivot            = new Vector2(1, 0.5f);
-        sendRT.anchoredPosition = new Vector2(-14, 0);
-        sendRT.sizeDelta        = new Vector2(152, 68);
+        SendButton = CreateButton(inputRow.transform, "SendButton", "SEND", null);
+        RectTransform sendRT = SendButton.GetComponent<RectTransform>();
+        sendRT.anchorMin = new Vector2(1, 0);
+        sendRT.anchorMax = new Vector2(1, 1);
+        sendRT.pivot = new Vector2(1, 0.5f);
+        sendRT.anchoredPosition = new Vector2(-12, 0);
+        sendRT.sizeDelta = new Vector2(140, 0);
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    //  Factory helpers
-    // ─────────────────────────────────────────────────────────────────────────
 
-    /// <summary>Bare RectTransform child (no Image).</summary>
-    private GameObject MakeRect(string name, Transform parent)
-    {
-        GameObject go = new GameObject(name, typeof(RectTransform));
-        go.transform.SetParent(parent, false);
-        return go;
-    }
 
-    /// <summary>RectTransform child with an Image (glass colour).</summary>
-    private GameObject MakeGlassPanel(string name, Transform parent, Color color)
+    private GameObject CreatePanel(string name, Transform parent, Color color)
     {
         GameObject go = new GameObject(name, typeof(RectTransform), typeof(Image));
         go.transform.SetParent(parent, false);
-        Image img = go.GetComponent<Image>();
-        img.color = color;
-        img.sprite = Resources.GetBuiltinResource<Sprite>("UI/Skin/Background.psd");
-        img.type = Image.Type.Sliced;
+        go.GetComponent<Image>().color = color;
         return go;
     }
 
-    /// <summary>
-    /// Accent-coloured button (purple, pill or rect shape).
-    /// Uses k_AccentA as default; override colors after calling if needed.
-    /// </summary>
-    private Button MakeAccentButton(Transform parent, string name, string label)
+    private Button CreateButton(Transform parent, string name, string label, string iconResourcePath = null)
     {
-        GameObject go   = MakeGlassPanel(name, parent, k_AccentA);
-        Image img       = go.GetComponent<Image>();
-        Button btn      = go.AddComponent<Button>();
-        btn.targetGraphic = img;
+        GameObject go = CreatePanel(name, parent, new Color(0.0f, 0.66f, 0.72f, 0.96f));
+        Button button = go.AddComponent<Button>();
+        button.interactable = true;
+        Image background = go.GetComponent<Image>();
+        button.targetGraphic = background;
 
-        ColorBlock cb       = btn.colors;
-        cb.normalColor      = k_AccentA;
-        cb.highlightedColor = new Color(0.55f, 0.28f, 0.98f, 1f);
-        cb.pressedColor     = new Color(0.30f, 0.10f, 0.72f, 1f);
-        cb.colorMultiplier  = 1f;
-        btn.colors          = cb;
+        // Add hover effect
+        ColorBlock colors = button.colors;
+        colors.normalColor = new Color(0.0f, 0.66f, 0.72f, 0.96f);
+        colors.highlightedColor = new Color(0.0f, 0.76f, 0.82f, 1f);
+        colors.pressedColor = new Color(0.0f, 0.56f, 0.62f, 1f);
+        colors.selectedColor = new Color(0.0f, 0.66f, 0.72f, 0.96f);
+        button.colors = colors;
 
-        TextMeshProUGUI lbl = MakeLabel(go.transform, "Label",
-            label, 28, TextAlignmentOptions.Center, FontStyles.Bold, k_TextPrimary);
-        StretchFill(lbl.GetComponent<RectTransform>());
-        return btn;
+        Sprite icon = LoadIcon(iconResourcePath);
+        if (icon != null)
+        {
+            GameObject iconGO = new GameObject("Icon", typeof(RectTransform), typeof(Image));
+            iconGO.transform.SetParent(go.transform, false);
+            RectTransform iconRT = iconGO.GetComponent<RectTransform>();
+            iconRT.anchorMin = new Vector2(0.5f, 0.5f);
+            iconRT.anchorMax = new Vector2(0.5f, 0.5f);
+            iconRT.pivot = new Vector2(0.5f, 0.5f);
+            iconRT.sizeDelta = new Vector2(46, 46);
+
+            Image iconImage = iconGO.GetComponent<Image>();
+            iconImage.sprite = icon;
+            iconImage.preserveAspect = true;
+            iconImage.color = Color.white;
+            iconImage.raycastTarget = false; // Don't block button clicks
+
+            if (!string.IsNullOrEmpty(label) && label.Length > 1)
+            {
+                GameObject labelTextGO = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
+                labelTextGO.transform.SetParent(go.transform, false);
+                RectTransform labelTextRT = labelTextGO.GetComponent<RectTransform>();
+                labelTextRT.anchorMin = Vector2.zero;
+                labelTextRT.anchorMax = Vector2.one;
+                labelTextRT.offsetMin = new Vector2(68, 0);
+                labelTextRT.offsetMax = new Vector2(-18, 0);
+
+                TextMeshProUGUI labelTMP = labelTextGO.GetComponent<TextMeshProUGUI>();
+                labelTMP.text = label;
+                labelTMP.fontSize = 28;
+                labelTMP.alignment = TextAlignmentOptions.MidlineLeft;
+                labelTMP.color = Color.white;
+                labelTMP.fontStyle = FontStyles.Bold;
+            }
+
+            return button;
+        }
+
+        GameObject buttonTextGO = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
+        buttonTextGO.transform.SetParent(go.transform, false);
+        RectTransform buttonTextRT = buttonTextGO.GetComponent<RectTransform>();
+        buttonTextRT.anchorMin = Vector2.zero;
+        buttonTextRT.anchorMax = Vector2.one;
+        buttonTextRT.offsetMin = Vector2.zero;
+        buttonTextRT.offsetMax = Vector2.zero;
+
+        TextMeshProUGUI buttonTMP = buttonTextGO.GetComponent<TextMeshProUGUI>();
+        buttonTMP.text = label;
+        buttonTMP.fontSize = (label != null && label.Length == 1) ? 52 : 28;
+        buttonTMP.alignment = TextAlignmentOptions.Center;
+        buttonTMP.color = Color.white;
+        buttonTMP.fontStyle = FontStyles.Bold;
+
+        return button;
     }
 
-    private TextMeshProUGUI MakeLabel(
-        Transform parent, string name,
-        string text, float fontSize,
-        TextAlignmentOptions alignment,
-        FontStyles style, Color color)
+    // Create hamburger menu button (3 horizontal lines)
+    private Button CreateHamburgerButton(Transform parent, string name)
     {
-        GameObject go   = new GameObject(name, typeof(RectTransform), typeof(TextMeshProUGUI));
+        GameObject go = CreatePanel(name, parent, new Color(0.0f, 0.66f, 0.72f, 0.96f));
+        Button button = go.AddComponent<Button>();
+        button.interactable = true;
+        Image background = go.GetComponent<Image>();
+        button.targetGraphic = background;
+
+        ColorBlock colors = button.colors;
+        colors.normalColor = new Color(0.0f, 0.66f, 0.72f, 0.96f);
+        colors.highlightedColor = new Color(0.0f, 0.76f, 0.82f, 1f);
+        colors.pressedColor = new Color(0.0f, 0.56f, 0.62f, 1f);
+        button.colors = colors;
+
+        // Create 3 horizontal lines (hamburger icon)
+        for (int i = 0; i < 3; i++)
+        {
+            GameObject line = CreatePanel($"Line{i}", go.transform, Color.white);
+            line.GetComponent<Image>().raycastTarget = false; // Don't block button clicks
+            RectTransform lineRT = line.GetComponent<RectTransform>();
+            lineRT.anchorMin = new Vector2(0.2f, 0.5f);
+            lineRT.anchorMax = new Vector2(0.8f, 0.5f);
+            lineRT.pivot = new Vector2(0.5f, 0.5f);
+            float yOffset = (i - 1) * 22f;
+            lineRT.anchoredPosition = new Vector2(0, yOffset);
+            lineRT.sizeDelta = new Vector2(0, 8);
+        }
+
+        return button;
+    }
+
+    // Create button with ONLY icon (no text)
+    private Button CreateIconOnlyButton(Transform parent, string name, string iconResourcePath)
+    {
+        GameObject go = CreatePanel(name, parent, new Color(0.0f, 0.66f, 0.72f, 0.96f));
+        Button button = go.AddComponent<Button>();
+        button.interactable = true;
+        Image background = go.GetComponent<Image>();
+        button.targetGraphic = background;
+
+        ColorBlock colors = button.colors;
+        colors.normalColor = new Color(0.0f, 0.66f, 0.72f, 0.96f);
+        colors.highlightedColor = new Color(0.0f, 0.76f, 0.82f, 1f);
+        colors.pressedColor = new Color(0.0f, 0.56f, 0.62f, 1f);
+        button.colors = colors;
+
+        Sprite icon = LoadIcon(iconResourcePath);
+        if (icon != null)
+        {
+            GameObject iconGO = new GameObject("Icon", typeof(RectTransform), typeof(Image));
+            iconGO.transform.SetParent(go.transform, false);
+            RectTransform iconRT = iconGO.GetComponent<RectTransform>();
+            iconRT.anchorMin = new Vector2(0.2f, 0.2f);
+            iconRT.anchorMax = new Vector2(0.8f, 0.8f);
+            iconRT.offsetMin = Vector2.zero;
+            iconRT.offsetMax = Vector2.zero;
+
+            Image iconImage = iconGO.GetComponent<Image>();
+            iconImage.sprite = icon;
+            iconImage.preserveAspect = true;
+            iconImage.color = Color.white;
+            iconImage.raycastTarget = false; // Don't block button clicks
+        }
+
+        return button;
+    }
+
+    private TextMeshProUGUI CreateLabel(
+        Transform parent,
+        string name,
+        string text,
+        float fontSize,
+        TextAlignmentOptions alignment,
+        Vector2 offsetMin,
+        Vector2 offsetMax)
+    {
+        GameObject go = new GameObject(name, typeof(RectTransform), typeof(TextMeshProUGUI));
         go.transform.SetParent(parent, false);
+        RectTransform rt = go.GetComponent<RectTransform>();
+        rt.anchorMin = new Vector2(0, 1);  // Anchor to top-left
+        rt.anchorMax = new Vector2(1, 1);  // Stretch horizontally from top
+        rt.pivot = new Vector2(0.5f, 1f);  // Pivot at top center
+        rt.offsetMin = offsetMin;
+        rt.offsetMax = offsetMax;
+
         TextMeshProUGUI tmp = go.GetComponent<TextMeshProUGUI>();
-        
-        // Load default TMPro Font to fix invisible text
-        TMP_FontAsset defaultFont = Resources.Load<TMP_FontAsset>("Fonts & Materials/LiberationSans SDF");
-        if (defaultFont != null) tmp.font = defaultFont;
-        
-        tmp.text            = text;
-        tmp.fontSize        = fontSize;
-        tmp.alignment       = alignment;
-        tmp.fontStyle       = style;
-        tmp.color           = color;
+        tmp.text = text;
+        tmp.fontSize = fontSize;
+        tmp.alignment = alignment;
+        tmp.color = Color.white;
         tmp.enableWordWrapping = true;
-        tmp.raycastTarget   = false;
         return tmp;
     }
 
-    private TMP_InputField MakeChatInputField(Transform parent)
+    private TMP_Dropdown CreateDropdown(Transform parent, string name, Vector2 offsetMin, Vector2 offsetMax)
     {
-        GameObject go       = MakeGlassPanel("ChatInput", parent,
-                                  new Color(0.10f, 0.12f, 0.18f, 1f));
+        GameObject go = CreatePanel(name, parent, new Color(0.1f, 0.12f, 0.18f, 1f));
+        RectTransform rt = go.GetComponent<RectTransform>();
+        rt.anchorMin = new Vector2(0, 1);
+        rt.anchorMax = new Vector2(1, 1);
+        rt.offsetMin = offsetMin;
+        rt.offsetMax = offsetMax;
+
+        TMP_Dropdown dropdown = go.AddComponent<TMP_Dropdown>();
+        dropdown.interactable = true;
+        
+        // CRITICAL: Set target graphic to the background image
+        Image bgImage = go.GetComponent<Image>();
+        dropdown.targetGraphic = bgImage;
+
+        GameObject labelGO = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
+        labelGO.transform.SetParent(go.transform, false);
+        RectTransform labelRT = labelGO.GetComponent<RectTransform>();
+        labelRT.anchorMin = Vector2.zero;
+        labelRT.anchorMax = Vector2.one;
+        labelRT.offsetMin = new Vector2(16, 10);
+        labelRT.offsetMax = new Vector2(-48, -10);
+        TextMeshProUGUI label = labelGO.GetComponent<TextMeshProUGUI>();
+        label.fontSize = 28;
+        label.color = Color.white;
+        label.alignment = TextAlignmentOptions.Left;
+        label.raycastTarget = false; // Don't block dropdown clicks
+
+        GameObject arrowGO = new GameObject("Arrow", typeof(RectTransform), typeof(TextMeshProUGUI));
+        arrowGO.transform.SetParent(go.transform, false);
+        RectTransform arrowRT = arrowGO.GetComponent<RectTransform>();
+        arrowRT.anchorMin = new Vector2(1, 0.5f);
+        arrowRT.anchorMax = new Vector2(1, 0.5f);
+        arrowRT.pivot = new Vector2(1, 0.5f);
+        arrowRT.anchoredPosition = new Vector2(-16, 0);
+        arrowRT.sizeDelta = new Vector2(24, 24);
+        TextMeshProUGUI arrow = arrowGO.GetComponent<TextMeshProUGUI>();
+        arrow.text = "▼";
+        arrow.fontSize = 24;
+        arrow.color = Color.white;
+        arrow.alignment = TextAlignmentOptions.Center;
+        arrow.raycastTarget = false; // Don't block dropdown clicks
+
+        // ── Dropdown popup template ──────────────────────────────────────────
+        // When the user clicks the dropdown button, TMP_Dropdown clones
+        // this template, fills it with option items, and shows it.
+        
+        GameObject template = new GameObject("Template", typeof(RectTransform), typeof(Image));
+        template.transform.SetParent(go.transform, false);
+        RectTransform templateRT = template.GetComponent<RectTransform>();
+        
+        // Position template BELOW the dropdown button, full width
+        templateRT.anchorMin = new Vector2(0, 0);
+        templateRT.anchorMax = new Vector2(1, 0);
+        templateRT.pivot = new Vector2(0.5f, 1f);
+        templateRT.anchoredPosition = new Vector2(0, 2);
+        templateRT.sizeDelta = new Vector2(0, 300);
+        
+        // Template background — distinctly lighter than menu panel so it's visible
+        Image templateBg = template.GetComponent<Image>();
+        templateBg.color = new Color(0.10f, 0.12f, 0.18f, 1f);
+        template.SetActive(false);
+        
+        // Add visible border outline so dropdown popup is clearly separate
+        Outline templateOutline = template.AddComponent<Outline>();
+        templateOutline.effectColor = new Color(0.0f, 0.66f, 0.72f, 0.6f);
+        templateOutline.effectDistance = new Vector2(2, 2);
+        
+        // Canvas override for sorting — ensures popup renders above everything
+        Canvas templateCanvas = template.AddComponent<Canvas>();
+        templateCanvas.overrideSorting = true;
+        templateCanvas.sortingOrder = 30000;
+        template.AddComponent<GraphicRaycaster>();
+
+        // ScrollRect for scrollable item list
+        ScrollRect scrollRect = template.AddComponent<ScrollRect>();
+        scrollRect.horizontal = false;
+        scrollRect.vertical = true;
+        scrollRect.scrollSensitivity = 30f;
+        scrollRect.movementType = ScrollRect.MovementType.Clamped;
+
+        // Viewport — visible white background so Mask works correctly
+        GameObject viewport = new GameObject("Viewport", typeof(RectTransform), typeof(Image));
+        viewport.transform.SetParent(template.transform, false);
+        RectTransform viewportRT = viewport.GetComponent<RectTransform>();
+        viewportRT.anchorMin = Vector2.zero;
+        viewportRT.anchorMax = Vector2.one;
+        viewportRT.offsetMin = new Vector2(2, 2);
+        viewportRT.offsetMax = new Vector2(-2, -2);
+        Image viewportImage = viewport.GetComponent<Image>();
+        viewportImage.color = new Color(0.08f, 0.09f, 0.14f, 1f); // Opaque dark bg
+        Mask viewportMask = viewport.AddComponent<Mask>();
+        viewportMask.showMaskGraphic = true; // Show the dark background
+        scrollRect.viewport = viewportRT;
+
+        // Content container — grows with items via ContentSizeFitter
+        GameObject content = new GameObject("Content", typeof(RectTransform));
+        content.transform.SetParent(viewport.transform, false);
+        RectTransform contentRT = content.GetComponent<RectTransform>();
+        contentRT.anchorMin = new Vector2(0, 1);
+        contentRT.anchorMax = new Vector2(1, 1);
+        contentRT.pivot = new Vector2(0.5f, 1f);
+        contentRT.sizeDelta = new Vector2(0, 80);
+        
+        VerticalLayoutGroup contentLayout = content.AddComponent<VerticalLayoutGroup>();
+        contentLayout.spacing = 2;
+        contentLayout.padding = new RectOffset(4, 4, 4, 4);
+        contentLayout.childForceExpandWidth = true;
+        contentLayout.childForceExpandHeight = false;
+        contentLayout.childControlWidth = true;
+        contentLayout.childControlHeight = true;
+        contentLayout.childAlignment = TextAnchor.UpperLeft;
+        
+        ContentSizeFitter contentFitter = content.AddComponent<ContentSizeFitter>();
+        contentFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+        
+        scrollRect.content = contentRT;
+
+        // ── Item template (each dropdown option clones this) ─────────────
+        GameObject item = new GameObject("Item", typeof(RectTransform), typeof(Image));
+        item.transform.SetParent(content.transform, false);
+        RectTransform itemRT = item.GetComponent<RectTransform>();
+        itemRT.sizeDelta = new Vector2(0, 80);
+        Image itemBg = item.GetComponent<Image>();
+        itemBg.color = new Color(0.16f, 0.18f, 0.28f, 1f); // Clearly lighter than template bg
+        
+        LayoutElement itemLayout = item.AddComponent<LayoutElement>();
+        itemLayout.minHeight = 80;
+        itemLayout.preferredHeight = 80;
+        
+        Toggle toggle = item.AddComponent<Toggle>();
+        toggle.targetGraphic = itemBg;
+        
+        // Selection highlight overlay
+        GameObject checkmark = new GameObject("Item Checkmark", typeof(RectTransform), typeof(Image));
+        checkmark.transform.SetParent(item.transform, false);
+        RectTransform checkRT = checkmark.GetComponent<RectTransform>();
+        checkRT.anchorMin = Vector2.zero;
+        checkRT.anchorMax = Vector2.one;
+        checkRT.offsetMin = Vector2.zero;
+        checkRT.offsetMax = Vector2.zero;
+        Image checkImg = checkmark.GetComponent<Image>();
+        checkImg.color = new Color(0.0f, 0.66f, 0.72f, 0.35f); // Teal highlight
+        checkImg.raycastTarget = false;
+        toggle.graphic = checkImg;
+        
+        ColorBlock toggleColors = toggle.colors;
+        toggleColors.normalColor = Color.white;
+        toggleColors.highlightedColor = new Color(0.8f, 0.95f, 0.97f, 1f);
+        toggleColors.pressedColor = new Color(0.6f, 0.9f, 0.92f, 1f);
+        toggleColors.selectedColor = new Color(0.7f, 0.93f, 0.95f, 1f);
+        toggleColors.colorMultiplier = 1f;
+        toggle.colors = toggleColors;
+
+        // Item label — large, bright text
+        GameObject itemLabelGO = new GameObject("Item Label", typeof(RectTransform), typeof(TextMeshProUGUI));
+        itemLabelGO.transform.SetParent(item.transform, false);
+        RectTransform itemLabelRT = itemLabelGO.GetComponent<RectTransform>();
+        itemLabelRT.anchorMin = Vector2.zero;
+        itemLabelRT.anchorMax = Vector2.one;
+        itemLabelRT.offsetMin = new Vector2(16, 4);
+        itemLabelRT.offsetMax = new Vector2(-16, -4);
+        TextMeshProUGUI itemLabel = itemLabelGO.GetComponent<TextMeshProUGUI>();
+        itemLabel.fontSize = 32;
+        itemLabel.color = Color.white;
+        itemLabel.alignment = TextAlignmentOptions.MidlineLeft;
+        itemLabel.raycastTarget = false;
+
+        dropdown.captionText = label;
+        dropdown.template = templateRT;
+        dropdown.itemText = itemLabel;
+        
+        Debug.Log($"[CampusRuntimeUI] Created dropdown: {name}");
+        
+        return dropdown;
+    }
+
+    private TMP_InputField CreateInputField(Transform parent)
+    {
+        GameObject go = CreatePanel("ChatInput", parent, new Color(0.1f, 0.12f, 0.18f, 1f));
         TMP_InputField field = go.AddComponent<TMP_InputField>();
-        field.lineType      = TMP_InputField.LineType.SingleLine;
-        field.inputType     = TMP_InputField.InputType.Standard;
-        field.keyboardType  = TouchScreenKeyboardType.Default;
+        
+        // Configure for mobile keyboard
+        field.lineType = TMP_InputField.LineType.SingleLine;
+        field.inputType = TMP_InputField.InputType.Standard;
+        field.keyboardType = TouchScreenKeyboardType.Default;
         field.characterValidation = TMP_InputField.CharacterValidation.None;
         field.characterLimit = 200;
 
-        // Text Area (masked)
-        GameObject ta       = new GameObject("Text Area", typeof(RectTransform), typeof(RectMask2D));
-        ta.transform.SetParent(go.transform, false);
-        RectTransform taRT  = ta.GetComponent<RectTransform>();
-        taRT.anchorMin      = Vector2.zero;
-        taRT.anchorMax      = Vector2.one;
-        taRT.offsetMin      = new Vector2(14, 8);
-        taRT.offsetMax      = new Vector2(-14, -8);
+        GameObject textArea = new GameObject("Text Area", typeof(RectTransform), typeof(RectMask2D));
+        textArea.transform.SetParent(go.transform, false);
+        RectTransform textAreaRT = textArea.GetComponent<RectTransform>();
+        textAreaRT.anchorMin = Vector2.zero;
+        textAreaRT.anchorMax = Vector2.one;
+        textAreaRT.offsetMin = new Vector2(14, 10);
+        textAreaRT.offsetMax = new Vector2(-14, -10);
 
-        // Placeholder
-        GameObject phGO     = new GameObject("Placeholder", typeof(RectTransform), typeof(TextMeshProUGUI));
-        phGO.transform.SetParent(ta.transform, false);
-        StretchFill(phGO.GetComponent<RectTransform>());
-        TextMeshProUGUI ph  = phGO.GetComponent<TextMeshProUGUI>();
-        ph.text             = "Ask where you want to go…";
-        ph.fontSize         = 26;
-        ph.color            = k_TextSecondary;
-        ph.alignment        = TextAlignmentOptions.MidlineLeft;
+        GameObject placeholderGO = new GameObject("Placeholder", typeof(RectTransform), typeof(TextMeshProUGUI));
+        placeholderGO.transform.SetParent(textArea.transform, false);
+        RectTransform placeholderRT = placeholderGO.GetComponent<RectTransform>();
+        placeholderRT.anchorMin = Vector2.zero;
+        placeholderRT.anchorMax = Vector2.one;
+        placeholderRT.offsetMin = Vector2.zero;
+        placeholderRT.offsetMax = Vector2.zero;
+        TextMeshProUGUI placeholder = placeholderGO.GetComponent<TextMeshProUGUI>();
+        placeholder.text = "Ask where you want to go...";
+        placeholder.fontSize = 26;
+        placeholder.color = new Color(0.72f, 0.76f, 0.84f, 0.75f);
+        placeholder.alignment = TextAlignmentOptions.Left;
 
-        // Input text
-        GameObject txtGO    = new GameObject("Text", typeof(RectTransform), typeof(TextMeshProUGUI));
-        txtGO.transform.SetParent(ta.transform, false);
-        StretchFill(txtGO.GetComponent<RectTransform>());
-        TextMeshProUGUI txt = txtGO.GetComponent<TextMeshProUGUI>();
-        txt.fontSize        = 26;
-        txt.color           = k_TextPrimary;
-        txt.alignment       = TextAlignmentOptions.MidlineLeft;
+        GameObject textGO = new GameObject("Text", typeof(RectTransform), typeof(TextMeshProUGUI));
+        textGO.transform.SetParent(textArea.transform, false);
+        RectTransform textRT = textGO.GetComponent<RectTransform>();
+        textRT.anchorMin = Vector2.zero;
+        textRT.anchorMax = Vector2.one;
+        textRT.offsetMin = Vector2.zero;
+        textRT.offsetMax = Vector2.zero;
+        TextMeshProUGUI text = textGO.GetComponent<TextMeshProUGUI>();
+        text.fontSize = 26;
+        text.color = Color.white;
+        text.alignment = TextAlignmentOptions.Left;
 
-        field.textViewport  = taRT;
-        field.textComponent = txt;
-        field.placeholder   = ph;
+        field.textViewport = textAreaRT;
+        field.textComponent = text;
+        field.placeholder = placeholder;
+        
         return field;
     }
 
-    private TMP_Dropdown MakeDropdown(Transform parent, string name,
-                                      Vector2 offsetMin, Vector2 offsetMax)
+    private Sprite LoadIcon(string resourcePath)
     {
-        GameObject go       = MakeGlassPanel(name, parent,
-                                  new Color(0.10f, 0.12f, 0.18f, 1f));
-        RectTransform rt    = go.GetComponent<RectTransform>();
-        rt.anchorMin        = new Vector2(0, 1);
-        rt.anchorMax        = new Vector2(1, 1);
-        rt.pivot            = new Vector2(0.5f, 1f);
-        rt.offsetMin        = offsetMin;
-        rt.offsetMax        = offsetMax;
+        if (string.IsNullOrEmpty(resourcePath))
+            return null;
 
-        // Add border
-        Outline outline     = go.AddComponent<Outline>();
-        outline.effectColor = k_Border;
-        outline.effectDistance = new Vector2(1f, -1f);
+        if (m_IconCache.TryGetValue(resourcePath, out Sprite cached))
+            return cached;
 
-        TMP_Dropdown dd     = go.AddComponent<TMP_Dropdown>();
-        Image bgImg         = go.GetComponent<Image>();
-        dd.targetGraphic    = bgImg;
-        dd.interactable     = true;
-
-        // Caption label
-        GameObject lblGO    = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
-        lblGO.transform.SetParent(go.transform, false);
-        RectTransform lblRT = lblGO.GetComponent<RectTransform>();
-        lblRT.anchorMin     = Vector2.zero;
-        lblRT.anchorMax     = Vector2.one;
-        lblRT.offsetMin     = new Vector2(16, 8);
-        lblRT.offsetMax     = new Vector2(-48, -8);
-        TextMeshProUGUI lbl = lblGO.GetComponent<TextMeshProUGUI>();
-        lbl.fontSize        = 28;
-        lbl.color           = k_TextPrimary;
-        lbl.alignment       = TextAlignmentOptions.MidlineLeft;
-        lbl.raycastTarget   = false;
-
-        // Chevron
-        GameObject arrGO    = new GameObject("Arrow", typeof(RectTransform), typeof(TextMeshProUGUI));
-        arrGO.transform.SetParent(go.transform, false);
-        RectTransform arrRT = arrGO.GetComponent<RectTransform>();
-        arrRT.anchorMin     = new Vector2(1, 0.5f);
-        arrRT.anchorMax     = new Vector2(1, 0.5f);
-        arrRT.pivot         = new Vector2(1, 0.5f);
-        arrRT.anchoredPosition = new Vector2(-16, 0);
-        arrRT.sizeDelta     = new Vector2(28, 28);
-        TextMeshProUGUI arr = arrGO.GetComponent<TextMeshProUGUI>();
-        arr.text            = "⌄";
-        arr.fontSize        = 28;
-        arr.color           = k_AccentB;
-        arr.alignment       = TextAlignmentOptions.Center;
-        arr.raycastTarget   = false;
-
-        // ── Popup template ─────────────────────────────────────────────────────
-        GameObject template     = MakeGlassPanel("Template", go.transform,
-                                      new Color(0.08f, 0.09f, 0.14f, 0.97f));
-        RectTransform templateRT = template.GetComponent<RectTransform>();
-        templateRT.anchorMin    = new Vector2(0, 0);
-        templateRT.anchorMax    = new Vector2(1, 0);
-        templateRT.pivot        = new Vector2(0.5f, 1f);
-        templateRT.anchoredPosition = new Vector2(0, 2);
-        templateRT.sizeDelta    = new Vector2(0, 320);
-        template.SetActive(false);
-
-        Outline tplBorder       = template.AddComponent<Outline>();
-        tplBorder.effectColor   = k_Border;
-        tplBorder.effectDistance = new Vector2(1.5f, -1.5f);
-
-        Canvas tplCanvas        = template.AddComponent<Canvas>();
-        tplCanvas.overrideSorting = true;
-        tplCanvas.sortingOrder  = 30000;
-        template.AddComponent<GraphicRaycaster>();
-
-        ScrollRect sr           = template.AddComponent<ScrollRect>();
-        sr.horizontal           = false;
-        sr.vertical             = true;
-        sr.scrollSensitivity    = 30f;
-        sr.movementType         = ScrollRect.MovementType.Clamped;
-
-        // Viewport
-        GameObject vp           = MakeGlassPanel("Viewport", template.transform,
-                                      new Color(0.08f, 0.09f, 0.14f, 1f));
-        RectTransform vpRT      = vp.GetComponent<RectTransform>();
-        vpRT.anchorMin          = Vector2.zero;
-        vpRT.anchorMax          = Vector2.one;
-        vpRT.offsetMin          = new Vector2(2, 2);
-        vpRT.offsetMax          = new Vector2(-2, -2);
-        vp.AddComponent<Mask>().showMaskGraphic = true;
-        sr.viewport             = vpRT;
-
-        // Content
-        GameObject cont         = new GameObject("Content", typeof(RectTransform));
-        cont.transform.SetParent(vp.transform, false);
-        RectTransform contRT    = cont.GetComponent<RectTransform>();
-        contRT.anchorMin        = new Vector2(0, 1);
-        contRT.anchorMax        = new Vector2(1, 1);
-        contRT.pivot            = new Vector2(0.5f, 1f);
-        contRT.sizeDelta        = new Vector2(0, 80);
-        VerticalLayoutGroup cvlg = cont.AddComponent<VerticalLayoutGroup>();
-        cvlg.spacing            = 2;
-        cvlg.padding            = new RectOffset(4, 4, 4, 4);
-        cvlg.childForceExpandWidth = true;
-        cvlg.childForceExpandHeight = false;
-        cvlg.childControlWidth  = true;
-        cvlg.childControlHeight = true;
-        ContentSizeFitter ccsf  = cont.AddComponent<ContentSizeFitter>();
-        ccsf.verticalFit        = ContentSizeFitter.FitMode.PreferredSize;
-        sr.content              = contRT;
-
-        // Item template
-        GameObject item         = MakeGlassPanel("Item", cont.transform,
-                                      new Color(0.14f, 0.16f, 0.24f, 1f));
-        RectTransform itemRT    = item.GetComponent<RectTransform>();
-        itemRT.sizeDelta        = new Vector2(0, 80);
-        Image itemBg            = item.GetComponent<Image>();
-
-        LayoutElement itemLE    = item.AddComponent<LayoutElement>();
-        itemLE.minHeight        = 80;
-        itemLE.preferredHeight  = 80;
-
-        Toggle toggle           = item.AddComponent<Toggle>();
-        toggle.targetGraphic    = itemBg;
-
-        // Selection highlight
-        GameObject checkmark    = MakeGlassPanel("Item Checkmark", item.transform,
-                                      new Color(0.00f, 0.72f, 0.90f, 0.28f));
-        StretchFill(checkmark.GetComponent<RectTransform>());
-        Image checkImg          = checkmark.GetComponent<Image>();
-        checkImg.raycastTarget  = false;
-        toggle.graphic          = checkImg;
-
-        ColorBlock tCB          = toggle.colors;
-        tCB.normalColor         = Color.white;
-        tCB.highlightedColor    = new Color(0.80f, 0.95f, 1.00f, 1f);
-        tCB.pressedColor        = new Color(0.60f, 0.88f, 0.96f, 1f);
-        tCB.selectedColor       = new Color(0.70f, 0.92f, 0.98f, 1f);
-        tCB.colorMultiplier     = 1f;
-        toggle.colors           = tCB;
-
-        // Item label
-        GameObject ilGO         = new GameObject("Item Label", typeof(RectTransform), typeof(TextMeshProUGUI));
-        ilGO.transform.SetParent(item.transform, false);
-        RectTransform ilRT      = ilGO.GetComponent<RectTransform>();
-        ilRT.anchorMin          = Vector2.zero;
-        ilRT.anchorMax          = Vector2.one;
-        ilRT.offsetMin          = new Vector2(16, 4);
-        ilRT.offsetMax          = new Vector2(-16, -4);
-        TextMeshProUGUI il      = ilGO.GetComponent<TextMeshProUGUI>();
-        il.fontSize             = 30;
-        il.color                = k_TextPrimary;
-        il.alignment            = TextAlignmentOptions.MidlineLeft;
-        il.raycastTarget        = false;
-
-        dd.captionText          = lbl;
-        dd.template             = templateRT;
-        dd.itemText             = il;
-
-        return dd;
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    //  Icon builders (programmatic, no texture assets required)
-    // ─────────────────────────────────────────────────────────────────────────
-
-    /// <summary>Three white horizontal bars centred inside a parent.</summary>
-    private void BuildHamburgerIcon(Transform parent)
-    {
-        for (int i = 0; i < 3; i++)
+        Texture2D texture = Resources.Load<Texture2D>(resourcePath);
+        if (texture == null)
         {
-            GameObject line = MakeGlassPanel($"HamLine{i}", parent, k_TextPrimary);
-            line.GetComponent<Image>().raycastTarget = false;
-            RectTransform rt = line.GetComponent<RectTransform>();
-            rt.anchorMin     = new Vector2(0.22f, 0.5f);
-            rt.anchorMax     = new Vector2(0.78f, 0.5f);
-            rt.pivot         = new Vector2(0.5f, 0.5f);
-            rt.anchoredPosition = new Vector2(0, (i - 1) * 22f);
-            rt.sizeDelta     = new Vector2(0, 7f);
-        }
-    }
-
-    /// <summary>Minimalist QR-code icon: outer frame + 3 corner squares.</summary>
-    private void BuildQRIcon(Transform parent)
-    {
-        // Outer frame
-        MakeIconRect(parent, "QRFrame", k_TextPrimary,
-            new Vector2(0.18f, 0.18f), new Vector2(0.82f, 0.82f), 0f, 0f, false);
-
-        // Three corner finder squares
-        float[] xs = { 0.24f, 0.56f, 0.24f };
-        float[] ys = { 0.56f, 0.56f, 0.24f };
-        for (int i = 0; i < 3; i++)
-        {
-            MakeIconRect(parent, $"QRCorner{i}", k_TextPrimary,
-                new Vector2(xs[i], ys[i]),
-                new Vector2(xs[i] + 0.20f, ys[i] + 0.20f),
-                0f, 0f, false);
+            m_IconCache[resourcePath] = null;
+            return null;
         }
 
-        // A few dots to hint at QR data
-        MakeIconRect(parent, "QRDot0", k_AccentB,
-            new Vector2(0.56f, 0.24f), new Vector2(0.68f, 0.36f), 0, 0, false);
-        MakeIconRect(parent, "QRDot1", k_AccentB,
-            new Vector2(0.58f, 0.42f), new Vector2(0.70f, 0.50f), 0, 0, false);
+        Sprite sprite = Sprite.Create(
+            texture,
+            new Rect(0, 0, texture.width, texture.height),
+            new Vector2(0.5f, 0.5f),
+            100f);
+        m_IconCache[resourcePath] = sprite;
+        return sprite;
     }
 
-    /// <summary>Helper: add a small rect inside a parent using anchor fractions.</summary>
-    private void MakeIconRect(Transform parent, string name, Color color,
-                               Vector2 anchorMin, Vector2 anchorMax,
-                               float offsetX, float offsetY, bool raycast)
+    private void SetAnchoredRect(RectTransform rt, Vector2 anchoredPosition, Vector2 sizeDelta, TextAnchor anchor)
     {
-        GameObject go   = MakeGlassPanel(name, parent, color);
-        Image img       = go.GetComponent<Image>();
-        img.raycastTarget = raycast;
-        RectTransform rt = go.GetComponent<RectTransform>();
-        rt.anchorMin    = anchorMin;
-        rt.anchorMax    = anchorMax;
-        rt.offsetMin    = new Vector2(offsetX, offsetY);
-        rt.offsetMax    = new Vector2(-offsetX, -offsetY);
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    //  Layout helpers
-    // ─────────────────────────────────────────────────────────────────────────
-
-    /// <summary>Pin a rect to a screen corner.</summary>
-    private void PinCorner(RectTransform rt, TextAnchor corner,
-                            Vector2 anchoredPos, Vector2 size)
-    {
-        switch (corner)
+        switch (anchor)
         {
             case TextAnchor.UpperLeft:
                 rt.anchorMin = new Vector2(0, 1);
                 rt.anchorMax = new Vector2(0, 1);
-                rt.pivot     = new Vector2(0, 1);
+                rt.pivot = new Vector2(0, 1);
                 break;
             case TextAnchor.UpperRight:
                 rt.anchorMin = new Vector2(1, 1);
                 rt.anchorMax = new Vector2(1, 1);
-                rt.pivot     = new Vector2(1, 1);
-                break;
-            case TextAnchor.LowerLeft:
-                rt.anchorMin = new Vector2(0, 0);
-                rt.anchorMax = new Vector2(0, 0);
-                rt.pivot     = new Vector2(0, 0);
-                break;
-            case TextAnchor.LowerRight:
-                rt.anchorMin = new Vector2(1, 0);
-                rt.anchorMax = new Vector2(1, 0);
-                rt.pivot     = new Vector2(1, 0);
+                rt.pivot = new Vector2(1, 1);
                 break;
         }
-        rt.anchoredPosition = anchoredPos;
-        rt.sizeDelta        = size;
+
+        rt.anchoredPosition = anchoredPosition;
+        rt.sizeDelta = sizeDelta;
     }
 
-    /// <summary>Stretch to fill parent (full anchor).</summary>
-    private void StretchFill(RectTransform rt)
+    private void StretchTop(RectTransform rt, float left, float right, float height)
     {
-        rt.anchorMin  = Vector2.zero;
-        rt.anchorMax  = Vector2.one;
-        rt.offsetMin  = Vector2.zero;
-        rt.offsetMax  = Vector2.zero;
+        rt.anchorMin = new Vector2(0, 1);
+        rt.anchorMax = new Vector2(1, 1);
+        rt.pivot = new Vector2(0.5f, 1f);
+        rt.offsetMin = new Vector2(left, -height);
+        rt.offsetMax = new Vector2(-right, 0);
     }
-
-    /// <summary>
-    /// Anchor to top-stretch: anchors to top edge, stretches horizontally.
-    /// offsetFromTop / offsetToTop are measured downward from the top.
-    /// </summary>
-    private void AnchorStretchTop(RectTransform rt,
-        float leftInset, float rightInset,
-        float offsetFromTop, float offsetToTop)
-    {
-        rt.anchorMin  = new Vector2(0, 1);
-        rt.anchorMax  = new Vector2(1, 1);
-        rt.pivot      = new Vector2(0.5f, 1f);
-        rt.offsetMin  = new Vector2(leftInset,  -offsetToTop);
-        rt.offsetMax  = new Vector2(-rightInset, -offsetFromTop);
-    }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    //  (Retained for StretchBottom, SetAnchoredRect if referenced externally)
-    // ─────────────────────────────────────────────────────────────────────────
 
     private void StretchBottom(RectTransform rt, float left, float right, float height)
     {
-        rt.anchorMin  = new Vector2(0, 0);
-        rt.anchorMax  = new Vector2(1, 0);
-        rt.pivot      = new Vector2(0.5f, 0f);
-        rt.offsetMin  = new Vector2(left, 0);
-        rt.offsetMax  = new Vector2(-right, height);
-    }
-
-    // Icon loading (kept for any callers that still use it)
-    private Sprite LoadIcon(string resourcePath)
-    {
-        if (string.IsNullOrEmpty(resourcePath)) return null;
-        if (m_IconCache.TryGetValue(resourcePath, out Sprite cached)) return cached;
-        Texture2D tex = Resources.Load<Texture2D>(resourcePath);
-        if (tex == null) { m_IconCache[resourcePath] = null; return null; }
-        Sprite s = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height),
-                                 new Vector2(0.5f, 0.5f), 100f);
-        m_IconCache[resourcePath] = s;
-        return s;
+        rt.anchorMin = new Vector2(0, 0);
+        rt.anchorMax = new Vector2(1, 0);
+        rt.pivot = new Vector2(0.5f, 0f);
+        rt.offsetMin = new Vector2(left, 0);
+        rt.offsetMax = new Vector2(-right, height);
     }
 }
+
