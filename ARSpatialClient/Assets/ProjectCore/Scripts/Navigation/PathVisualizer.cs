@@ -6,8 +6,8 @@ public class PathVisualizer : MonoBehaviour
     [SerializeField] private GameObject arrowPrefab;
     [SerializeField] private GameObject destinationPrefab; // New prefab for the destination
     [SerializeField] private GameObject stairPrefab; // Original prefab used specifically for stairs
-    [SerializeField] private Vector3 m_ModelScaleMultiplier = new Vector3(5f, 5f, 5f); // Allows easy resizing of imported 3D models
-    [SerializeField] private float spacing = 1.5f; // Increased spacing so they aren't very close
+    [SerializeField] private Vector3 m_ModelScaleMultiplier = new Vector3(2f, 2f, 2f); // Reduced to prevent giant arrows
+    [SerializeField] private float spacing = 3.0f; // Increased spacing so they don't stack
 
     private readonly List<GameObject> spawnedArrows = new List<GameObject>();
     private Material arrowMaterial;
@@ -33,33 +33,15 @@ public class PathVisualizer : MonoBehaviour
     {
         // Auto-load arrow prefab if not assigned
         if (arrowPrefab == null)
-        {
-            arrowPrefab = Resources.Load<GameObject>("Prefabs/arrow"); // Load the new arrow prefab
-            if (arrowPrefab != null)
-                Debug.Log("[PathVisualizer] Arrow prefab loaded from Resources/Prefabs/arrow");
-            else
-                Debug.LogWarning("[PathVisualizer] Arrow prefab not found in Resources/Prefabs/arrow.");
-        }
+            arrowPrefab = CreateSanitizedTemplate("Prefabs/arrow", "ArrowTemplate");
         
         // Auto-load destination prefab if not assigned
         if (destinationPrefab == null)
-        {
-            destinationPrefab = Resources.Load<GameObject>("Prefabs/reached destination"); // Load the new destination prefab
-            if (destinationPrefab != null)
-                Debug.Log("[PathVisualizer] Destination prefab loaded from Resources/Prefabs/reached destination");
-            else
-                Debug.LogWarning("[PathVisualizer] Destination prefab not found in Resources/Prefabs/reached destination.");
-        }
+            destinationPrefab = CreateSanitizedTemplate("Prefabs/reached destination", "DestinationTemplate");
 
         // Auto-load stair prefab if not assigned
         if (stairPrefab == null)
-        {
-            stairPrefab = Resources.Load<GameObject>("Prefabs/ArrowPrefab"); // Load the original prefab for stairs
-            if (stairPrefab != null)
-                Debug.Log("[PathVisualizer] Stair prefab loaded from Resources/Prefabs/ArrowPrefab");
-            else
-                Debug.LogWarning("[PathVisualizer] Stair prefab not found in Resources/Prefabs/ArrowPrefab.");
-        }
+            stairPrefab = CreateSanitizedTemplate("Prefabs/ArrowPrefab", "StairTemplate");
 
         // Fallback to legacy behavior if custom prefabs fail
         if (arrowPrefab == null)
@@ -67,6 +49,28 @@ public class PathVisualizer : MonoBehaviour
 
         EnsureArrowMaterial();
         EnsureTransitionMaterials();
+    }
+
+    private GameObject CreateSanitizedTemplate(string resourcePath, string templateName)
+    {
+        GameObject loaded = Resources.Load<GameObject>(resourcePath);
+        if (loaded == null)
+        {
+            Debug.LogWarning($"[PathVisualizer] Prefab not found at {resourcePath}");
+            return null;
+        }
+
+        // Instantiate inactive to completely prevent any scripts/cameras from running
+        GameObject template = Instantiate(loaded);
+        template.name = templateName;
+        template.SetActive(false);
+        
+        // Strip rogue components permanently from the template
+        StripRogueComponents(template);
+        
+        DontDestroyOnLoad(template);
+        Debug.Log($"[PathVisualizer] {templateName} sanitized and ready.");
+        return template;
     }
 
     // ── Fallback Arrow ───────────────────────────────────────────────────
