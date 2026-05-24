@@ -303,7 +303,7 @@ public class CampusRuntimeUI : MonoBehaviour
         pillRT.anchorMax = new Vector2(1f, 0f);
         pillRT.pivot = new Vector2(0.5f, 0f);
         pillRT.anchoredPosition = new Vector2(0, -24); // Shift down to hide bottom rounded corners
-        pillRT.sizeDelta = new Vector2(0, 264); // 240px visible height + 24px shift
+        pillRT.sizeDelta = new Vector2(0, 320); // 296px visible height + 24px shift
         
         Outline pillOutline = statusPill.AddComponent<Outline>();
         pillOutline.effectColor = new Color(0, 0, 0, 0.4f);
@@ -350,7 +350,7 @@ public class CampusRuntimeUI : MonoBehaviour
         toastRT.anchorMin = new Vector2(0.5f, 0f);
         toastRT.anchorMax = new Vector2(0.5f, 0f);
         toastRT.pivot = new Vector2(0.5f, 0f);
-        toastRT.anchoredPosition = new Vector2(0, 280); // 240px (drawer) + 40px gap
+        toastRT.anchoredPosition = new Vector2(0, 340); // 296px (drawer) + 44px gap
         toastRT.sizeDelta = new Vector2(800, 80);
         
         Outline toastOutline = statusToast.AddComponent<Outline>();
