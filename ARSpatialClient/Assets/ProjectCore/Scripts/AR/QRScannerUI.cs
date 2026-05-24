@@ -239,7 +239,7 @@ public class QRScannerUI : MonoBehaviour
         boxRT.anchoredPosition = new Vector2(0, 50); // Shift up slightly
         boxRT.sizeDelta = new Vector2(560, 560);
 
-        Color bracketColor = new Color(0.6f, 0.65f, 0.7f, 1f); // Subtle greyish-white like the image
+        Color bracketColor = new Color(0.25f, 0.35f, 1f, 1f); // Vibrant blue UI accent color
         float cornerLen = 80f;
         float thickness = 12f;
 
