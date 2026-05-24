@@ -390,7 +390,7 @@ public class CampusRuntimeUI : MonoBehaviour
 
     private void BuildChatPanel()
     {
-        ChatPanel = CreatePanel("ChatPanel", NavigationChrome.transform, new Color(0.96f, 0.96f, 0.98f, 1f)); // Light background
+        ChatPanel = CreatePanel("ChatPanel", NavigationChrome.transform, new Color(0.04f, 0.05f, 0.08f, 1f)); // Dark background
         RectTransform rt = ChatPanel.GetComponent<RectTransform>();
         rt.anchorMin = new Vector2(0, 0);
         rt.anchorMax = new Vector2(1, 1);
@@ -398,7 +398,7 @@ public class CampusRuntimeUI : MonoBehaviour
         rt.offsetMax = Vector2.zero;
 
         TextMeshProUGUI title = CreateLabel(ChatPanel.transform, "ChatTitle", "Budget Insight", 44, TextAlignmentOptions.Left, new Vector2(120, -24), new Vector2(-140, -80));
-        title.color = Color.black;
+        title.color = Color.white;
         title.fontStyle = FontStyles.Bold;
 
         ChatCloseButton = CreateButton(ChatPanel.transform, "ChatCloseButton", "<", null);
@@ -409,9 +409,9 @@ public class CampusRuntimeUI : MonoBehaviour
         closeRT.anchoredPosition = new Vector2(24, -24);
         closeRT.sizeDelta = new Vector2(84, 84);
         
-        // Transparent background, black icon
+        // Transparent background, white icon
         ChatCloseButton.GetComponent<Image>().color = new Color(0,0,0,0);
-        ChatCloseButton.GetComponentInChildren<TextMeshProUGUI>().color = Color.black;
+        ChatCloseButton.GetComponentInChildren<TextMeshProUGUI>().color = Color.white;
 
         GameObject scrollGO = CreatePanel("ChatScroll", ChatPanel.transform, new Color(0, 0, 0, 0));
         RectTransform scrollRT = scrollGO.GetComponent<RectTransform>();
@@ -452,16 +452,20 @@ public class CampusRuntimeUI : MonoBehaviour
         ChatScrollRect.content = contentRT;
         ChatContent = content.transform;
 
-        // Distinct white input area at bottom
-        GameObject inputRow = CreatePanel("InputRow", ChatPanel.transform, new Color(1f, 1f, 1f, 1f));
+        // Distinct dark input area at bottom
+        GameObject inputRow = CreatePanel("InputRow", ChatPanel.transform, new Color(0.12f, 0.14f, 0.18f, 1f));
         RectTransform inputRT = inputRow.GetComponent<RectTransform>();
         inputRT.anchorMin = new Vector2(0, 0);
         inputRT.anchorMax = new Vector2(1, 0);
         inputRT.offsetMin = new Vector2(36, 40);
         inputRT.offsetMax = new Vector2(-36, 160); // Much taller input area
         
+        Image inputBg = inputRow.GetComponent<Image>();
+        inputBg.sprite = GetRoundedSprite();
+        inputBg.type = Image.Type.Sliced;
+
         Outline inputOutline = inputRow.AddComponent<Outline>();
-        inputOutline.effectColor = new Color(0, 0, 0, 0.05f);
+        inputOutline.effectColor = new Color(0, 0, 0, 0.3f);
         inputOutline.effectDistance = new Vector2(2, -2);
 
         ChatInput = CreateInputField(inputRow.transform);
@@ -471,9 +475,9 @@ public class CampusRuntimeUI : MonoBehaviour
         inputFieldRT.offsetMin = new Vector2(24, 10);
         inputFieldRT.offsetMax = new Vector2(-140, -10);
         
-        // Override default input field colors to match light theme
+        // Override default input field colors to match dark theme
         ChatInput.GetComponent<Image>().color = new Color(0,0,0,0);
-        ChatInput.textComponent.color = Color.black;
+        ChatInput.textComponent.color = Color.white;
         ((TextMeshProUGUI)ChatInput.placeholder).color = new Color(0.6f, 0.6f, 0.65f, 1f);
         ((TextMeshProUGUI)ChatInput.placeholder).text = "Ask anything";
 
@@ -502,7 +506,7 @@ public class CampusRuntimeUI : MonoBehaviour
         return go;
     }
 
-    private Sprite GetRoundedSprite()
+    public Sprite GetRoundedSprite()
     {
         if (m_RoundedSprite != null) return m_RoundedSprite;
 
@@ -734,6 +738,8 @@ public class CampusRuntimeUI : MonoBehaviour
         
         // CRITICAL: Set target graphic to the background image
         Image bgImage = go.GetComponent<Image>();
+        bgImage.sprite = GetRoundedSprite();
+        bgImage.type = Image.Type.Sliced;
         dropdown.targetGraphic = bgImage;
 
         GameObject labelGO = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
@@ -782,6 +788,8 @@ public class CampusRuntimeUI : MonoBehaviour
         
         // Template background
         Image templateBg = template.GetComponent<Image>();
+        templateBg.sprite = GetRoundedSprite();
+        templateBg.type = Image.Type.Sliced;
         templateBg.color = new Color(0.08f, 0.1f, 0.14f, 1f); // Dark popup
         template.SetActive(false);
         
@@ -812,6 +820,8 @@ public class CampusRuntimeUI : MonoBehaviour
         viewportRT.offsetMin = new Vector2(2, 2);
         viewportRT.offsetMax = new Vector2(-2, -2);
         Image viewportImage = viewport.GetComponent<Image>();
+        viewportImage.sprite = GetRoundedSprite();
+        viewportImage.type = Image.Type.Sliced;
         viewportImage.color = new Color(0.06f, 0.08f, 0.12f, 1f); // Dark bg
         Mask viewportMask = viewport.AddComponent<Mask>();
         viewportMask.showMaskGraphic = true;
@@ -828,8 +838,8 @@ public class CampusRuntimeUI : MonoBehaviour
         contentRT.sizeDelta = new Vector2(0, 80);
         
         VerticalLayoutGroup contentLayout = content.AddComponent<VerticalLayoutGroup>();
-        contentLayout.spacing = 2;
-        contentLayout.padding = new RectOffset(4, 4, 4, 4);
+        contentLayout.spacing = 16;
+        contentLayout.padding = new RectOffset(16, 16, 16, 16);
         contentLayout.childForceExpandWidth = true;
         contentLayout.childForceExpandHeight = false;
         contentLayout.childControlWidth = true;
@@ -847,6 +857,8 @@ public class CampusRuntimeUI : MonoBehaviour
         RectTransform itemRT = item.GetComponent<RectTransform>();
         itemRT.sizeDelta = new Vector2(0, 80);
         Image itemBg = item.GetComponent<Image>();
+        itemBg.sprite = GetRoundedSprite();
+        itemBg.type = Image.Type.Sliced;
         itemBg.color = new Color(0.12f, 0.14f, 0.18f, 1f); // Dark item
         
         LayoutElement itemLayout = item.AddComponent<LayoutElement>();
@@ -865,6 +877,8 @@ public class CampusRuntimeUI : MonoBehaviour
         checkRT.offsetMin = Vector2.zero;
         checkRT.offsetMax = Vector2.zero;
         Image checkImg = checkmark.GetComponent<Image>();
+        checkImg.sprite = GetRoundedSprite();
+        checkImg.type = Image.Type.Sliced;
         checkImg.color = new Color(0.25f, 0.35f, 1f, 1f); // Vibrant blue highlight
         checkImg.raycastTarget = false;
         toggle.graphic = checkImg;

@@ -118,14 +118,23 @@ public class ChatManager : MonoBehaviour
         GameObject bubble = new GameObject("Bubble");
         bubble.transform.SetParent(row.transform, false);
         Image bubbleImage = bubble.AddComponent<Image>();
-        bubbleImage.color = isUser
-            ? new Color(1f, 1f, 1f, 1f)
-            : new Color(0f, 0f, 0f, 0f);
+        
+        // Use the rounded sprite from CampusRuntimeUI
+        CampusRuntimeUI ui = Object.FindObjectOfType<CampusRuntimeUI>();
+        if (ui != null)
+        {
+            bubbleImage.sprite = ui.GetRoundedSprite();
+            bubbleImage.type = Image.Type.Sliced;
+        }
 
-        if (isUser)
+        bubbleImage.color = isUser
+            ? new Color(0.25f, 0.35f, 1f, 1f) // Vibrant blue for user
+            : new Color(0.12f, 0.14f, 0.18f, 1f); // Dark pill for assistant
+
+        if (!isUser)
         {
             Outline outline = bubble.AddComponent<Outline>();
-            outline.effectColor = new Color(0, 0, 0, 0.05f);
+            outline.effectColor = new Color(0, 0, 0, 0.3f);
             outline.effectDistance = new Vector2(2, -2);
         }
 
@@ -146,7 +155,7 @@ public class ChatManager : MonoBehaviour
         TextMeshProUGUI tmp = textGO.AddComponent<TextMeshProUGUI>();
         tmp.text = text;
         tmp.fontSize = 26;
-        tmp.color = Color.black;
+        tmp.color = Color.white;
         tmp.alignment = isUser ? TextAlignmentOptions.Right : TextAlignmentOptions.Left;
         tmp.enableWordWrapping = true;
         
