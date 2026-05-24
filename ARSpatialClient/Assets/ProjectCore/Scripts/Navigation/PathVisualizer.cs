@@ -41,7 +41,7 @@ public class PathVisualizer : MonoBehaviour
             destinationPrefab = CreateSanitizedTemplate("Prefabs/reached destination", "DestinationTemplate", destinationMaterial);
 
         if (stairPrefab == null)
-            stairPrefab = CreateSanitizedTemplate("Prefabs/arrow", "StairTemplate", staircaseMaterial);
+            stairPrefab = CreateSanitizedTemplate("Prefabs/ArrowPrefab", "StairTemplate", staircaseMaterial);
 
         // Fallback to legacy behavior if custom prefabs fail
         if (arrowPrefab == null)
