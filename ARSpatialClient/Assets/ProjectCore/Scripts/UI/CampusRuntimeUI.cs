@@ -383,22 +383,28 @@ public class CampusRuntimeUI : MonoBehaviour
 
     private void BuildChatPanel()
     {
-        ChatPanel = CreatePanel("ChatPanel", NavigationChrome.transform, new Color(0.03f, 0.04f, 0.07f, 1f));
+        ChatPanel = CreatePanel("ChatPanel", NavigationChrome.transform, new Color(0.96f, 0.96f, 0.98f, 1f)); // Light background
         RectTransform rt = ChatPanel.GetComponent<RectTransform>();
         rt.anchorMin = new Vector2(0, 0);
         rt.anchorMax = new Vector2(1, 1);
         rt.offsetMin = Vector2.zero;
         rt.offsetMax = Vector2.zero;
 
-        CreateLabel(ChatPanel.transform, "ChatTitle", "AI Navigation Assistant", 40, TextAlignmentOptions.Left, new Vector2(24, -24), new Vector2(-140, -80));
+        TextMeshProUGUI title = CreateLabel(ChatPanel.transform, "ChatTitle", "Budget Insight", 44, TextAlignmentOptions.Left, new Vector2(120, -24), new Vector2(-140, -80));
+        title.color = Color.black;
+        title.fontStyle = FontStyles.Bold;
 
-        ChatCloseButton = CreateButton(ChatPanel.transform, "ChatCloseButton", "X", null);
+        ChatCloseButton = CreateButton(ChatPanel.transform, "ChatCloseButton", "<", null);
         RectTransform closeRT = ChatCloseButton.GetComponent<RectTransform>();
-        closeRT.anchorMin = new Vector2(1, 1);
-        closeRT.anchorMax = new Vector2(1, 1);
-        closeRT.pivot = new Vector2(1, 1);
-        closeRT.anchoredPosition = new Vector2(-24, -24);
+        closeRT.anchorMin = new Vector2(0, 1);
+        closeRT.anchorMax = new Vector2(0, 1);
+        closeRT.pivot = new Vector2(0, 1);
+        closeRT.anchoredPosition = new Vector2(24, -24);
         closeRT.sizeDelta = new Vector2(84, 84);
+        
+        // Transparent background, black icon
+        ChatCloseButton.GetComponent<Image>().color = new Color(0,0,0,0);
+        ChatCloseButton.GetComponentInChildren<TextMeshProUGUI>().color = Color.black;
 
         GameObject scrollGO = CreatePanel("ChatScroll", ChatPanel.transform, new Color(0, 0, 0, 0));
         RectTransform scrollRT = scrollGO.GetComponent<RectTransform>();
@@ -439,27 +445,41 @@ public class CampusRuntimeUI : MonoBehaviour
         ChatScrollRect.content = contentRT;
         ChatContent = content.transform;
 
-        GameObject inputRow = CreatePanel("InputRow", ChatPanel.transform, new Color(0.07f, 0.08f, 0.12f, 1f));
+        // Distinct white input area at bottom
+        GameObject inputRow = CreatePanel("InputRow", ChatPanel.transform, new Color(1f, 1f, 1f, 1f));
         RectTransform inputRT = inputRow.GetComponent<RectTransform>();
         inputRT.anchorMin = new Vector2(0, 0);
         inputRT.anchorMax = new Vector2(1, 0);
-        inputRT.offsetMin = new Vector2(24, 18);
-        inputRT.offsetMax = new Vector2(-24, 98);
+        inputRT.offsetMin = new Vector2(36, 40);
+        inputRT.offsetMax = new Vector2(-36, 160); // Much taller input area
+        
+        Outline inputOutline = inputRow.AddComponent<Outline>();
+        inputOutline.effectColor = new Color(0, 0, 0, 0.05f);
+        inputOutline.effectDistance = new Vector2(2, -2);
 
         ChatInput = CreateInputField(inputRow.transform);
         RectTransform inputFieldRT = ChatInput.GetComponent<RectTransform>();
         inputFieldRT.anchorMin = new Vector2(0, 0);
         inputFieldRT.anchorMax = new Vector2(1, 1);
-        inputFieldRT.offsetMin = new Vector2(18, 10);
-        inputFieldRT.offsetMax = new Vector2(-180, -10);
+        inputFieldRT.offsetMin = new Vector2(24, 10);
+        inputFieldRT.offsetMax = new Vector2(-140, -10);
+        
+        // Override default input field colors to match light theme
+        ChatInput.GetComponent<Image>().color = new Color(0,0,0,0);
+        ChatInput.textComponent.color = Color.black;
+        ((TextMeshProUGUI)ChatInput.placeholder).color = new Color(0.6f, 0.6f, 0.65f, 1f);
+        ((TextMeshProUGUI)ChatInput.placeholder).text = "Ask anything";
 
-        SendButton = CreateButton(inputRow.transform, "SendButton", "SEND", null);
+        SendButton = CreateButton(inputRow.transform, "SendButton", "↑", null);
         RectTransform sendRT = SendButton.GetComponent<RectTransform>();
-        sendRT.anchorMin = new Vector2(1, 0);
-        sendRT.anchorMax = new Vector2(1, 1);
+        sendRT.anchorMin = new Vector2(1, 0.5f);
+        sendRT.anchorMax = new Vector2(1, 0.5f);
         sendRT.pivot = new Vector2(1, 0.5f);
-        sendRT.anchoredPosition = new Vector2(-12, 0);
-        sendRT.sizeDelta = new Vector2(140, 0);
+        sendRT.anchoredPosition = new Vector2(-24, 0);
+        sendRT.sizeDelta = new Vector2(72, 72); // Circular looking button
+        
+        SendButton.GetComponent<Image>().color = new Color(1f, 0.4f, 0.1f, 1f); // Vibrant orange
+        SendButton.GetComponentInChildren<TextMeshProUGUI>().color = Color.white;
     }
 
 

@@ -119,8 +119,15 @@ public class ChatManager : MonoBehaviour
         bubble.transform.SetParent(row.transform, false);
         Image bubbleImage = bubble.AddComponent<Image>();
         bubbleImage.color = isUser
-            ? new Color(0.0f, 0.66f, 0.72f, 0.96f)
-            : new Color(0.1f, 0.12f, 0.18f, 0.98f);
+            ? new Color(1f, 1f, 1f, 1f)
+            : new Color(0f, 0f, 0f, 0f);
+
+        if (isUser)
+        {
+            Outline outline = bubble.AddComponent<Outline>();
+            outline.effectColor = new Color(0, 0, 0, 0.05f);
+            outline.effectDistance = new Vector2(2, -2);
+        }
 
         // Use layout group to pad the text inside the bubble
         VerticalLayoutGroup bubbleLayout = bubble.AddComponent<VerticalLayoutGroup>();
@@ -139,7 +146,7 @@ public class ChatManager : MonoBehaviour
         TextMeshProUGUI tmp = textGO.AddComponent<TextMeshProUGUI>();
         tmp.text = text;
         tmp.fontSize = 26;
-        tmp.color = Color.white;
+        tmp.color = Color.black;
         tmp.alignment = isUser ? TextAlignmentOptions.Right : TextAlignmentOptions.Left;
         tmp.enableWordWrapping = true;
         
