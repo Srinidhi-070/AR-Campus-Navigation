@@ -177,6 +177,13 @@ Trailix utilizes custom C# Editor scripts to streamline the deployment pipeline.
 
 * **Icon Auto-Configuration**: The `FixAppIcon.cs` script intercepts the Unity build pipeline to forcefully override the default Unity splash icons with the Trailix branding, accounting for modern Android Adaptive Icon requirements.
 
+## Team Members
+
+* **Raghu C** — AI & DS, MSRIT, Bangalore, India ([1ms22ad042@msrit.edu](mailto:1ms22ad042@msrit.edu))
+* **Rudrapratap Patil** — AI & DS, MSRIT, Bangalore, India ([1ms22ad047@msrit.edu](mailto:1ms22ad047@msrit.edu))
+* **Srinidhi N S** — AI & DS, MSRIT, Bangalore, India ([1ms23ad402@msrit.edu](mailto:1ms23ad402@msrit.edu))
+* **Mallesh N** — AI & DS, MSRIT, Bangalore, India ([1ms22ad033@msrit.edu](mailto:1ms22ad033@msrit.edu))
+
 ---
 
 <div align="center">
