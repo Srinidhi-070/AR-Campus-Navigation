@@ -4,7 +4,9 @@ using UnityEngine;
 public class PathVisualizer : MonoBehaviour
 {
     [SerializeField] private GameObject arrowPrefab;
-    [SerializeField] private GameObject curvedArrowPrefab; // Curved arrow for turns
+    [SerializeField] private GameObject curvedArrow45Prefab;
+    [SerializeField] private GameObject curvedArrow90Prefab;
+    [SerializeField] private GameObject curvedArrow135Prefab;
     [SerializeField] private GameObject destinationPrefab; // New prefab for the destination
     [SerializeField] private GameObject stairPrefab; // Original prefab used specifically for stairs
     [SerializeField] private float spacing = 1.5f; // Reverted spacing for old arrows
@@ -38,11 +40,15 @@ public class PathVisualizer : MonoBehaviour
         if (arrowPrefab == null)
             arrowPrefab = CreateSanitizedTemplate("Prefabs/ProceduralArrow", "ArrowTemplate", arrowMaterial);
         
-        if (curvedArrowPrefab == null)
-            curvedArrowPrefab = CreateSanitizedTemplate("Prefabs/ProceduralCurvedArrow", "CurvedArrowTemplate", arrowMaterial);
+        if (curvedArrow45Prefab == null)
+            curvedArrow45Prefab = CreateSanitizedTemplate("Prefabs/ProceduralCurvedArrow_45", "CurvedArrow45Template", arrowMaterial);
+        if (curvedArrow90Prefab == null)
+            curvedArrow90Prefab = CreateSanitizedTemplate("Prefabs/ProceduralCurvedArrow_90", "CurvedArrow90Template", arrowMaterial);
+        if (curvedArrow135Prefab == null)
+            curvedArrow135Prefab = CreateSanitizedTemplate("Prefabs/ProceduralCurvedArrow_135", "CurvedArrow135Template", arrowMaterial);
         
         if (destinationPrefab == null)
-            destinationPrefab = CreateSanitizedTemplate("Prefabs/ProceduralArrow", "DestinationTemplate", destinationMaterial);
+            destinationPrefab = CreateSanitizedTemplate("Prefabs/ProceduralDestination", "DestinationTemplate", destinationMaterial);
 
         if (stairPrefab == null)
             stairPrefab = CreateSanitizedTemplate("Prefabs/ProceduralArrow", "StairTemplate", staircaseMaterial);
@@ -257,26 +263,34 @@ public class PathVisualizer : MonoBehaviour
             Vector3 dir = (end - start) / distance;
 
             // Optional: Draw a curved arrow at the corner (if there is a next segment)
-            if (i < worldPath.Count - 2 && curvedArrowPrefab != null && !transitionSegments.Contains(i+1))
+            if (i < worldPath.Count - 2 && curvedArrow90Prefab != null && !transitionSegments.Contains(i+1))
             {
                 Vector3 nextEnd = worldPath[i + 2];
                 Vector3 nextDir = (nextEnd - end).normalized;
                 
                 // Determine angle between incoming and outgoing direction
                 float angle = Vector3.SignedAngle(dir, nextDir, Vector3.up);
+                float absAngle = Mathf.Abs(angle);
                 
-                if (Mathf.Abs(angle) > 30f) // Sharp turn
+                if (absAngle > 20f) // Sharp turn
                 {
-                    GameObject curvedInstance = Instantiate(curvedArrowPrefab, end, Quaternion.LookRotation(dir), transform);
-                    
-                    if (angle < 0) // Left turn
+                    GameObject prefabToUse = curvedArrow45Prefab;
+                    if (absAngle > 60f) prefabToUse = curvedArrow90Prefab;
+                    if (absAngle > 110f) prefabToUse = curvedArrow135Prefab;
+
+                    if (prefabToUse != null)
                     {
-                        // Mirror the curved arrow by flipping local scale X
-                        curvedInstance.transform.localScale = new Vector3(-1, 1, 1);
+                        GameObject curvedInstance = Instantiate(prefabToUse, end, Quaternion.LookRotation(dir), transform);
+                        
+                        if (angle < 0) // Left turn
+                        {
+                            // Mirror the curved arrow by flipping local scale X
+                            curvedInstance.transform.localScale = new Vector3(-1, 1, 1);
+                        }
+                        
+                        curvedInstance.SetActive(true);
+                        spawnedArrows.Add(curvedInstance);
                     }
-                    
-                    curvedInstance.SetActive(true);
-                    spawnedArrows.Add(curvedInstance);
                 }
             }
 
@@ -287,7 +301,7 @@ public class PathVisualizer : MonoBehaviour
                 if (j == steps - 1 && i < worldPath.Count - 2)
                 {
                     float angle = Vector3.Angle(dir, (worldPath[i+2] - end).normalized);
-                    if (angle > 30f) continue;
+                    if (angle > 20f) continue;
                 }
 
                 Vector3 pos = Vector3.Lerp(start, end, j / (float)steps);
