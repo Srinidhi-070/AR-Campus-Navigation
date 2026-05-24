@@ -6,7 +6,6 @@ public class PathVisualizer : MonoBehaviour
     [SerializeField] private GameObject arrowPrefab;
     [SerializeField] private GameObject destinationPrefab; // New prefab for the destination
     [SerializeField] private GameObject stairPrefab; // Original prefab used specifically for stairs
-    [SerializeField] private Vector3 m_ModelScaleMultiplier = new Vector3(1f, 1f, 1f); // Reverted to 1 since we are using old arrows
     [SerializeField] private float spacing = 1.5f; // Reverted spacing for old arrows
 
     private readonly List<GameObject> spawnedArrows = new List<GameObject>();
@@ -31,25 +30,27 @@ public class PathVisualizer : MonoBehaviour
 
     void Awake()
     {
+        EnsureArrowMaterial();
+        EnsureTransitionMaterials();
+
         // Reverting all prefabs to the original reliable ArrowPrefab
         if (arrowPrefab == null)
-            arrowPrefab = CreateSanitizedTemplate("Prefabs/ArrowPrefab", "ArrowTemplate");
+            arrowPrefab = CreateSanitizedTemplate("Prefabs/ArrowPrefab", "ArrowTemplate", arrowMaterial);
         
         if (destinationPrefab == null)
-            destinationPrefab = CreateSanitizedTemplate("Prefabs/ArrowPrefab", "DestinationTemplate");
+            destinationPrefab = CreateSanitizedTemplate("Prefabs/ArrowPrefab", "DestinationTemplate", destinationMaterial);
 
         if (stairPrefab == null)
-            stairPrefab = CreateSanitizedTemplate("Prefabs/ArrowPrefab", "StairTemplate");
+            stairPrefab = CreateSanitizedTemplate("Prefabs/ArrowPrefab", "StairTemplate", staircaseMaterial);
 
         // Fallback to legacy behavior if custom prefabs fail
         if (arrowPrefab == null)
             CreateFallbackArrow();
 
-        EnsureArrowMaterial();
-        EnsureTransitionMaterials();
+        // Ensure materials were already called at the start of Awake
     }
 
-    private GameObject CreateSanitizedTemplate(string resourcePath, string templateName)
+    private GameObject CreateSanitizedTemplate(string resourcePath, string templateName, Material mat)
     {
         GameObject loaded = Resources.Load<GameObject>(resourcePath);
         if (loaded == null)
@@ -65,6 +66,13 @@ public class PathVisualizer : MonoBehaviour
         
         // Strip rogue components permanently from the template
         StripRogueComponents(template);
+
+        // Apply material directly to the template so all clones inherit it perfectly
+        if (mat != null)
+        {
+            var renderers = template.GetComponentsInChildren<Renderer>(true);
+            foreach (var r in renderers) r.material = mat;
+        }
         
         DontDestroyOnLoad(template);
         Debug.Log($"[PathVisualizer] {templateName} sanitized and ready.");
@@ -249,11 +257,6 @@ public class PathVisualizer : MonoBehaviour
             {
                 Vector3 pos = Vector3.Lerp(start, end, j / (float)steps);
                 GameObject arrowInstance = Instantiate(arrowPrefab, pos, Quaternion.LookRotation(dir), transform);
-                arrowInstance.transform.localScale = m_ModelScaleMultiplier;
-                StripRogueComponents(arrowInstance);
-                ApplyMaterial(arrowInstance, arrowMaterial);
-                
-
                 arrowInstance.SetActive(true);
                 spawnedArrows.Add(arrowInstance);
             }
@@ -270,10 +273,6 @@ public class PathVisualizer : MonoBehaviour
             worldPath[worldPath.Count - 1],
             Quaternion.LookRotation(lastDir),
             transform);
-        lastArrow.transform.localScale = m_ModelScaleMultiplier;
-        StripRogueComponents(lastArrow);
-        ApplyMaterial(lastArrow, destinationMaterial);
-
 
         lastArrow.SetActive(true);
         spawnedArrows.Add(lastArrow);
@@ -351,12 +350,8 @@ public class PathVisualizer : MonoBehaviour
             Vector3 risePos = (stepStart + stepTop) * 0.5f;
             
             GameObject prefabToUse = stairPrefab != null ? stairPrefab : arrowPrefab;
-            Vector3 baseScale = stairPrefab != null ? Vector3.one : m_ModelScaleMultiplier;
 
             GameObject riseArrow = Instantiate(prefabToUse, risePos, Quaternion.LookRotation(riseDir, horizontalDir), transform);
-            if (prefabToUse == arrowPrefab) StripRogueComponents(riseArrow);
-            ApplyMaterial(riseArrow, staircaseMaterial);
-            riseArrow.transform.localScale = baseScale * 0.8f;
             riseArrow.SetActive(true);
             spawnedArrows.Add(riseArrow);
 
@@ -373,9 +368,6 @@ public class PathVisualizer : MonoBehaviour
                 {
                     Vector3 treadPos = (stepTop + treadEnd) * 0.5f;
                     GameObject treadArrow = Instantiate(prefabToUse, treadPos, Quaternion.LookRotation(treadDir.normalized), transform);
-                    if (prefabToUse == arrowPrefab) StripRogueComponents(treadArrow);
-                    ApplyMaterial(treadArrow, staircaseMaterial);
-                    treadArrow.transform.localScale = baseScale * 0.7f;
                     treadArrow.SetActive(true);
                     spawnedArrows.Add(treadArrow);
                 }
@@ -424,13 +416,9 @@ public class PathVisualizer : MonoBehaviour
             Vector3 pos = Vector3.Lerp(bottom, top, t);
             
             GameObject prefabToUse = stairPrefab != null ? stairPrefab : arrowPrefab;
-            Vector3 baseScale = stairPrefab != null ? Vector3.one : m_ModelScaleMultiplier;
 
             // Use forward direction for LookRotation since arrows point up/down
             GameObject arrow = Instantiate(prefabToUse, pos, Quaternion.LookRotation(arrowDir, Vector3.forward), transform);
-            if (prefabToUse == arrowPrefab) StripRogueComponents(arrow);
-            ApplyMaterial(arrow, liftMaterial);
-            arrow.transform.localScale = baseScale * 0.9f;
             arrow.SetActive(true);
             spawnedArrows.Add(arrow);
         }
