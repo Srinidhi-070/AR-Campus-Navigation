@@ -212,9 +212,9 @@ public class CampusRuntimeUI : MonoBehaviour
 
     private void BuildTopBar()
     {
-        GameObject topBar = new GameObject("TopBar", typeof(RectTransform), typeof(Image));
+        // Container for floating top icons (no solid background)
+        GameObject topBar = new GameObject("TopFloatingBar", typeof(RectTransform));
         topBar.transform.SetParent(NavigationChrome.transform, false);
-        topBar.GetComponent<Image>().color = new Color(0.04f, 0.05f, 0.08f, 0.95f);
         RectTransform rt = topBar.GetComponent<RectTransform>();
         rt.anchorMin = new Vector2(0, 1);
         rt.anchorMax = new Vector2(1, 1);
@@ -222,56 +222,72 @@ public class CampusRuntimeUI : MonoBehaviour
         rt.anchoredPosition = Vector2.zero;
         rt.sizeDelta = new Vector2(0, 160);
 
-        // Hamburger menu button with proper icon (3 horizontal lines)
+        // Hamburger menu button with drop shadow
         MenuButton = CreateHamburgerButton(topBar.transform, "MenuButton");
         RectTransform menuRT = MenuButton.GetComponent<RectTransform>();
         menuRT.anchorMin = new Vector2(0, 1);
         menuRT.anchorMax = new Vector2(0, 1);
         menuRT.pivot = new Vector2(0, 1);
-        menuRT.anchoredPosition = new Vector2(24, -24);
+        menuRT.anchoredPosition = new Vector2(36, -36);
         menuRT.sizeDelta = new Vector2(110, 110);
+        
+        // Add subtle shadow/border to MenuButton
+        Outline menuOutline = MenuButton.gameObject.AddComponent<Outline>();
+        menuOutline.effectColor = new Color(0, 0, 0, 0.4f);
+        menuOutline.effectDistance = new Vector2(2, -2);
 
-        // QR button with ONLY icon (no text)
+        // QR button 
         QRButton = CreateIconOnlyButton(topBar.transform, "QRButton", "Icons/qr");
         RectTransform qrRT = QRButton.GetComponent<RectTransform>();
         qrRT.anchorMin = new Vector2(1, 1);
         qrRT.anchorMax = new Vector2(1, 1);
         qrRT.pivot = new Vector2(1, 1);
-        qrRT.anchoredPosition = new Vector2(-24, -24);
+        qrRT.anchoredPosition = new Vector2(-36, -36);
         qrRT.sizeDelta = new Vector2(110, 110);
+        
+        Outline qrOutline = QRButton.gameObject.AddComponent<Outline>();
+        qrOutline.effectColor = new Color(0, 0, 0, 0.4f);
+        qrOutline.effectDistance = new Vector2(2, -2);
     }
 
     private void BuildMenuPanel()
     {
-        MenuPanel = CreatePanel("MenuPanel", NavigationChrome.transform, new Color(0.05f, 0.07f, 0.11f, 0.95f));
+        MenuPanel = CreatePanel("MenuPanel", NavigationChrome.transform, new Color(0.06f, 0.08f, 0.12f, 0.95f));
+        
+        Outline panelOutline = MenuPanel.AddComponent<Outline>();
+        panelOutline.effectColor = new Color(0.2f, 0.3f, 0.4f, 0.3f);
+        panelOutline.effectDistance = new Vector2(1.5f, -1.5f);
+
         RectTransform rt = MenuPanel.GetComponent<RectTransform>();
         rt.anchorMin = new Vector2(0, 1);
         rt.anchorMax = new Vector2(0, 1);
         rt.pivot = new Vector2(0, 1);
-        rt.anchoredPosition = new Vector2(24, -176);
-        rt.sizeDelta = new Vector2(620, 620);
+        rt.anchoredPosition = new Vector2(36, -176);
+        rt.sizeDelta = new Vector2(660, 620);
 
-        CreateLabel(MenuPanel.transform, "MenuTitle", "Navigate To", 44, TextAlignmentOptions.Left, new Vector2(24, -24), new Vector2(-24, -84));
-        CreateLabel(MenuPanel.transform, "BuildingLabel", "Building", 28, TextAlignmentOptions.Left, new Vector2(24, -106), new Vector2(-24, -144));
-        BuildingDropdown = CreateDropdown(MenuPanel.transform, "BuildingDropdown", new Vector2(24, -156), new Vector2(-24, -236));
+        CreateLabel(MenuPanel.transform, "MenuTitle", "Navigate To", 44, TextAlignmentOptions.Left, new Vector2(36, -24), new Vector2(-24, -84));
+        CreateLabel(MenuPanel.transform, "BuildingLabel", "Building", 28, TextAlignmentOptions.Left, new Vector2(36, -106), new Vector2(-24, -144));
+        BuildingDropdown = CreateDropdown(MenuPanel.transform, "BuildingDropdown", new Vector2(36, -156), new Vector2(-36, -236));
 
-        CreateLabel(MenuPanel.transform, "FloorLabel", "Floor", 28, TextAlignmentOptions.Left, new Vector2(24, -258), new Vector2(-24, -296));
-        FloorDropdown = CreateDropdown(MenuPanel.transform, "FloorDropdown", new Vector2(24, -308), new Vector2(-24, -388));
+        CreateLabel(MenuPanel.transform, "FloorLabel", "Floor", 28, TextAlignmentOptions.Left, new Vector2(36, -258), new Vector2(-24, -296));
+        FloorDropdown = CreateDropdown(MenuPanel.transform, "FloorDropdown", new Vector2(36, -308), new Vector2(-36, -388));
 
-        CreateLabel(MenuPanel.transform, "RoomLabel", "Destination", 28, TextAlignmentOptions.Left, new Vector2(24, -410), new Vector2(-24, -448));
-        RoomDropdown = CreateDropdown(MenuPanel.transform, "RoomDropdown", new Vector2(24, -460), new Vector2(-24, -540));
+        CreateLabel(MenuPanel.transform, "RoomLabel", "Destination", 28, TextAlignmentOptions.Left, new Vector2(36, -410), new Vector2(-24, -448));
+        RoomDropdown = CreateDropdown(MenuPanel.transform, "RoomDropdown", new Vector2(36, -460), new Vector2(-36, -540));
 
         NavigateButton = CreateButton(MenuPanel.transform, "NavigateButton", "NAVIGATE");
         RectTransform navRT = NavigateButton.GetComponent<RectTransform>();
         navRT.anchorMin = new Vector2(0, 1);
         navRT.anchorMax = new Vector2(1, 1);
-        navRT.offsetMin = new Vector2(24, -600);
-        navRT.offsetMax = new Vector2(-24, -540);
+        navRT.offsetMin = new Vector2(36, -600);
+        navRT.offsetMax = new Vector2(-36, -540);
     }
 
     private void BuildBottomBar()
     {
-        GameObject bottomBar = CreatePanel("BottomBar", NavigationChrome.transform, new Color(0.04f, 0.05f, 0.08f, 0.93f));
+        // Invisible container
+        GameObject bottomBar = new GameObject("BottomContainer", typeof(RectTransform));
+        bottomBar.transform.SetParent(NavigationChrome.transform, false);
         RectTransform rt = bottomBar.GetComponent<RectTransform>();
         rt.anchorMin = new Vector2(0, 0);
         rt.anchorMax = new Vector2(1, 0);
@@ -279,48 +295,72 @@ public class CampusRuntimeUI : MonoBehaviour
         rt.anchoredPosition = Vector2.zero;
         rt.sizeDelta = new Vector2(0, 280);
 
-        // Chat button at top of bar
+        // Floating Status Pill
+        GameObject statusPill = CreatePanel("StatusPill", bottomBar.transform, new Color(0.06f, 0.08f, 0.12f, 0.85f));
+        RectTransform pillRT = statusPill.GetComponent<RectTransform>();
+        pillRT.anchorMin = new Vector2(0.5f, 0f);
+        pillRT.anchorMax = new Vector2(0.5f, 0f);
+        pillRT.pivot = new Vector2(0.5f, 0f);
+        pillRT.anchoredPosition = new Vector2(0, 36);
+        pillRT.sizeDelta = new Vector2(980, 140);
+        
+        Outline pillOutline = statusPill.AddComponent<Outline>();
+        pillOutline.effectColor = new Color(0.2f, 0.3f, 0.4f, 0.3f);
+        pillOutline.effectDistance = new Vector2(1.5f, -1.5f);
+
+        // Chat button hovering above pill
         ChatButton = CreateButton(bottomBar.transform, "ChatButton", "ASK AI");
         RectTransform chatRT = ChatButton.GetComponent<RectTransform>();
         chatRT.anchorMin = new Vector2(0.5f, 1f);
         chatRT.anchorMax = new Vector2(0.5f, 1f);
         chatRT.pivot = new Vector2(0.5f, 1f);
-        chatRT.anchoredPosition = new Vector2(0, -12);
-        chatRT.sizeDelta = new Vector2(320, 70);
+        chatRT.anchoredPosition = new Vector2(0, 32); 
+        chatRT.sizeDelta = new Vector2(360, 80);
+        
+        Outline chatOutline = ChatButton.gameObject.AddComponent<Outline>();
+        chatOutline.effectColor = new Color(0, 0, 0, 0.3f);
+        chatOutline.effectDistance = new Vector2(2, -2);
 
-        // Direction text — scrollable area below chat button
+        // Direction text — inside pill
         GameObject dirGO = new GameObject("DirectionText", typeof(RectTransform), typeof(TextMeshProUGUI));
-        dirGO.transform.SetParent(bottomBar.transform, false);
+        dirGO.transform.SetParent(statusPill.transform, false);
         RectTransform dirRT = dirGO.GetComponent<RectTransform>();
         dirRT.anchorMin = new Vector2(0, 0.35f);
-        dirRT.anchorMax = new Vector2(1, 0.7f);
+        dirRT.anchorMax = new Vector2(1, 0.9f);
         dirRT.offsetMin = new Vector2(24, 0);
         dirRT.offsetMax = new Vector2(-24, 0);
         DirectionText = dirGO.GetComponent<TextMeshProUGUI>();
+        
+        TMP_FontAsset defaultFont = Resources.Load<TMP_FontAsset>("Fonts & Materials/LiberationSans SDF");
+        if (defaultFont != null) DirectionText.font = defaultFont;
+        
         DirectionText.text = string.Empty;
-        DirectionText.fontSize = 24;
+        DirectionText.fontSize = 32;
         DirectionText.alignment = TextAlignmentOptions.Center;
         DirectionText.color = Color.white;
         DirectionText.enableWordWrapping = true;
         DirectionText.overflowMode = TextOverflowModes.Ellipsis;
 
-        // Status text at bottom
+        // Status text at bottom of pill
         GameObject statusGO = new GameObject("StatusText", typeof(RectTransform), typeof(TextMeshProUGUI));
-        statusGO.transform.SetParent(bottomBar.transform, false);
+        statusGO.transform.SetParent(statusPill.transform, false);
         RectTransform statusRT = statusGO.GetComponent<RectTransform>();
-        statusRT.anchorMin = new Vector2(0, 0);
+        statusRT.anchorMin = new Vector2(0, 0.1f);
         statusRT.anchorMax = new Vector2(1, 0.35f);
-        statusRT.offsetMin = new Vector2(24, 8);
-        statusRT.offsetMax = new Vector2(-24, -4);
+        statusRT.offsetMin = new Vector2(24, 0);
+        statusRT.offsetMax = new Vector2(-24, 0);
         StatusText = statusGO.GetComponent<TextMeshProUGUI>();
+        
+        if (defaultFont != null) StatusText.font = defaultFont;
+        
         StatusText.text = "Loading campus map...";
-        StatusText.fontSize = 26;
+        StatusText.fontSize = 24;
         StatusText.alignment = TextAlignmentOptions.Center;
-        StatusText.color = Color.white;
+        StatusText.color = new Color(0.7f, 0.75f, 0.8f, 1f);
         StatusText.enableWordWrapping = true;
 
         // Retry button (hidden by default)
-        RetryButton = CreateButton(bottomBar.transform, "RetryButton", "RETRY");
+        RetryButton = CreateButton(statusPill.transform, "RetryButton", "RETRY");
         RectTransform retryRT = RetryButton.GetComponent<RectTransform>();
         retryRT.anchorMin = new Vector2(0.5f, 0.5f);
         retryRT.anchorMax = new Vector2(0.5f, 0.5f);
@@ -417,7 +457,10 @@ public class CampusRuntimeUI : MonoBehaviour
     {
         GameObject go = new GameObject(name, typeof(RectTransform), typeof(Image));
         go.transform.SetParent(parent, false);
-        go.GetComponent<Image>().color = color;
+        Image img = go.GetComponent<Image>();
+        img.color = color;
+        img.sprite = Resources.GetBuiltinResource<Sprite>("UI/Skin/Background.psd");
+        img.type = Image.Type.Sliced;
         return go;
     }
 
@@ -436,6 +479,8 @@ public class CampusRuntimeUI : MonoBehaviour
         colors.pressedColor = new Color(0.0f, 0.56f, 0.62f, 1f);
         colors.selectedColor = new Color(0.0f, 0.66f, 0.72f, 0.96f);
         button.colors = colors;
+
+        TMP_FontAsset defaultFont = Resources.Load<TMP_FontAsset>("Fonts & Materials/LiberationSans SDF");
 
         Sprite icon = LoadIcon(iconResourcePath);
         if (icon != null)
@@ -465,6 +510,7 @@ public class CampusRuntimeUI : MonoBehaviour
                 labelTextRT.offsetMax = new Vector2(-18, 0);
 
                 TextMeshProUGUI labelTMP = labelTextGO.GetComponent<TextMeshProUGUI>();
+                if (defaultFont != null) labelTMP.font = defaultFont;
                 labelTMP.text = label;
                 labelTMP.fontSize = 28;
                 labelTMP.alignment = TextAlignmentOptions.MidlineLeft;
@@ -484,6 +530,7 @@ public class CampusRuntimeUI : MonoBehaviour
         buttonTextRT.offsetMax = Vector2.zero;
 
         TextMeshProUGUI buttonTMP = buttonTextGO.GetComponent<TextMeshProUGUI>();
+        if (defaultFont != null) buttonTMP.font = defaultFont;
         buttonTMP.text = label;
         buttonTMP.fontSize = (label != null && label.Length == 1) ? 52 : 28;
         buttonTMP.alignment = TextAlignmentOptions.Center;
@@ -580,6 +627,10 @@ public class CampusRuntimeUI : MonoBehaviour
         rt.offsetMax = offsetMax;
 
         TextMeshProUGUI tmp = go.GetComponent<TextMeshProUGUI>();
+        
+        TMP_FontAsset defaultFont = Resources.Load<TMP_FontAsset>("Fonts & Materials/LiberationSans SDF");
+        if (defaultFont != null) tmp.font = defaultFont;
+        
         tmp.text = text;
         tmp.fontSize = fontSize;
         tmp.alignment = alignment;
