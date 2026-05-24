@@ -38,20 +38,20 @@ public class PathVisualizer : MonoBehaviour
 
         // Load the procedurally generated 3D arrows
         if (arrowPrefab == null)
-            arrowPrefab = CreateSanitizedTemplate("Prefabs/ProceduralArrow", "ArrowTemplate", arrowMaterial);
+            arrowPrefab = CreateSanitizedTemplate("Prefabs/ProceduralArrow", "ArrowTemplate", arrowMaterial, 0.3f);
         
         if (curvedArrow45Prefab == null)
-            curvedArrow45Prefab = CreateSanitizedTemplate("Prefabs/ProceduralCurvedArrow_45", "CurvedArrow45Template", arrowMaterial);
+            curvedArrow45Prefab = CreateSanitizedTemplate("Prefabs/ProceduralCurvedArrow_45", "CurvedArrow45Template", arrowMaterial, 0.3f);
         if (curvedArrow90Prefab == null)
-            curvedArrow90Prefab = CreateSanitizedTemplate("Prefabs/ProceduralCurvedArrow_90", "CurvedArrow90Template", arrowMaterial);
+            curvedArrow90Prefab = CreateSanitizedTemplate("Prefabs/ProceduralCurvedArrow_90", "CurvedArrow90Template", arrowMaterial, 0.3f);
         if (curvedArrow135Prefab == null)
-            curvedArrow135Prefab = CreateSanitizedTemplate("Prefabs/ProceduralCurvedArrow_135", "CurvedArrow135Template", arrowMaterial);
+            curvedArrow135Prefab = CreateSanitizedTemplate("Prefabs/ProceduralCurvedArrow_135", "CurvedArrow135Template", arrowMaterial, 0.3f);
         
         if (destinationPrefab == null)
-            destinationPrefab = CreateSanitizedTemplate("Prefabs/ProceduralDestination_V2", "DestinationTemplate", destinationMaterial);
+            destinationPrefab = CreateSanitizedTemplate("Prefabs/ProceduralDestination_V2", "DestinationTemplate", destinationMaterial, 0.6f);
 
         if (stairPrefab == null)
-            stairPrefab = CreateSanitizedTemplate("Prefabs/ProceduralStairs", "StairTemplate", staircaseMaterial);
+            stairPrefab = CreateSanitizedTemplate("Prefabs/ProceduralStairs", "StairTemplate", staircaseMaterial, 0.4f);
 
         // Fallback to legacy behavior if custom prefabs fail
         if (arrowPrefab == null)
@@ -60,7 +60,7 @@ public class PathVisualizer : MonoBehaviour
         // Ensure materials were already called at the start of Awake
     }
 
-    private GameObject CreateSanitizedTemplate(string resourcePath, string templateName, Material mat)
+    private GameObject CreateSanitizedTemplate(string resourcePath, string templateName, Material mat, float scale = 1.0f)
     {
         GameObject loaded = Resources.Load<GameObject>(resourcePath);
         if (loaded == null)
@@ -73,6 +73,7 @@ public class PathVisualizer : MonoBehaviour
         GameObject template = Instantiate(loaded);
         template.name = templateName;
         template.SetActive(false);
+        template.transform.localScale = new Vector3(scale, scale, scale);
         
         // Strip rogue components permanently from the template
         StripRogueComponents(template);
@@ -359,23 +360,11 @@ public class PathVisualizer : MonoBehaviour
     // Each "step" rises vertically then moves forward, mimicking real stair geometry.
     private void DrawStaircaseSegment(Vector3 start, Vector3 end, FloorTransition transition)
     {
-        float totalHeight = end.y - start.y;
-        float horizontalDist = Vector2.Distance(
-            new Vector2(start.x, start.z),
-            new Vector2(end.x, end.z));
+        float distance = Vector3.Distance(start, end);
+        if (distance < 0.1f) return;
 
-        // Compute number of steps based on ~0.18m per step (standard stair riser)
-        int stepCount = Mathf.Max(4, Mathf.RoundToInt(Mathf.Abs(totalHeight) / 0.18f));
-        float stepHeight = totalHeight / stepCount;
+        Vector3 dir = (end - start) / distance;
         
-        // Horizontal direction on XZ plane
-        Vector3 horizontalDir = new Vector3(end.x - start.x, 0f, end.z - start.z);
-        if (horizontalDir.sqrMagnitude < 0.0001f)
-            horizontalDir = Vector3.forward * 0.5f;
-        horizontalDir = horizontalDir.normalized;
-        
-        float stepDepth = horizontalDist / stepCount;
-
         // Create a "staircase" label at the midpoint
         Vector3 midpoint = Vector3.Lerp(start, end, 0.5f);
         string label = transition.goingUp
@@ -383,54 +372,19 @@ public class PathVisualizer : MonoBehaviour
             : $"▼ Stairs to Floor {transition.toFloor}";
         SpawnTextLabel(midpoint + Vector3.up * 0.4f, label, staircaseMaterial);
 
-        // Draw ascending/descending step arrows
-        for (int step = 0; step < stepCount; step++)
+        // Draw simple diagonal arrows using the stair prefab
+        GameObject prefabToUse = stairPrefab != null ? stairPrefab : arrowPrefab;
+        int steps = Mathf.Max(1, Mathf.FloorToInt(distance / spacing));
+
+        for (int j = 0; j < steps; j++)
         {
-            float t = step / (float)stepCount;
-            float nextT = (step + 1f) / stepCount;
-
-            // Bottom of this step
-            Vector3 stepStart = new Vector3(
-                start.x + horizontalDir.x * stepDepth * step,
-                start.y + stepHeight * step,
-                start.z + horizontalDir.z * stepDepth * step);
-
-            // Top of this step (vertical rise)
-            Vector3 stepTop = new Vector3(
-                stepStart.x,
-                stepStart.y + stepHeight,
-                stepStart.z);
-
-            // Spawn a vertical arrow for the rise
-            Vector3 riseDir = transition.goingUp ? Vector3.up : Vector3.down;
-            Vector3 risePos = (stepStart + stepTop) * 0.5f;
-            
-            GameObject prefabToUse = stairPrefab != null ? stairPrefab : arrowPrefab;
-
-            GameObject riseArrow = Instantiate(prefabToUse, risePos, Quaternion.LookRotation(riseDir, horizontalDir), transform);
-            riseArrow.SetActive(true);
-            spawnedArrows.Add(riseArrow);
-
-            // Spawn a horizontal tread arrow (the flat part of the step)
-            if (stepDepth > 0.05f)
-            {
-                Vector3 treadEnd = new Vector3(
-                    stepStart.x + horizontalDir.x * stepDepth,
-                    stepTop.y,
-                    stepStart.z + horizontalDir.z * stepDepth);
-
-                Vector3 treadDir = (treadEnd - stepTop);
-                if (treadDir.sqrMagnitude > 0.001f)
-                {
-                    Vector3 treadPos = (stepTop + treadEnd) * 0.5f;
-                    GameObject treadArrow = Instantiate(prefabToUse, treadPos, Quaternion.LookRotation(treadDir.normalized), transform);
-                    treadArrow.SetActive(true);
-                    spawnedArrows.Add(treadArrow);
-                }
-            }
+            Vector3 pos = Vector3.Lerp(start, end, j / (float)steps);
+            GameObject arrowInstance = Instantiate(prefabToUse, pos, Quaternion.LookRotation(dir), transform);
+            arrowInstance.SetActive(true);
+            spawnedArrows.Add(arrowInstance);
         }
 
-        Debug.Log($"[PathVisualizer] 🪜 Staircase: {stepCount} steps, {(transition.goingUp ? "UP" : "DOWN")} from Floor {transition.fromFloor} → Floor {transition.toFloor}");
+        Debug.Log($"[PathVisualizer] 🪜 Staircase: {(transition.goingUp ? "UP" : "DOWN")} to Floor {transition.toFloor}");
     }
 
     // ── Lift Visualization ───────────────────────────────────────────────
