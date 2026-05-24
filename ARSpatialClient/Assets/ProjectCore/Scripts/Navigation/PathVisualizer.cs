@@ -4,6 +4,9 @@ using UnityEngine;
 public class PathVisualizer : MonoBehaviour
 {
     [SerializeField] private GameObject arrowPrefab;
+    [SerializeField] private GameObject curvedArrow45Prefab;
+    [SerializeField] private GameObject curvedArrow90Prefab;
+    [SerializeField] private GameObject curvedArrow135Prefab;
     [SerializeField] private GameObject destinationPrefab; // New prefab for the destination
     [SerializeField] private GameObject stairPrefab; // Original prefab used specifically for stairs
     [SerializeField] private float spacing = 1.5f; // Reverted spacing for old arrows
@@ -36,6 +39,13 @@ public class PathVisualizer : MonoBehaviour
         // Load the procedurally generated 3D arrows
         if (arrowPrefab == null)
             arrowPrefab = CreateSanitizedTemplate("Prefabs/ProceduralArrow", "ArrowTemplate", arrowMaterial, 0.3f);
+        
+        if (curvedArrow45Prefab == null)
+            curvedArrow45Prefab = CreateSanitizedTemplate("Prefabs/ProceduralCurvedArrow_45", "CurvedArrow45Template", arrowMaterial, 0.3f);
+        if (curvedArrow90Prefab == null)
+            curvedArrow90Prefab = CreateSanitizedTemplate("Prefabs/ProceduralCurvedArrow_90", "CurvedArrow90Template", arrowMaterial, 0.3f);
+        if (curvedArrow135Prefab == null)
+            curvedArrow135Prefab = CreateSanitizedTemplate("Prefabs/ProceduralCurvedArrow_135", "CurvedArrow135Template", arrowMaterial, 0.3f);
         
         if (destinationPrefab == null)
             destinationPrefab = CreateSanitizedTemplate("Prefabs/ProceduralDestination_V2", "DestinationTemplate", destinationMaterial, 0.6f);
@@ -236,6 +246,8 @@ public class PathVisualizer : MonoBehaviour
                 transitionMap[t.segmentStartIndex] = t;
             }
         }
+        
+        Vector3 lastCurvedArrowPos = new Vector3(-9999, -9999, -9999);
 
         Debug.Log($"[PathVisualizer] Drawing path: {worldPath.Count} waypoints, {transitionSegments.Count} floor transitions, spacing={spacing}");
 
@@ -259,11 +271,50 @@ public class PathVisualizer : MonoBehaviour
 
             // ── Normal segment — render regular arrows ──
             Vector3 dir = (end - start) / distance;
+            
+            // Optional: Draw a curved arrow at the corner (if there is a next segment)
+            bool spawnedCurved = false;
+            if (i < worldPath.Count - 2 && curvedArrow90Prefab != null && !transitionSegments.Contains(i+1))
+            {
+                Vector3 nextEnd = worldPath[i + 2];
+                Vector3 nextDir = (nextEnd - end).normalized;
+                
+                float angle = Vector3.SignedAngle(dir, nextDir, Vector3.up);
+                float absAngle = Mathf.Abs(angle);
+                
+                // Only spawn if it's a sharp turn AND we haven't spawned one very recently (prevents spam on smoothed curves)
+                if (absAngle > 20f && Vector3.Distance(end, lastCurvedArrowPos) > 2.0f)
+                {
+                    GameObject curvedPrefab = curvedArrow45Prefab;
+                    if (absAngle > 60f) curvedPrefab = curvedArrow90Prefab;
+                    if (absAngle > 110f) curvedPrefab = curvedArrow135Prefab;
+
+                    if (curvedPrefab != null)
+                    {
+                        GameObject curvedInstance = Instantiate(curvedPrefab, end, Quaternion.LookRotation(dir), transform);
+                        if (angle < 0) curvedInstance.transform.localScale = new Vector3(-0.3f, 0.3f, 0.3f); // mirror and scale
+                        else curvedInstance.transform.localScale = new Vector3(0.3f, 0.3f, 0.3f);
+                        
+                        curvedInstance.SetActive(true);
+                        spawnedArrows.Add(curvedInstance);
+                        lastCurvedArrowPos = end;
+                        spawnedCurved = true;
+                    }
+                }
+            }
+
             int steps = Mathf.Max(1, Mathf.FloorToInt(distance / spacing));
 
             for (int j = 0; j < steps; j++)
             {
+                // Skip the last straight arrow if we just spawned a curved one right at the end
+                if (spawnedCurved && j == steps - 1) continue;
+
                 Vector3 pos = Vector3.Lerp(start, end, j / (float)steps);
+                
+                // Skip straight arrows that are too close to the recently spawned curved arrow
+                if (Vector3.Distance(pos, lastCurvedArrowPos) < 0.8f) continue;
+
                 GameObject arrowInstance = Instantiate(arrowPrefab, pos, Quaternion.LookRotation(dir), transform);
                 arrowInstance.SetActive(true);
                 spawnedArrows.Add(arrowInstance);
