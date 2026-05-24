@@ -295,6 +295,8 @@ public class CampusRuntimeUI : MonoBehaviour
     {
         // Floating Status Drawer
         GameObject statusPill = CreatePanel("StatusDrawer", NavigationChrome.transform, new Color(0.04f, 0.05f, 0.08f, 0.98f));
+        statusPill.GetComponent<Image>().sprite = GetRoundedSprite();
+        statusPill.GetComponent<Image>().type = Image.Type.Sliced;
         RectTransform pillRT = statusPill.GetComponent<RectTransform>();
         pillRT.anchorMin = new Vector2(0f, 0f);
         pillRT.anchorMax = new Vector2(1f, 0f);
@@ -303,11 +305,13 @@ public class CampusRuntimeUI : MonoBehaviour
         pillRT.sizeDelta = new Vector2(0, 264); // 240px visible height + 24px shift
         
         Outline pillOutline = statusPill.AddComponent<Outline>();
-        pillOutline.effectColor = new Color(0.2f, 0.3f, 0.4f, 0.4f);
-        pillOutline.effectDistance = new Vector2(1.5f, -1.5f);
+        pillOutline.effectColor = new Color(0, 0, 0, 0.4f);
+        pillOutline.effectDistance = new Vector2(2f, -2f);
 
         // Top drag handle indicator (purely visual)
-        GameObject handle = CreatePanel("Handle", statusPill.transform, Color.white);
+        GameObject handle = CreatePanel("Handle", statusPill.transform, new Color(0.2f, 0.22f, 0.25f, 1f));
+        handle.GetComponent<Image>().sprite = GetRoundedSprite();
+        handle.GetComponent<Image>().type = Image.Type.Sliced;
         RectTransform handleRT = handle.GetComponent<RectTransform>();
         handleRT.anchorMin = new Vector2(0.5f, 1f);
         handleRT.anchorMax = new Vector2(0.5f, 1f);
@@ -339,6 +343,8 @@ public class CampusRuntimeUI : MonoBehaviour
 
         // Floating Status Toast (above the drawer)
         GameObject statusToast = CreatePanel("StatusToast", NavigationChrome.transform, new Color(0.04f, 0.05f, 0.08f, 0.95f));
+        statusToast.GetComponent<Image>().sprite = GetRoundedSprite();
+        statusToast.GetComponent<Image>().type = Image.Type.Sliced;
         RectTransform toastRT = statusToast.GetComponent<RectTransform>();
         toastRT.anchorMin = new Vector2(0.5f, 0f);
         toastRT.anchorMax = new Vector2(0.5f, 0f);
@@ -347,8 +353,8 @@ public class CampusRuntimeUI : MonoBehaviour
         toastRT.sizeDelta = new Vector2(800, 80);
         
         Outline toastOutline = statusToast.AddComponent<Outline>();
-        toastOutline.effectColor = new Color(0.2f, 0.3f, 0.4f, 0.4f);
-        toastOutline.effectDistance = new Vector2(1.5f, -1.5f);
+        toastOutline.effectColor = new Color(0, 0, 0, 0.4f);
+        toastOutline.effectDistance = new Vector2(2f, -2f);
 
         // Status text inside the floating toast
         GameObject statusGO = new GameObject("StatusText", typeof(RectTransform), typeof(TextMeshProUGUI));
@@ -370,6 +376,7 @@ public class CampusRuntimeUI : MonoBehaviour
 
         // Chat button integrated into the drawer
         ChatButton = CreateButton(statusPill.transform, "ChatButton", "ASK AI");
+        ChatButton.GetComponent<Image>().color = new Color(0.25f, 0.35f, 1f, 1f); // Vibrant blue
         RectTransform chatRT = ChatButton.GetComponent<RectTransform>();
         chatRT.anchorMin = new Vector2(0.5f, 0f);
         chatRT.anchorMax = new Vector2(0.5f, 0f);
@@ -480,16 +487,15 @@ public class CampusRuntimeUI : MonoBehaviour
         ChatInput.textComponent.color = Color.white;
         ((TextMeshProUGUI)ChatInput.placeholder).color = new Color(0.6f, 0.6f, 0.65f, 1f);
         ((TextMeshProUGUI)ChatInput.placeholder).text = "Ask anything";
-
         SendButton = CreateButton(inputRow.transform, "SendButton", "↑", null);
         RectTransform sendRT = SendButton.GetComponent<RectTransform>();
         sendRT.anchorMin = new Vector2(1, 0.5f);
         sendRT.anchorMax = new Vector2(1, 0.5f);
         sendRT.pivot = new Vector2(1, 0.5f);
         sendRT.anchoredPosition = new Vector2(-24, 0);
-        sendRT.sizeDelta = new Vector2(72, 72); // Circular looking button
+        sendRT.sizeDelta = new Vector2(90, 90); // Slightly larger button
         
-        SendButton.GetComponent<Image>().color = new Color(1f, 0.4f, 0.1f, 1f); // Vibrant orange
+        SendButton.GetComponent<Image>().color = new Color(0.25f, 0.35f, 1f, 1f); // Vibrant blue
         SendButton.GetComponentInChildren<TextMeshProUGUI>().color = Color.white;
     }
 
@@ -547,18 +553,26 @@ public class CampusRuntimeUI : MonoBehaviour
 
     private Button CreateButton(Transform parent, string name, string label, string iconResourcePath = null)
     {
-        GameObject go = CreatePanel(name, parent, new Color(0.0f, 0.66f, 0.72f, 0.96f));
+        GameObject go = CreatePanel(name, parent, new Color(0.12f, 0.14f, 0.18f, 1f));
+        Image background = go.GetComponent<Image>();
+        background.sprite = GetRoundedSprite();
+        background.type = Image.Type.Sliced;
+        
+        Outline outline = go.AddComponent<Outline>();
+        outline.effectColor = new Color(0, 0, 0, 0.3f);
+        outline.effectDistance = new Vector2(1, -1);
+
         Button button = go.AddComponent<Button>();
         button.interactable = true;
-        Image background = go.GetComponent<Image>();
         button.targetGraphic = background;
 
         // Add hover effect
         ColorBlock colors = button.colors;
-        colors.normalColor = new Color(0.0f, 0.66f, 0.72f, 0.96f);
-        colors.highlightedColor = new Color(0.0f, 0.76f, 0.82f, 1f);
-        colors.pressedColor = new Color(0.0f, 0.56f, 0.62f, 1f);
-        colors.selectedColor = new Color(0.0f, 0.66f, 0.72f, 0.96f);
+        colors.normalColor = Color.white;
+        colors.highlightedColor = new Color(0.8f, 0.8f, 0.8f, 1f);
+        colors.pressedColor = new Color(0.6f, 0.6f, 0.6f, 1f);
+        colors.selectedColor = Color.white;
+        colors.colorMultiplier = 1f;
         button.colors = colors;
 
         TMP_FontAsset defaultFont = Resources.Load<TMP_FontAsset>("Fonts & Materials/LiberationSans SDF");
@@ -624,16 +638,25 @@ public class CampusRuntimeUI : MonoBehaviour
     // Create hamburger menu button (3 horizontal lines)
     private Button CreateHamburgerButton(Transform parent, string name)
     {
-        GameObject go = CreatePanel(name, parent, new Color(0.0f, 0.66f, 0.72f, 0.96f));
+        GameObject go = CreatePanel(name, parent, new Color(0.12f, 0.14f, 0.18f, 1f));
+        Image background = go.GetComponent<Image>();
+        background.sprite = GetRoundedSprite();
+        background.type = Image.Type.Sliced;
+
+        Outline outline = go.AddComponent<Outline>();
+        outline.effectColor = new Color(0, 0, 0, 0.3f);
+        outline.effectDistance = new Vector2(1, -1);
+
         Button button = go.AddComponent<Button>();
         button.interactable = true;
-        Image background = go.GetComponent<Image>();
         button.targetGraphic = background;
 
         ColorBlock colors = button.colors;
-        colors.normalColor = new Color(0.0f, 0.66f, 0.72f, 0.96f);
-        colors.highlightedColor = new Color(0.0f, 0.76f, 0.82f, 1f);
-        colors.pressedColor = new Color(0.0f, 0.56f, 0.62f, 1f);
+        colors.normalColor = Color.white;
+        colors.highlightedColor = new Color(0.8f, 0.8f, 0.8f, 1f);
+        colors.pressedColor = new Color(0.6f, 0.6f, 0.6f, 1f);
+        colors.selectedColor = Color.white;
+        colors.colorMultiplier = 1f;
         button.colors = colors;
 
         // Create 3 horizontal lines (hamburger icon)
@@ -656,16 +679,25 @@ public class CampusRuntimeUI : MonoBehaviour
     // Create button with ONLY icon (no text)
     private Button CreateIconOnlyButton(Transform parent, string name, string iconResourcePath)
     {
-        GameObject go = CreatePanel(name, parent, new Color(0.0f, 0.66f, 0.72f, 0.96f));
+        GameObject go = CreatePanel(name, parent, new Color(0.12f, 0.14f, 0.18f, 1f));
+        Image background = go.GetComponent<Image>();
+        background.sprite = GetRoundedSprite();
+        background.type = Image.Type.Sliced;
+
+        Outline outline = go.AddComponent<Outline>();
+        outline.effectColor = new Color(0, 0, 0, 0.3f);
+        outline.effectDistance = new Vector2(1, -1);
+
         Button button = go.AddComponent<Button>();
         button.interactable = true;
-        Image background = go.GetComponent<Image>();
         button.targetGraphic = background;
 
         ColorBlock colors = button.colors;
-        colors.normalColor = new Color(0.0f, 0.66f, 0.72f, 0.96f);
-        colors.highlightedColor = new Color(0.0f, 0.76f, 0.82f, 1f);
-        colors.pressedColor = new Color(0.0f, 0.56f, 0.62f, 1f);
+        colors.normalColor = Color.white;
+        colors.highlightedColor = new Color(0.8f, 0.8f, 0.8f, 1f);
+        colors.pressedColor = new Color(0.6f, 0.6f, 0.6f, 1f);
+        colors.selectedColor = Color.white;
+        colors.colorMultiplier = 1f;
         button.colors = colors;
 
         Sprite icon = LoadIcon(iconResourcePath);
