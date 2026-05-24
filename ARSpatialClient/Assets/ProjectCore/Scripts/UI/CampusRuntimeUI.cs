@@ -404,7 +404,7 @@ public class CampusRuntimeUI : MonoBehaviour
         rt.offsetMin = Vector2.zero;
         rt.offsetMax = Vector2.zero;
 
-        TextMeshProUGUI title = CreateLabel(ChatPanel.transform, "ChatTitle", "Budget Insight", 44, TextAlignmentOptions.Left, new Vector2(120, -24), new Vector2(-140, -80));
+        TextMeshProUGUI title = CreateLabel(ChatPanel.transform, "ChatTitle", "Campus AI", 44, TextAlignmentOptions.Left, new Vector2(120, -24), new Vector2(-140, -80));
         title.color = Color.white;
         title.fontStyle = FontStyles.Bold;
 
