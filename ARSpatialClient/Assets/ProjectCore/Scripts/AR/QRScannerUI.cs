@@ -157,23 +157,12 @@ public class QRScannerUI : MonoBehaviour
         m_ResultText.alignment = TextAlignmentOptions.Center;
         m_ResultText.color = new Color(0.25f, 0.85f, 0.4f, 1f);
 
-        // ── Enter Manually Pill Button ──
-        Button manualBtn = CreatePillButton(cardObj.transform, "ManualButton", "Enter manually");
-        RectTransform manualRT = manualBtn.GetComponent<RectTransform>();
-        manualRT.anchorMin = new Vector2(0.5f, 0);
-        manualRT.anchorMax = new Vector2(0.5f, 0);
-        manualRT.pivot = new Vector2(0.5f, 0);
-        manualRT.anchoredPosition = new Vector2(0, 150);
-        manualRT.sizeDelta = new Vector2(400, 100);
-
-        // ── Top Buttons (Back & Flashlight) ──
+        // ── Top Buttons (Back) ──
         m_CloseButton = CreateCircularButton(m_ScannerPanel.transform, "CloseButton", "←", new Vector2(0, 1), new Vector2(60, -60));
         m_CloseButton.onClick.AddListener(() => {
             if (m_OnClose != null) m_OnClose();
             else CloseScanner();
         });
-
-        Button flashlightBtn = CreateCircularButton(m_ScannerPanel.transform, "FlashlightButton", "☼", new Vector2(1, 1), new Vector2(-60, -60));
         
         m_ScannerPanel.SetActive(false);
     }
