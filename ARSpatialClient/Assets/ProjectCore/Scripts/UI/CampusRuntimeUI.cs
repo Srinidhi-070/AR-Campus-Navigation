@@ -192,8 +192,9 @@ public class CampusRuntimeUI : MonoBehaviour
         RectTransform rt = m_MenuOverlay.GetComponent<RectTransform>();
         rt.anchorMin = Vector2.zero;
         rt.anchorMax = Vector2.one;
-        rt.offsetMin = Vector2.zero;
-        rt.offsetMax = Vector2.zero;
+        // Expand outwards to cover safe area gaps (notch/status bar)
+        rt.offsetMin = new Vector2(-200, -200);
+        rt.offsetMax = new Vector2(200, 200);
         Image img = m_MenuOverlay.GetComponent<Image>();
         img.color = new Color(0, 0, 0, 0.3f); // Dim overlay
         Button overlayBtn = m_MenuOverlay.AddComponent<Button>();
