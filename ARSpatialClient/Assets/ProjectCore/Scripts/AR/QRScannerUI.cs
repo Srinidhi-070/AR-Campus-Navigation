@@ -135,7 +135,54 @@ public class QRScannerUI : MonoBehaviour
         Image cardBg = cardObj.AddComponent<Image>();
         cardBg.sprite = GetRoundedSprite();
         cardBg.type = Image.Type.Sliced;
-        cardBg.color = new Color(0.2f, 0.22f, 0.25f, 0.3f); // Slight tint, mostly clear to see camera
+        cardBg.color = Color.white; // Solid color for the mask to generate stencil
+        
+        Mask cardMask = cardObj.AddComponent<Mask>();
+        cardMask.showMaskGraphic = false; // Hide the white background, only use it for masking the rounded corners
+
+        Color tintColor = new Color(0.2f, 0.22f, 0.25f, 0.3f); // Slight tint
+
+        GameObject topTint = new GameObject("TopTint", typeof(RectTransform), typeof(Image));
+        topTint.transform.SetParent(cardObj.transform, false);
+        RectTransform topRT = topTint.GetComponent<RectTransform>();
+        topRT.anchorMin = new Vector2(0, 1);
+        topRT.anchorMax = new Vector2(1, 1);
+        topRT.pivot = new Vector2(0.5f, 1);
+        topRT.anchoredPosition = Vector2.zero;
+        topRT.sizeDelta = new Vector2(0, 370);
+        topTint.GetComponent<Image>().color = tintColor;
+
+        GameObject bottomTint = new GameObject("BottomTint", typeof(RectTransform), typeof(Image));
+        bottomTint.transform.SetParent(cardObj.transform, false);
+        RectTransform bottomRT = bottomTint.GetComponent<RectTransform>();
+        bottomRT.anchorMin = new Vector2(0, 0);
+        bottomRT.anchorMax = new Vector2(1, 0);
+        bottomRT.pivot = new Vector2(0.5f, 0);
+        bottomRT.anchoredPosition = Vector2.zero;
+        bottomRT.sizeDelta = new Vector2(0, 470);
+        bottomTint.GetComponent<Image>().color = tintColor;
+
+        GameObject leftTint = new GameObject("LeftTint", typeof(RectTransform), typeof(Image));
+        leftTint.transform.SetParent(cardObj.transform, false);
+        RectTransform leftRT = leftTint.GetComponent<RectTransform>();
+        leftRT.anchorMin = new Vector2(0, 0);
+        leftRT.anchorMax = new Vector2(0, 1);
+        leftRT.pivot = new Vector2(0, 0.5f);
+        leftRT.anchoredPosition = Vector2.zero;
+        leftRT.offsetMin = new Vector2(0, 470);
+        leftRT.offsetMax = new Vector2(120, -370);
+        leftTint.GetComponent<Image>().color = tintColor;
+
+        GameObject rightTint = new GameObject("RightTint", typeof(RectTransform), typeof(Image));
+        rightTint.transform.SetParent(cardObj.transform, false);
+        RectTransform rightRT = rightTint.GetComponent<RectTransform>();
+        rightRT.anchorMin = new Vector2(1, 0);
+        rightRT.anchorMax = new Vector2(1, 1);
+        rightRT.pivot = new Vector2(1, 0.5f);
+        rightRT.anchoredPosition = Vector2.zero;
+        rightRT.offsetMin = new Vector2(-120, 470);
+        rightRT.offsetMax = new Vector2(0, -370);
+        rightTint.GetComponent<Image>().color = tintColor;
 
         // ── Title Text ──
         m_TitleText = CreateText(cardObj.transform, "Title", "Scan the QR code\nto locate yourself", 48,
@@ -158,7 +205,7 @@ public class QRScannerUI : MonoBehaviour
         m_ResultText.color = new Color(0.25f, 0.85f, 0.4f, 1f);
 
         // ── Top Buttons (Back) ──
-        m_CloseButton = CreateCircularButton(m_ScannerPanel.transform, "CloseButton", "←", new Vector2(0, 1), new Vector2(60, -60));
+        m_CloseButton = CreateCircularButton(m_ScannerPanel.transform, "CloseButton", "Icons/close", new Vector2(0, 1), new Vector2(60, -60));
         m_CloseButton.onClick.AddListener(() => {
             if (m_OnClose != null) m_OnClose();
             else CloseScanner();
@@ -194,7 +241,7 @@ public class QRScannerUI : MonoBehaviour
         return btn;
     }
 
-    private Button CreateCircularButton(Transform parent, string name, string label, Vector2 anchor, Vector2 anchoredPos)
+    private Button CreateCircularButton(Transform parent, string name, string iconResourcePath, Vector2 anchor, Vector2 anchoredPos)
     {
         GameObject btnObj = new GameObject(name);
         btnObj.transform.SetParent(parent, false);
@@ -203,12 +250,17 @@ public class QRScannerUI : MonoBehaviour
         rt.anchorMax = anchor;
         rt.pivot = anchor;
         rt.anchoredPosition = anchoredPos;
-        rt.sizeDelta = new Vector2(120, 120);
+        rt.sizeDelta = new Vector2(100, 100); // Slightly smaller for a modern look
 
         Image img = btnObj.AddComponent<Image>();
         img.sprite = GetRoundedSprite();
         img.type = Image.Type.Sliced;
-        img.color = new Color(0.2f, 0.22f, 0.25f, 0.8f);
+        img.color = new Color(0.12f, 0.14f, 0.18f, 1f); // Dark button color
+
+        // Add drop shadow
+        Outline outline = btnObj.AddComponent<Outline>();
+        outline.effectColor = new Color(0, 0, 0, 0.4f);
+        outline.effectDistance = new Vector2(2, -2);
 
         Button btn = btnObj.AddComponent<Button>();
         btn.targetGraphic = img;
@@ -219,9 +271,22 @@ public class QRScannerUI : MonoBehaviour
         cb.colorMultiplier = 1f;
         btn.colors = cb;
 
-        TextMeshProUGUI txt = CreateText(btnObj.transform, "Text", label, 52, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
-        txt.alignment = TextAlignmentOptions.Center;
-        txt.fontStyle = FontStyles.Bold;
+        Sprite iconSprite = Resources.Load<Sprite>(iconResourcePath);
+        if (iconSprite != null)
+        {
+            GameObject iconObj = new GameObject("Icon", typeof(RectTransform), typeof(Image));
+            iconObj.transform.SetParent(btnObj.transform, false);
+            RectTransform iconRT = iconObj.GetComponent<RectTransform>();
+            iconRT.anchorMin = new Vector2(0.5f, 0.5f);
+            iconRT.anchorMax = new Vector2(0.5f, 0.5f);
+            iconRT.pivot = new Vector2(0.5f, 0.5f);
+            iconRT.sizeDelta = new Vector2(40, 40); // Icon size
+
+            Image iconImg = iconObj.GetComponent<Image>();
+            iconImg.sprite = iconSprite;
+            iconImg.color = Color.white;
+            iconImg.raycastTarget = false;
+        }
 
         return btn;
     }
