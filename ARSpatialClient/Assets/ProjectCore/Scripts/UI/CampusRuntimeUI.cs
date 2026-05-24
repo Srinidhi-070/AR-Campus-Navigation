@@ -224,7 +224,7 @@ public class CampusRuntimeUI : MonoBehaviour
         rt.sizeDelta = new Vector2(0, 160);
 
         // Hamburger menu button with drop shadow
-        MenuButton = CreateHamburgerButton(topBar.transform, "MenuButton");
+        MenuButton = CreateIconOnlyButton(topBar.transform, "MenuButton", "Icons/menu");
         RectTransform menuRT = MenuButton.GetComponent<RectTransform>();
         menuRT.anchorMin = new Vector2(0, 1);
         menuRT.anchorMax = new Vector2(0, 1);
@@ -381,7 +381,7 @@ public class CampusRuntimeUI : MonoBehaviour
         chatRT.anchorMin = new Vector2(0.5f, 0f);
         chatRT.anchorMax = new Vector2(0.5f, 0f);
         chatRT.pivot = new Vector2(0.5f, 0f);
-        chatRT.anchoredPosition = new Vector2(0, 24); 
+        chatRT.anchoredPosition = new Vector2(0, 60); 
         chatRT.sizeDelta = new Vector2(400, 90);
 
         // Retry button (hidden by default)
@@ -408,7 +408,7 @@ public class CampusRuntimeUI : MonoBehaviour
         title.color = Color.white;
         title.fontStyle = FontStyles.Bold;
 
-        ChatCloseButton = CreateButton(ChatPanel.transform, "ChatCloseButton", "<", null);
+        ChatCloseButton = CreateButton(ChatPanel.transform, "ChatCloseButton", null, "Icons/close");
         RectTransform closeRT = ChatCloseButton.GetComponent<RectTransform>();
         closeRT.anchorMin = new Vector2(0, 1);
         closeRT.anchorMax = new Vector2(0, 1);
@@ -418,7 +418,6 @@ public class CampusRuntimeUI : MonoBehaviour
         
         // Transparent background, white icon
         ChatCloseButton.GetComponent<Image>().color = new Color(0,0,0,0);
-        ChatCloseButton.GetComponentInChildren<TextMeshProUGUI>().color = Color.white;
 
         GameObject scrollGO = CreatePanel("ChatScroll", ChatPanel.transform, new Color(0, 0, 0, 0));
         RectTransform scrollRT = scrollGO.GetComponent<RectTransform>();
@@ -487,7 +486,7 @@ public class CampusRuntimeUI : MonoBehaviour
         ChatInput.textComponent.color = Color.white;
         ((TextMeshProUGUI)ChatInput.placeholder).color = new Color(0.6f, 0.6f, 0.65f, 1f);
         ((TextMeshProUGUI)ChatInput.placeholder).text = "Ask anything";
-        SendButton = CreateButton(inputRow.transform, "SendButton", "↑", null);
+        SendButton = CreateButton(inputRow.transform, "SendButton", null, "Icons/send");
         RectTransform sendRT = SendButton.GetComponent<RectTransform>();
         sendRT.anchorMin = new Vector2(1, 0.5f);
         sendRT.anchorMax = new Vector2(1, 0.5f);
@@ -496,7 +495,6 @@ public class CampusRuntimeUI : MonoBehaviour
         sendRT.sizeDelta = new Vector2(90, 90); // Slightly larger button
         
         SendButton.GetComponent<Image>().color = new Color(0.25f, 0.35f, 1f, 1f); // Vibrant blue
-        SendButton.GetComponentInChildren<TextMeshProUGUI>().color = Color.white;
     }
 
 
@@ -635,46 +633,7 @@ public class CampusRuntimeUI : MonoBehaviour
         return button;
     }
 
-    // Create hamburger menu button (3 horizontal lines)
-    private Button CreateHamburgerButton(Transform parent, string name)
-    {
-        GameObject go = CreatePanel(name, parent, new Color(0.12f, 0.14f, 0.18f, 1f));
-        Image background = go.GetComponent<Image>();
-        background.sprite = GetRoundedSprite();
-        background.type = Image.Type.Sliced;
 
-        Outline outline = go.AddComponent<Outline>();
-        outline.effectColor = new Color(0, 0, 0, 0.3f);
-        outline.effectDistance = new Vector2(1, -1);
-
-        Button button = go.AddComponent<Button>();
-        button.interactable = true;
-        button.targetGraphic = background;
-
-        ColorBlock colors = button.colors;
-        colors.normalColor = Color.white;
-        colors.highlightedColor = new Color(0.8f, 0.8f, 0.8f, 1f);
-        colors.pressedColor = new Color(0.6f, 0.6f, 0.6f, 1f);
-        colors.selectedColor = Color.white;
-        colors.colorMultiplier = 1f;
-        button.colors = colors;
-
-        // Create 3 horizontal lines (hamburger icon)
-        for (int i = 0; i < 3; i++)
-        {
-            GameObject line = CreatePanel($"Line{i}", go.transform, Color.white);
-            line.GetComponent<Image>().raycastTarget = false; // Don't block button clicks
-            RectTransform lineRT = line.GetComponent<RectTransform>();
-            lineRT.anchorMin = new Vector2(0.2f, 0.5f);
-            lineRT.anchorMax = new Vector2(0.8f, 0.5f);
-            lineRT.pivot = new Vector2(0.5f, 0.5f);
-            float yOffset = (i - 1) * 22f;
-            lineRT.anchoredPosition = new Vector2(0, yOffset);
-            lineRT.sizeDelta = new Vector2(0, 8);
-        }
-
-        return button;
-    }
 
     // Create button with ONLY icon (no text)
     private Button CreateIconOnlyButton(Transform parent, string name, string iconResourcePath)
