@@ -105,6 +105,11 @@ public class PathVisualizer : MonoBehaviour
         Destroy(leftArm.GetComponent<Collider>());
         Destroy(rightArm.GetComponent<Collider>());
         
+        // Add the animator to make the arrows flow seamlessly along the path
+        ArrowAnimator animator = arrow.AddComponent<ArrowAnimator>();
+        animator.spacing = this.spacing; // Sync with PathVisualizer's spacing
+        animator.speed = 0.6f; // Flow speed in meters per second
+        
         arrowPrefab = arrow;
         arrow.SetActive(false);
         DontDestroyOnLoad(arrow);
@@ -481,5 +486,24 @@ public class BillboardLabel : MonoBehaviour
         lookDir.y = 0f;
         if (lookDir.sqrMagnitude > 0.001f)
             transform.rotation = Quaternion.LookRotation(-lookDir, Vector3.up);
+    }
+}
+
+public class ArrowAnimator : MonoBehaviour
+{
+    public float speed = 0.5f;
+    public float spacing = 0.35f;
+    private Vector3 initialPosition;
+
+    void Start()
+    {
+        initialPosition = transform.position;
+    }
+
+    void Update()
+    {
+        // Move forward along the local Z axis, wrapping around exactly at the spacing distance
+        float offset = (Time.time * speed) % spacing;
+        transform.position = initialPosition + transform.forward * offset;
     }
 }
