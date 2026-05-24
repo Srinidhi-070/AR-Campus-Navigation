@@ -459,7 +459,7 @@ public class CampusRuntimeUI : MonoBehaviour
         go.transform.SetParent(parent, false);
         Image img = go.GetComponent<Image>();
         img.color = color;
-        img.sprite = Resources.GetBuiltinResource<Sprite>("UI/Skin/Background.psd");
+        img.sprite = Resources.GetBuiltinResource<Sprite>("UI/Skin/UISprite.psd");
         img.type = Image.Type.Sliced;
         return go;
     }
