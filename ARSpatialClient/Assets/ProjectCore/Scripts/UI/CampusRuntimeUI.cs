@@ -286,79 +286,77 @@ public class CampusRuntimeUI : MonoBehaviour
 
     private void BuildBottomBar()
     {
-        // Invisible container
-        GameObject bottomBar = new GameObject("BottomContainer", typeof(RectTransform));
-        bottomBar.transform.SetParent(NavigationChrome.transform, false);
-        RectTransform rt = bottomBar.GetComponent<RectTransform>();
-        rt.anchorMin = new Vector2(0, 0);
-        rt.anchorMax = new Vector2(1, 0);
-        rt.pivot = new Vector2(0.5f, 0f);
-        rt.anchoredPosition = Vector2.zero;
-        rt.sizeDelta = new Vector2(0, 280);
-
-        // Floating Status Pill
-        GameObject statusPill = CreatePanel("StatusPill", bottomBar.transform, new Color(0.06f, 0.08f, 0.12f, 0.85f));
+        // Floating Status Drawer
+        GameObject statusPill = CreatePanel("StatusDrawer", NavigationChrome.transform, new Color(0.04f, 0.05f, 0.08f, 0.98f));
         RectTransform pillRT = statusPill.GetComponent<RectTransform>();
-        pillRT.anchorMin = new Vector2(0.5f, 0f);
-        pillRT.anchorMax = new Vector2(0.5f, 0f);
+        pillRT.anchorMin = new Vector2(0f, 0f);
+        pillRT.anchorMax = new Vector2(1f, 0f);
         pillRT.pivot = new Vector2(0.5f, 0f);
-        pillRT.anchoredPosition = new Vector2(0, 36);
-        pillRT.sizeDelta = new Vector2(980, 140);
+        pillRT.anchoredPosition = new Vector2(0, 24);
+        pillRT.sizeDelta = new Vector2(-48, 340); // 24px margin on sides, 340px tall
         
         Outline pillOutline = statusPill.AddComponent<Outline>();
-        pillOutline.effectColor = new Color(0.2f, 0.3f, 0.4f, 0.3f);
+        pillOutline.effectColor = new Color(0.2f, 0.3f, 0.4f, 0.4f);
         pillOutline.effectDistance = new Vector2(1.5f, -1.5f);
 
-        // Chat button hovering above pill
-        ChatButton = CreateButton(bottomBar.transform, "ChatButton", "ASK AI");
-        RectTransform chatRT = ChatButton.GetComponent<RectTransform>();
-        chatRT.anchorMin = new Vector2(0.5f, 1f);
-        chatRT.anchorMax = new Vector2(0.5f, 1f);
-        chatRT.pivot = new Vector2(0.5f, 1f);
-        chatRT.anchoredPosition = new Vector2(0, 32); 
-        chatRT.sizeDelta = new Vector2(360, 80);
-        
-        Outline chatOutline = ChatButton.gameObject.AddComponent<Outline>();
-        chatOutline.effectColor = new Color(0, 0, 0, 0.3f);
-        chatOutline.effectDistance = new Vector2(2, -2);
+        // Top drag handle indicator (purely visual)
+        GameObject handle = CreatePanel("Handle", statusPill.transform, Color.white);
+        RectTransform handleRT = handle.GetComponent<RectTransform>();
+        handleRT.anchorMin = new Vector2(0.5f, 1f);
+        handleRT.anchorMax = new Vector2(0.5f, 1f);
+        handleRT.pivot = new Vector2(0.5f, 1f);
+        handleRT.anchoredPosition = new Vector2(0, -20);
+        handleRT.sizeDelta = new Vector2(120, 8);
 
-        // Direction text — inside pill
+        // Direction text (Large Blue)
         GameObject dirGO = new GameObject("DirectionText", typeof(RectTransform), typeof(TextMeshProUGUI));
         dirGO.transform.SetParent(statusPill.transform, false);
         RectTransform dirRT = dirGO.GetComponent<RectTransform>();
-        dirRT.anchorMin = new Vector2(0, 0.35f);
-        dirRT.anchorMax = new Vector2(1, 0.9f);
-        dirRT.offsetMin = new Vector2(24, 0);
-        dirRT.offsetMax = new Vector2(-24, 0);
+        dirRT.anchorMin = new Vector2(0, 1f);
+        dirRT.anchorMax = new Vector2(1, 1f);
+        dirRT.pivot = new Vector2(0.5f, 1f);
+        dirRT.anchoredPosition = new Vector2(0, -60);
+        dirRT.sizeDelta = new Vector2(-48, 80);
         DirectionText = dirGO.GetComponent<TextMeshProUGUI>();
         
         TMP_FontAsset defaultFont = Resources.Load<TMP_FontAsset>("Fonts & Materials/LiberationSans SDF");
         if (defaultFont != null) DirectionText.font = defaultFont;
         
         DirectionText.text = string.Empty;
-        DirectionText.fontSize = 32;
-        DirectionText.alignment = TextAlignmentOptions.Center;
-        DirectionText.color = Color.white;
+        DirectionText.fontSize = 64;
+        DirectionText.alignment = TextAlignmentOptions.BottomCenter;
+        DirectionText.color = new Color(0.35f, 0.55f, 1f, 1f); // Vibrant blue to match image
         DirectionText.enableWordWrapping = true;
         DirectionText.overflowMode = TextOverflowModes.Ellipsis;
+        DirectionText.fontStyle = FontStyles.Bold;
 
-        // Status text at bottom of pill
+        // Status text (Small White)
         GameObject statusGO = new GameObject("StatusText", typeof(RectTransform), typeof(TextMeshProUGUI));
         statusGO.transform.SetParent(statusPill.transform, false);
         RectTransform statusRT = statusGO.GetComponent<RectTransform>();
-        statusRT.anchorMin = new Vector2(0, 0.1f);
-        statusRT.anchorMax = new Vector2(1, 0.35f);
-        statusRT.offsetMin = new Vector2(24, 0);
-        statusRT.offsetMax = new Vector2(-24, 0);
+        statusRT.anchorMin = new Vector2(0, 1f);
+        statusRT.anchorMax = new Vector2(1, 1f);
+        statusRT.pivot = new Vector2(0.5f, 1f);
+        statusRT.anchoredPosition = new Vector2(0, -140);
+        statusRT.sizeDelta = new Vector2(-48, 60);
         StatusText = statusGO.GetComponent<TextMeshProUGUI>();
         
         if (defaultFont != null) StatusText.font = defaultFont;
         
         StatusText.text = "Loading campus map...";
-        StatusText.fontSize = 24;
-        StatusText.alignment = TextAlignmentOptions.Center;
-        StatusText.color = new Color(0.7f, 0.75f, 0.8f, 1f);
+        StatusText.fontSize = 28;
+        StatusText.alignment = TextAlignmentOptions.TopCenter;
+        StatusText.color = Color.white;
         StatusText.enableWordWrapping = true;
+
+        // Chat button integrated into the drawer
+        ChatButton = CreateButton(statusPill.transform, "ChatButton", "ASK AI");
+        RectTransform chatRT = ChatButton.GetComponent<RectTransform>();
+        chatRT.anchorMin = new Vector2(0.5f, 0f);
+        chatRT.anchorMax = new Vector2(0.5f, 0f);
+        chatRT.pivot = new Vector2(0.5f, 0f);
+        chatRT.anchoredPosition = new Vector2(0, 24); 
+        chatRT.sizeDelta = new Vector2(400, 90);
 
         // Retry button (hidden by default)
         RetryButton = CreateButton(statusPill.transform, "RetryButton", "RETRY");
