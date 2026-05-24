@@ -330,15 +330,27 @@ public class CampusRuntimeUI : MonoBehaviour
         DirectionText.overflowMode = TextOverflowModes.Ellipsis;
         DirectionText.fontStyle = FontStyles.Bold;
 
-        // Status text (Small White)
+        // Floating Status Toast (above the drawer)
+        GameObject statusToast = CreatePanel("StatusToast", NavigationChrome.transform, new Color(0.04f, 0.05f, 0.08f, 0.95f));
+        RectTransform toastRT = statusToast.GetComponent<RectTransform>();
+        toastRT.anchorMin = new Vector2(0.5f, 0f);
+        toastRT.anchorMax = new Vector2(0.5f, 0f);
+        toastRT.pivot = new Vector2(0.5f, 0f);
+        toastRT.anchoredPosition = new Vector2(0, 380); // 340px (drawer) + 40px gap
+        toastRT.sizeDelta = new Vector2(800, 80);
+        
+        Outline toastOutline = statusToast.AddComponent<Outline>();
+        toastOutline.effectColor = new Color(0.2f, 0.3f, 0.4f, 0.4f);
+        toastOutline.effectDistance = new Vector2(1.5f, -1.5f);
+
+        // Status text inside the floating toast
         GameObject statusGO = new GameObject("StatusText", typeof(RectTransform), typeof(TextMeshProUGUI));
-        statusGO.transform.SetParent(statusPill.transform, false);
+        statusGO.transform.SetParent(statusToast.transform, false);
         RectTransform statusRT = statusGO.GetComponent<RectTransform>();
-        statusRT.anchorMin = new Vector2(0, 1f);
+        statusRT.anchorMin = new Vector2(0, 0f);
         statusRT.anchorMax = new Vector2(1, 1f);
-        statusRT.pivot = new Vector2(0.5f, 1f);
-        statusRT.anchoredPosition = new Vector2(0, -140);
-        statusRT.sizeDelta = new Vector2(-48, 60);
+        statusRT.offsetMin = Vector2.zero;
+        statusRT.offsetMax = Vector2.zero;
         StatusText = statusGO.GetComponent<TextMeshProUGUI>();
         
         if (defaultFont != null) StatusText.font = defaultFont;
