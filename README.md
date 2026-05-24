@@ -12,7 +12,7 @@
 
 ---
 
-## 📌 Executive Summary
+## Executive Summary
 
 **Trailix** is an enterprise-grade Augmented Reality (AR) spatial navigation system engineered specifically for complex, multi-floor indoor and outdoor campus environments. By leveraging Unity's robust AR Foundation framework coupled with a highly responsive, lightweight Python FastAPI backend, Trailix projects precise, contextual routing overlays directly onto the physical world through the user's mobile device camera.
 
@@ -20,7 +20,7 @@ The system abandons traditional 2D map cognitive overload, allowing users to eff
 
 ---
 
-## 🏗 System Architecture
+## System Architecture
 
 Trailix operates on a strictly decoupled, dual-layer architecture. Interaction between the local client and the server infrastructure is fully asynchronous, guaranteeing low-latency path updates during continuous physical movement.
 
@@ -49,7 +49,7 @@ sequenceDiagram
 
 ---
 
-## ✨ Comprehensive Feature Suite
+## Comprehensive Feature Suite
 
 ### 1. Advanced Augmented Reality Visualization
 * **Procedural Chevron Arrays**: Instead of relying on static textures or heavy 3D models, Trailix dynamically generates flat, low-profile 3D chevron arrows at runtime. This drastically reduces draw calls and memory overhead.
@@ -66,7 +66,7 @@ sequenceDiagram
 
 ---
 
-## 📂 Repository Structure
+## Repository Structure
 
 The codebase is strictly segregated to enforce single-responsibility principles between the routing mathematics and graphical rendering.
 
@@ -97,7 +97,7 @@ Trailix/
 
 ---
 
-## 📡 Backend API Reference
+## Backend API Reference
 
 The backend communicates exclusively via lightweight JSON payloads over REST HTTP.
 
@@ -133,7 +133,7 @@ The backend communicates exclusively via lightweight JSON payloads over REST HTT
 
 ---
 
-## ⚙️ Build and Deployment Guide
+## Build and Deployment Guide
 
 ### Phase 1: Backend Initialization
 
@@ -171,7 +171,7 @@ The backend communicates exclusively via lightweight JSON payloads over REST HTT
 
 ---
 
-## 📝 Automated Editor Tooling
+## Automated Editor Tooling
 
 Trailix utilizes custom C# Editor scripts to streamline the deployment pipeline. These tools are strictly isolated in `Assembly-CSharp-Editor.csproj` to prevent compilation errors in the final Android payload.
 
