@@ -79,6 +79,16 @@ class ChatService:
 
         fallback = self._semantic_match(query)
         if fallback is None:
+            # If the user just said hi/hello/hey and the AI failed, give a generic greeting
+            lower_q = query.strip().lower()
+            if lower_q in ["hi", "hello", "hey", "hi!", "hello!"]:
+                return {
+                    "answer": "Hello! Where would you like to navigate today?",
+                    "destination": None,
+                    "confidence": 0.0,
+                    "source": "fallback"
+                }
+
             return {
                 "answer": "I could not match that destination. Try the room or office name exactly.",
                 "destination": None,
@@ -160,7 +170,8 @@ class ChatService:
 
         system_prompt = (
             "You are a smart campus navigation assistant.\n"
-            "Your only job is to map the user request to exactly one destination node id from the list.\n"
+            "If the user asks to navigate to a location, map it to exactly one destination node id from the list.\n"
+            "If the user just says hi, greets you, or asks a general question, chat with them casually and set DESTINATION to NONE.\n"
             "Respond in this exact format:\n"
             "DESTINATION: <NODE_ID or NONE>\n"
             "ANSWER: <one short helpful sentence>"

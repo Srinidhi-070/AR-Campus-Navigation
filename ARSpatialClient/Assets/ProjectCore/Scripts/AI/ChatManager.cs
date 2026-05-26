@@ -16,6 +16,7 @@ public class ChatManager : MonoBehaviour
 
     private readonly List<CampusApiClient.ChatHistoryMessage> m_History = new List<CampusApiClient.ChatHistoryMessage>();
     private const int MaxHistoryMessages = 20;
+    private GameObject m_ThinkingBubble;
 
     public void Configure(
         CampusApiClient apiClient,
@@ -31,6 +32,17 @@ public class ChatManager : MonoBehaviour
         chatContainer = contentRoot;
         statusText = status;
         chatScrollRect = scrollRect;
+
+        // Force the container to expand rows to full width so bubble alignment works
+        if (chatContainer != null)
+        {
+            VerticalLayoutGroup vlg = chatContainer.GetComponent<VerticalLayoutGroup>();
+            if (vlg != null)
+            {
+                vlg.childControlWidth = true;
+                vlg.childForceExpandWidth = true;
+            }
+        }
     }
 
     public void SendChatMessage(string userText)
@@ -48,8 +60,6 @@ public class ChatManager : MonoBehaviour
 
         if (inputField != null)
             inputField.text = string.Empty;
-        if (statusText != null)
-            statusText.text = "Thinking...";
 
         if (m_ApiClient == null || m_NavigationFlow == null)
         {
@@ -57,6 +67,10 @@ public class ChatManager : MonoBehaviour
             return;
         }
 
+        if (m_ThinkingBubble != null)
+            Destroy(m_ThinkingBubble);
+            
+        m_ThinkingBubble = SpawnBubble("Thinking...", false);
         StartCoroutine(SendToBackend(userText));
     }
 
@@ -67,8 +81,11 @@ public class ChatManager : MonoBehaviour
             m_History,
             response =>
             {
-                if (statusText != null)
-                    statusText.text = string.Empty;
+                if (m_ThinkingBubble != null)
+                {
+                    Destroy(m_ThinkingBubble);
+                    m_ThinkingBubble = null;
+                }
 
                 string answer = response != null && !string.IsNullOrEmpty(response.answer)
                     ? response.answer
@@ -82,8 +99,11 @@ public class ChatManager : MonoBehaviour
             },
             error =>
             {
-                if (statusText != null)
-                    statusText.text = "Error";
+                if (m_ThinkingBubble != null)
+                {
+                    Destroy(m_ThinkingBubble);
+                    m_ThinkingBubble = null;
+                }
 
                 SpawnBubble($"Could not reach the backend. {error}", false);
             });
@@ -93,10 +113,10 @@ public class ChatManager : MonoBehaviour
             chatScrollRect.verticalNormalizedPosition = 0f;
     }
 
-    private void SpawnBubble(string text, bool isUser)
+    private GameObject SpawnBubble(string text, bool isUser)
     {
         if (chatContainer == null)
-            return;
+            return null;
 
         GameObject row = new GameObject(isUser ? "UserRow" : "AssistantRow");
         row.transform.SetParent(chatContainer, false);
@@ -162,6 +182,8 @@ public class ChatManager : MonoBehaviour
         // Prevent bubble from getting endlessly wide
         LayoutElement textLayout = textGO.AddComponent<LayoutElement>();
         textLayout.preferredWidth = Mathf.Min(text.Length * 14f, 600f);
+        
+        return row;
     }
 
     /// <summary>
