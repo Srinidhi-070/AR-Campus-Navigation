@@ -193,7 +193,7 @@ public class NavigationFlowController : MonoBehaviour
             m_ActiveWorldPath = null;
             m_PathVisualizer.ClearPath();
             m_UI.ShowStatus("You are already at the destination.");
-            m_UI.UpdateNavigationGuidance("*", "Destination Reached");
+            m_UI.UpdateNavigationGuidance("📍", "Destination Reached");
             RefreshControls();
             return;
         }
@@ -473,7 +473,7 @@ public class NavigationFlowController : MonoBehaviour
         m_PathVisualizer.ClearPath();
         m_PathVisualizer.DrawPath(worldPath, transitions);
         
-        m_UI.UpdateNavigationGuidance("^", "Calculating..."); // Initial state, will be overwritten in Update()
+        m_UI.UpdateNavigationGuidance("↑", "Calculating..."); // Initial state, will be overwritten in Update()
         
         m_UI.ShowStatus("Navigation active.");
         UpdateGuidance("Follow the arrows to your destination", new Color(1f, 0.6f, 0.2f, 1f));
@@ -555,7 +555,7 @@ public class NavigationFlowController : MonoBehaviour
             {
                 m_PathVisualizer.ClearPath();
                 m_UI.ShowStatus("Destination Reached!");
-                m_UI.UpdateNavigationGuidance("*", "Arrived");
+                m_UI.UpdateNavigationGuidance("📍", "Arrived");
                 UpdateGuidance("You've arrived!", new Color(0.2f, 0.9f, 0.4f, 1f));
                 m_ActiveWorldPath = null;
                 m_ActiveTransitions = null;
@@ -584,30 +584,30 @@ public class NavigationFlowController : MonoBehaviour
         switch (maneuver)
         {
             case NavManeuver.Straight:
-                icon = "^";
+                icon = "↑";
                 text = "Continue straight";
                 // Don't show distance for straight unless it's the very end
                 if (m_ActiveWorldPath != null && m_ActiveWorldPath.Count <= 2)
                     text = $"Destination {distText}";
                 break;
             case NavManeuver.SlightLeft:
-                icon = "<";
+                icon = "↖";
                 text = $"Slight left {distText}";
                 break;
             case NavManeuver.TurnLeft:
-                icon = "<";
+                icon = "←";
                 text = $"Turn left {distText}";
                 break;
             case NavManeuver.SlightRight:
-                icon = ">";
+                icon = "↗";
                 text = $"Slight right {distText}";
                 break;
             case NavManeuver.TurnRight:
-                icon = ">";
+                icon = "→";
                 text = $"Turn right {distText}";
                 break;
             case NavManeuver.Arrived:
-                icon = "*";
+                icon = "📍";
                 text = "Arrived";
                 break;
         }
