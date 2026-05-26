@@ -322,10 +322,18 @@ public class QRLocationManager : MonoBehaviour
 
         if (bestDot < 0.5f)
         {
-            // Low confidence — user is walking at a steep angle to all edges.
-            // Wait for more data or a straighter walk.
-            Debug.Log($"[QRLocationManager] Low calibration confidence ({bestDot:F2}). Walk along a corridor for best results.");
-            return;
+            if (m_CalibrationAccumulatedDist > CALIBRATION_WALK_THRESHOLD * 2.0f)
+            {
+                Debug.LogWarning($"[QRLocationManager] Forcing calibration after walking far. Best match was ({bestDot:F2}).");
+                // Don't return, just accept the best edge we have so it doesn't get stuck forever
+            }
+            else
+            {
+                // Low confidence — user is walking at a steep angle to all edges.
+                // Wait for more data or a straighter walk.
+                Debug.Log($"[QRLocationManager] Low calibration confidence ({bestDot:F2}). Walk along a corridor for best results.");
+                return;
+            }
         }
 
         // Compute yaw offset:

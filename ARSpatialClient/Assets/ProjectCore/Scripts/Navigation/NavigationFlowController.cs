@@ -22,6 +22,15 @@ public class NavigationFlowController : MonoBehaviour
     [SerializeField] private float m_PathHeightOffset = -1.5f;
     [SerializeField] private float m_MapCompassOffset = 0f; // Offset to align Grid North with True North
 
+    // ── Dynamic Navigation State ──────────────────────────────────────────────
+    private string m_ActiveDestinationId;      // Stored for off-path recalculation
+    private string m_ActiveDestinationName;
+    private float m_OffPathTimer = 0f;
+    private const float OFF_PATH_DISTANCE = 5f;  // meters
+    private const float OFF_PATH_TIMEOUT = 3f;   // seconds before recalculating
+    private const float RECALC_COOLDOWN = 5f;    // prevent spamming recalculations
+    private float m_LastRecalcTime = -999f;
+
     [Header("UI Feedback")]
     private float m_PathUpdateTimer = 0f;
 
@@ -46,7 +55,10 @@ public class NavigationFlowController : MonoBehaviour
     {
         m_ActiveWorldPath = null;
         if (m_QRLocationManager != null)
+        {
             m_QRLocationManager.OnLocationChanged -= HandleQrLocationChanged;
+            m_QRLocationManager.OnCalibrationComplete -= HandleCalibrationComplete;
+        }
 
         m_ApiClient = apiClient;
         m_LocationRegistry = locationRegistry;
@@ -56,7 +68,10 @@ public class NavigationFlowController : MonoBehaviour
         m_Validator = validator;
 
         if (m_QRLocationManager != null)
+        {
             m_QRLocationManager.OnLocationChanged += HandleQrLocationChanged;
+            m_QRLocationManager.OnCalibrationComplete += HandleCalibrationComplete;
+        }
 
         RefreshControls();
     }
@@ -151,6 +166,15 @@ public class NavigationFlowController : MonoBehaviour
             return;
         }
 
+        // Block navigation until walk-to-calibrate is complete
+        if (m_QRLocationManager != null &&
+            m_QRLocationManager.HasLocation &&
+            m_QRLocationManager.CurrentCalibrationState != QRLocationManager.CalibrationState.Calibrated)
+        {
+            m_UI.ShowStatus("Walk a few steps first to calibrate direction.");
+            return;
+        }
+
         if (!m_Validator.CanRequestPath(
                 m_LocationRegistry,
                 m_QRLocationManager,
@@ -169,13 +193,18 @@ public class NavigationFlowController : MonoBehaviour
             m_ActiveWorldPath = null;
             m_PathVisualizer.ClearPath();
             m_UI.ShowStatus("You are already at the destination.");
-            m_UI.ShowDirections(new List<string> { "Destination Reached" });
+            m_UI.UpdateNavigationGuidance("*", "Destination Reached");
             RefreshControls();
             return;
         }
 
+        // Store destination for potential off-path recalculation
+        m_ActiveDestinationId = destination.id;
+        m_ActiveDestinationName = string.IsNullOrEmpty(displayName) ? destination.displayName : displayName;
+        m_OffPathTimer = 0f;
+
         m_ActiveWorldPath = null;
-        string label = string.IsNullOrEmpty(displayName) ? destination.displayName : displayName;
+        string label = m_ActiveDestinationName;
         m_UI.ShowStatus($"Calculating path to {label}...");
 
         string startNodeId = m_QRLocationManager.CurrentNodeId;
@@ -186,13 +215,14 @@ public class NavigationFlowController : MonoBehaviour
             if (!TryNavigateLocally(startNodeId, destinationNodeId, out string localError))
             {
                 m_PathVisualizer.ClearPath();
-                m_UI.ShowDirections(new List<string>());
+                m_UI.UpdateNavigationGuidance("", "");
                 m_UI.ShowStatus($"No path found. {localError}");
                 RefreshControls();
             }
             else
             {
                 m_UI.ShowStatus("Navigation active (offline map).");
+                UpdateGuidance("Follow the arrows to your destination", new Color(1f, 0.6f, 0.2f, 1f));
             }
 
             return;
@@ -206,6 +236,7 @@ public class NavigationFlowController : MonoBehaviour
                 if (!IsValidPathResponse(response) && TryNavigateLocally(startNodeId, destinationNodeId, out _))
                 {
                     m_UI.ShowStatus("Navigation active (offline map).");
+                    UpdateGuidance("Follow the arrows to your destination", new Color(1f, 0.6f, 0.2f, 1f));
                     return;
                 }
 
@@ -217,11 +248,12 @@ public class NavigationFlowController : MonoBehaviour
                 {
                     Debug.LogWarning($"[NavigationFlowController] Backend path error, using local route: {error}");
                     m_UI.ShowStatus("Navigation active (offline map).");
+                    UpdateGuidance("Follow the arrows to your destination", new Color(1f, 0.6f, 0.2f, 1f));
                     return;
                 }
 
                 m_PathVisualizer.ClearPath();
-                m_UI.ShowDirections(new List<string>());
+                m_UI.UpdateNavigationGuidance("", "");
                 m_UI.ShowStatus($"No path found. {error} {localError}");
                 RefreshControls();
             }));
@@ -310,7 +342,7 @@ public class NavigationFlowController : MonoBehaviour
         if (response == null || response.path == null || response.path.Count < 2)
         {
             m_PathVisualizer.ClearPath();
-            m_UI.ShowDirections(new List<string>());
+            m_UI.UpdateNavigationGuidance("", "");
             m_UI.ShowStatus("No valid path was returned by the backend.");
             RefreshControls();
             return;
@@ -357,10 +389,10 @@ public class NavigationFlowController : MonoBehaviour
         foreach (CampusApiClient.PathPointPayload point in response.path)
             worldPath.Add(new Vector3(point.x, point.y, point.z));
 
-        // --- AR ALIGNMENT (stable, no hardcoded vertical offsets, no rotation_y dependency) ---
+        // --- AR ALIGNMENT using Walk-to-Calibrate yaw offset ---
         // Backend points are in map space. We map them into world space by:
         // 1) picking a stable world anchor position from AR plane raycast near screen center
-        // 2) aligning heading using the first segment direction (map) vs current camera forward projected to XZ
+        // 2) using the calibrated yaw offset (computed from walk-to-calibrate)
         if (worldPath.Count > 0)
         {
             // 1) Get a stable world anchor point via AR plane raycast
@@ -381,35 +413,32 @@ public class NavigationFlowController : MonoBehaviour
                     Debug.LogWarning("[NavigationFlowController] No camera or AR plane available. Rendering path unaligned.");
                     m_PathVisualizer.ClearPath();
                     m_PathVisualizer.DrawPath(worldPath, transitions);
-                    m_UI.ShowDirections(response.directions ?? new List<string>());
+                    m_UI.UpdateNavigationGuidance("↑", "Calculating...");
                     m_UI.ShowStatus("Navigation active (unaligned).");
                     RefreshControls();
                     return;
                 }
             }
 
-            // 2) Use Compass for absolute orientation, decoupling path direction from scan angle.
-            float arNorthYaw = 0f;
-            if (m_QRLocationManager != null && m_QRLocationManager.HasLocation)
+            // 2) Use calibrated yaw offset from walk-to-calibrate (replaces unreliable compass)
+            float yawOffset = 0f;
+            if (m_QRLocationManager != null &&
+                m_QRLocationManager.CurrentCalibrationState == QRLocationManager.CalibrationState.Calibrated)
             {
-                float camYaw = m_QRLocationManager.ScanCameraRotationY;
-                float compassHeading = m_QRLocationManager.ScanCompassHeading;
-                arNorthYaw = camYaw - compassHeading; 
+                yawOffset = m_QRLocationManager.CalibratedYawOffset + m_MapCompassOffset;
             }
             else
             {
-                // Fallback
-                Transform cam = Camera.main != null ? Camera.main.transform : null;
-                float camYaw = cam != null ? cam.eulerAngles.y : 0f;
-                float compassHeading = Input.compass.enabled ? Input.compass.trueHeading : 0f;
-                arNorthYaw = camYaw - compassHeading;
+                // Fallback to compass if calibration hasn't happened (shouldn't reach here normally)
+                float camYaw = m_QRLocationManager != null ? m_QRLocationManager.ScanCameraRotationY : 0f;
+                float compassHeading = m_QRLocationManager != null ? m_QRLocationManager.ScanCompassHeading : 0f;
+                yawOffset = (camYaw - compassHeading) + m_MapCompassOffset;
+                Debug.LogWarning("[NavigationFlowController] Using compass fallback for alignment.");
             }
 
-            // The yawOffset aligns the Map's +Z to physical True North, plus any custom building offset.
-            float yawOffset = arNorthYaw + m_MapCompassOffset;
             Quaternion rotationOffset = Quaternion.Euler(0f, yawOffset, 0f);
 
-            Debug.Log($"[NavigationFlowController] arNorthYaw={arNorthYaw:F1} mapOffset={m_MapCompassOffset:F1} yawOffset={yawOffset:F1}");
+            Debug.Log($"[NavigationFlowController] Calibrated yawOffset={yawOffset:F1} mapOffset={m_MapCompassOffset:F1}");
 
             // 3) Transform all points:
             // translate so worldPath[0] lands at worldAnchorPos, then rotate around Y
@@ -443,13 +472,19 @@ public class NavigationFlowController : MonoBehaviour
 
         m_PathVisualizer.ClearPath();
         m_PathVisualizer.DrawPath(worldPath, transitions);
-        m_UI.ShowDirections(response.directions ?? new List<string>());
+        
+        m_UI.UpdateNavigationGuidance("^", "Calculating..."); // Initial state, will be overwritten in Update()
+        
         m_UI.ShowStatus("Navigation active.");
+        UpdateGuidance("Follow the arrows to your destination", new Color(1f, 0.6f, 0.2f, 1f));
         RefreshControls();
     }
 
     void Update()
     {
+        // Update guidance banner during calibration
+        UpdateCalibrationGuidance();
+
         if (m_ActiveWorldPath == null || m_ActiveWorldPath.Count < 2)
             return;
 
@@ -479,6 +514,24 @@ public class NavigationFlowController : MonoBehaviour
             }
         }
 
+        // ── Off-path detection & recalculation ──
+        if (minDistance > OFF_PATH_DISTANCE)
+        {
+            m_OffPathTimer += Time.deltaTime;
+            if (m_OffPathTimer >= OFF_PATH_TIMEOUT && (Time.time - m_LastRecalcTime) > RECALC_COOLDOWN)
+            {
+                Debug.Log($"[NavigationFlowController] User is {minDistance:F1}m off-path. Recalculating...");
+                UpdateGuidance("Recalculating route...", new Color(1f, 0.85f, 0.2f, 1f), true);
+                TryRecalculateFromNearestNode();
+                m_OffPathTimer = 0f;
+                return;
+            }
+        }
+        else
+        {
+            m_OffPathTimer = 0f;
+        }
+
         // If the user has walked past previous waypoints and is within 1.5m of a new one, trim the path
         if (closestIndex > 0 && minDistance < 1.5f)
         {
@@ -502,14 +555,201 @@ public class NavigationFlowController : MonoBehaviour
             {
                 m_PathVisualizer.ClearPath();
                 m_UI.ShowStatus("Destination Reached!");
+                m_UI.UpdateNavigationGuidance("*", "Arrived");
+                UpdateGuidance("You've arrived!", new Color(0.2f, 0.9f, 0.4f, 1f));
                 m_ActiveWorldPath = null;
                 m_ActiveTransitions = null;
+                m_ActiveDestinationId = null;
             }
             else
             {
                 m_PathVisualizer.DrawPath(m_ActiveWorldPath, m_ActiveTransitions);
             }
         }
+        
+        // ── Dynamic Turn-by-Turn Guidance ──
+        if (m_ActiveWorldPath != null && m_ActiveWorldPath.Count >= 2)
+        {
+            (NavManeuver maneuver, float dist) = GetNextManeuver(userPos, m_ActiveWorldPath);
+            UpdateManeuverUI(maneuver, dist);
+        }
+    }
+
+    private void UpdateManeuverUI(NavManeuver maneuver, float distance)
+    {
+        string icon = "";
+        string text = "";
+        string distText = distance < 2f ? "now" : $"in {Mathf.RoundToInt(distance)}m";
+
+        switch (maneuver)
+        {
+            case NavManeuver.Straight:
+                icon = "^";
+                text = "Continue straight";
+                // Don't show distance for straight unless it's the very end
+                if (m_ActiveWorldPath != null && m_ActiveWorldPath.Count <= 2)
+                    text = $"Destination {distText}";
+                break;
+            case NavManeuver.SlightLeft:
+                icon = "<";
+                text = $"Slight left {distText}";
+                break;
+            case NavManeuver.TurnLeft:
+                icon = "<";
+                text = $"Turn left {distText}";
+                break;
+            case NavManeuver.SlightRight:
+                icon = ">";
+                text = $"Slight right {distText}";
+                break;
+            case NavManeuver.TurnRight:
+                icon = ">";
+                text = $"Turn right {distText}";
+                break;
+            case NavManeuver.Arrived:
+                icon = "*";
+                text = "Arrived";
+                break;
+        }
+
+        m_UI.UpdateNavigationGuidance(icon, text);
+    }
+
+    private (NavManeuver, float) GetNextManeuver(Vector3 userPos, List<Vector3> path)
+    {
+        if (path.Count == 0) return (NavManeuver.Arrived, 0f);
+        if (path.Count == 1) return (NavManeuver.Arrived, Vector3.Distance(userPos, path[0]));
+
+        float totalDist = Vector3.Distance(userPos, path[0]);
+        Vector3 currentDir = (path[0] - userPos).normalized;
+
+        for (int i = 0; i < path.Count - 1; i++)
+        {
+            Vector3 seg = path[i + 1] - path[i];
+            // Ignore very short segments
+            if (seg.sqrMagnitude < 0.04f) continue;
+            
+            Vector3 nextDir = seg.normalized;
+            float angle = Vector3.SignedAngle(currentDir, nextDir, Vector3.up);
+            
+            if (Mathf.Abs(angle) > 20f)
+            {
+                NavManeuver maneuver = NavManeuver.Straight;
+                if (angle >= 60f) maneuver = NavManeuver.TurnRight;
+                else if (angle > 20f) maneuver = NavManeuver.SlightRight;
+                else if (angle <= -60f) maneuver = NavManeuver.TurnLeft;
+                else if (angle < -20f) maneuver = NavManeuver.SlightLeft;
+
+                return (maneuver, totalDist);
+            }
+            
+            totalDist += seg.magnitude;
+            currentDir = nextDir;
+        }
+
+        return (NavManeuver.Straight, totalDist);
+    }
+
+    // ── Calibration Guidance UI Updates ────────────────────────────────────────
+
+    private void UpdateCalibrationGuidance()
+    {
+        if (m_QRLocationManager == null || m_UI == null)
+            return;
+
+        if (!m_QRLocationManager.HasLocation)
+        {
+            UpdateGuidance("", Color.clear);
+            return;
+        }
+
+        if (m_QRLocationManager.CurrentCalibrationState == QRLocationManager.CalibrationState.WaitingForWalk)
+        {
+            float progress = Mathf.Clamp01(m_QRLocationManager.CalibrationWalkDistance / m_QRLocationManager.RequiredWalkDistance);
+            UpdateGuidance(
+                "Walk a few steps to calibrate direction...",
+                new Color(0.3f, 0.6f, 1f, 1f),
+                true,
+                progress
+            );
+        }
+    }
+
+    private void UpdateGuidance(string text, Color color, bool pulse = false, float progress = -1f)
+    {
+        if (m_UI == null) return;
+        m_UI.ShowGuidance(text, color, pulse, progress);
+    }
+
+    // ── Turn-by-Turn Enums ───────────────────────────────────────────────────
+    private enum NavManeuver
+    {
+        Straight,
+        SlightRight,
+        TurnRight,
+        SlightLeft,
+        TurnLeft,
+        Arrived
+    }
+
+    // ── State ─────────────────────────────────────────────────────────────────
+    private bool m_IsSimulating = false;
+    private void HandleCalibrationComplete()
+    {
+        if (!string.IsNullOrEmpty(m_ActiveDestinationId))
+        {
+            Debug.Log("[NavigationFlowController] Calibration complete. Recalculating path to apply new alignment.");
+            TryRecalculateFromNearestNode();
+        }
+    }
+
+    private void TryRecalculateFromNearestNode()
+    {
+        if (string.IsNullOrEmpty(m_ActiveDestinationId))
+            return;
+
+        m_LastRecalcTime = Time.time;
+
+        // Re-request path from current QR node to destination
+        // (The user is still closest to their original start area in the graph)
+        string startNodeId = m_QRLocationManager.CurrentNodeId;
+        string destId = m_ActiveDestinationId;
+
+        if (m_UseLocalRouting || m_ApiClient == null)
+        {
+            if (TryNavigateLocally(startNodeId, destId, out string localError))
+            {
+                m_UI.ShowStatus("Route recalculated.");
+                UpdateGuidance("Follow the arrows to your destination", new Color(1f, 0.6f, 0.2f, 1f));
+            }
+            else
+            {
+                Debug.LogWarning($"[NavigationFlowController] Recalculation failed: {localError}");
+                UpdateGuidance("Follow the arrows to your destination", new Color(1f, 0.6f, 0.2f, 1f));
+            }
+            return;
+        }
+
+        StartCoroutine(m_ApiClient.RequestPath(
+            startNodeId,
+            destId,
+            response =>
+            {
+                HandlePathResponse(response);
+                m_UI.ShowStatus("Route recalculated.");
+                UpdateGuidance("Follow the arrows to your destination", new Color(1f, 0.6f, 0.2f, 1f));
+            },
+            error =>
+            {
+                if (TryNavigateLocally(startNodeId, destId, out _))
+                {
+                    m_UI.ShowStatus("Route recalculated (offline).");
+                    UpdateGuidance("Follow the arrows to your destination", new Color(1f, 0.6f, 0.2f, 1f));
+                    return;
+                }
+                Debug.LogWarning($"[NavigationFlowController] Recalculation failed: {error}");
+                UpdateGuidance("Follow the arrows to your destination", new Color(1f, 0.6f, 0.2f, 1f));
+            }));
     }
 
     private bool IsValidPathResponse(CampusApiClient.PathResponsePayload response)
