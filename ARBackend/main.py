@@ -28,13 +28,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434/api/generate")
-OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "llama3.2")
+HF_API_TOKEN = os.environ.get("HF_API_TOKEN", "")
+HF_MODEL_ID = os.environ.get("HF_MODEL_ID", "meta-llama/Llama-3.2-3B-Instruct")
 NODES_PATH = Path(__file__).resolve().parent / "nodes.json"
 
 graph_service = GraphService(NODES_PATH)
 try:
-    chat_service = ChatService(graph_service, OLLAMA_URL, OLLAMA_MODEL)
+    chat_service = ChatService(graph_service, HF_API_TOKEN, HF_MODEL_ID)
     print("Chat service initialized (LLM + semantic matching)")
 except Exception as e:
     chat_service = None
@@ -46,7 +46,7 @@ def root():
     graph_service.reload_if_needed()
     return {
         "status": "AR Campus Navigation API running",
-        "model": OLLAMA_MODEL,
+        "model": HF_MODEL_ID,
         "nodes_path": str(NODES_PATH),
         "locations": len(graph_service.get_locations()),
     }
@@ -64,7 +64,7 @@ async def health():
     return {
         "status": "ok",
         "locations": len(graph_service.get_locations()),
-        "ollama_model": OLLAMA_MODEL,
+        "hf_model": HF_MODEL_ID,
     }
 
 

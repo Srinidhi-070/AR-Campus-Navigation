@@ -16,15 +16,15 @@ from schemas import ChatMessage
 
 
 class ChatService:
-    def __init__(self, graph_service, ollama_url: str, ollama_model: str):
+    def __init__(self, graph_service, hf_api_token: str, hf_model_id: str):
         self._graph_service = graph_service
-        self._ollama_url = ollama_url
-        self._ollama_model = ollama_model
+        self._hf_api_token = hf_api_token
+        self._hf_model_id = hf_model_id
         self._encoder = None
         self._indexed_ids: List[str] = []
         self._indexed_text: List[str] = []
         self._embeddings = None
-        self._ollama_unavailable = False
+        self._api_unavailable = False
 
         if SentenceTransformer is not None and np is not None:
             try:
@@ -59,7 +59,7 @@ class ChatService:
                 "source": "empty_graph",
             }
 
-        llm_text = await self._ask_ollama(query, history, locations)
+        llm_text = await self._ask_huggingface(query, history, locations)
         if llm_text:
             parsed = self._parse_llm_response(llm_text)
             if parsed["destination"] and self._graph_service.get_node(parsed["destination"]):
@@ -143,9 +143,9 @@ class ChatService:
 
         return best_id, round(min(0.89, max(0.35, best_score)), 4)
 
-    async def _ask_ollama(self, query: str, history: List[ChatMessage], locations) -> Optional[str]:
-        # Skip Ollama entirely if we already know it's unavailable
-        if self._ollama_unavailable:
+    async def _ask_huggingface(self, query: str, history: List[ChatMessage], locations) -> Optional[str]:
+        # Skip HF entirely if we already know it's unavailable or token is missing
+        if self._api_unavailable or not self._hf_api_token:
             return None
 
         history_text = "\n".join(
@@ -168,19 +168,28 @@ class ChatService:
             "ANSWER: <one short helpful sentence>\n"
         )
 
+        api_url = f"https://api-inference.huggingface.co/models/{self._hf_model_id}"
+        headers = {"Authorization": f"Bearer {self._hf_api_token}"}
+        payload = {
+            "inputs": prompt,
+            "parameters": {"max_new_tokens": 150, "return_full_text": False}
+        }
+
         try:
-            async with httpx.AsyncClient(timeout=5.0) as client:
-                response = await client.post(
-                    self._ollama_url,
-                    json={"model": self._ollama_model, "prompt": prompt, "stream": False},
-                )
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                response = await client.post(api_url, headers=headers, json=payload)
             if response.status_code != 200:
+                print(f"[ChatService] HF API Error: {response.status_code} - {response.text}")
                 return None
-            return response.json().get("response", "")
-        except Exception:
-            # Mark Ollama as unavailable so future calls skip instantly
-            self._ollama_unavailable = True
-            print("[ChatService] Ollama unreachable, disabling LLM for this session. Using fast keyword/semantic matching.")
+            
+            data = response.json()
+            if isinstance(data, list) and len(data) > 0 and "generated_text" in data[0]:
+                return data[0]["generated_text"]
+            return None
+        except Exception as e:
+            # Mark HF API as unavailable so future calls skip instantly
+            self._api_unavailable = True
+            print(f"[ChatService] HF API unreachable ({e}), disabling LLM for this session. Using fast keyword/semantic matching.")
             return None
 
     def _parse_llm_response(self, text: str) -> Dict[str, Optional[str]]:
