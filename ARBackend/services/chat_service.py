@@ -144,8 +144,9 @@ class ChatService:
         return best_id, round(min(0.89, max(0.35, best_score)), 4)
 
     async def _ask_huggingface(self, query: str, history: List[ChatMessage], locations) -> Optional[str]:
-        # Skip HF entirely if we already know it's unavailable or token is missing
-        if self._api_unavailable or not self._hf_api_token:
+        # Skip HF entirely if token is missing
+        if not self._hf_api_token:
+            print("[ChatService] Missing HF API Token, skipping LLM.")
             return None
 
         history_text = "\n".join(
@@ -157,39 +158,50 @@ class ChatService:
             for location in locations
         )
 
-        prompt = (
+        system_prompt = (
             "You are a smart campus navigation assistant.\n"
-            "Your only job is to map the user request to exactly one destination node id from the list.\n\n"
-            f"Available locations:\n{location_lines}\n\n"
-            f"Conversation:\n{history_text}\n\n"
-            f"User: {query}\n\n"
+            "Your only job is to map the user request to exactly one destination node id from the list.\n"
             "Respond in this exact format:\n"
             "DESTINATION: <NODE_ID or NONE>\n"
-            "ANSWER: <one short helpful sentence>\n"
+            "ANSWER: <one short helpful sentence>"
+        )
+        
+        user_prompt = (
+            f"Available locations:\n{location_lines}\n\n"
+            f"Conversation:\n{history_text}\n\n"
+            f"User request: {query}"
         )
 
-        api_url = f"https://api-inference.huggingface.co/models/{self._hf_model_id}"
-        headers = {"Authorization": f"Bearer {self._hf_api_token}"}
+        api_url = f"https://api-inference.huggingface.co/models/{self._hf_model_id}/v1/chat/completions"
+        headers = {"Authorization": f"Bearer {self._hf_api_token}", "Content-Type": "application/json"}
         payload = {
-            "inputs": prompt,
-            "parameters": {"max_new_tokens": 150, "return_full_text": False}
+            "model": self._hf_model_id,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            "max_tokens": 150,
+            "temperature": 0.1
         }
 
         try:
-            async with httpx.AsyncClient(timeout=10.0) as client:
+            # Increase timeout to 30s to account for model cold-starts on Hugging Face Serverless
+            async with httpx.AsyncClient(timeout=30.0) as client:
                 response = await client.post(api_url, headers=headers, json=payload)
-            if response.status_code != 200:
+            
+            if response.status_code == 503:
+                print(f"[ChatService] HF Model is loading (503). Using semantic fallback this time.")
+                return None
+            elif response.status_code != 200:
                 print(f"[ChatService] HF API Error: {response.status_code} - {response.text}")
                 return None
             
             data = response.json()
-            if isinstance(data, list) and len(data) > 0 and "generated_text" in data[0]:
-                return data[0]["generated_text"]
+            if "choices" in data and len(data["choices"]) > 0:
+                return data["choices"][0]["message"]["content"]
             return None
         except Exception as e:
-            # Mark HF API as unavailable so future calls skip instantly
-            self._api_unavailable = True
-            print(f"[ChatService] HF API unreachable ({e}), disabling LLM for this session. Using fast keyword/semantic matching.")
+            print(f"[ChatService] HF API unreachable ({e}). Using semantic matching fallback.")
             return None
 
     def _parse_llm_response(self, text: str) -> Dict[str, Optional[str]]:
