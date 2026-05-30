@@ -499,22 +499,53 @@ public class NavigationFlowController : MonoBehaviour
                 transformed.Add(outPos);
             }
             
-            // 4) Dynamic User Snapping
-            // If the user's current physical position is slightly off the start of the mapped path,
-            // insert their current position at the beginning so the AR line starts exactly at their feet
-            // and smoothly curves (via PathVisualizer) into the statically anchored corridor.
+            // 4) Dynamic User Snapping & Path Trimming
+            // If the user has already walked past the first node, simply prepending their position
+            // causes the path to zig-zag backwards. Instead, we find the closest segment on the path,
+            // trim everything behind them, and start exactly from their feet.
             Transform cam = Camera.main != null ? Camera.main.transform : null;
-            if (cam != null && transformed.Count > 0)
+            if (cam != null && transformed.Count > 1)
             {
                 Vector3 userPos = cam.position;
                 userPos.y = transformed[0].y; // Project to the path's floor level
                 
-                float distToStart = Vector3.Distance(userPos, transformed[0]);
-                
-                // If they are reasonably close to the start node (e.g. within 6 meters), snap the path to them!
-                if (distToStart > 0.3f && distToStart < 6.0f)
+                int closestSegment = 0;
+                float closestDist = float.MaxValue;
+
+                for (int i = 0; i < transformed.Count - 1; i++)
                 {
-                    transformed.Insert(0, userPos);
+                    Vector3 start = transformed[i];
+                    Vector3 end = transformed[i + 1];
+                    Vector3 closestPt = ClosestPointOnLineSegment(userPos, start, end);
+                    float dist = Vector3.Distance(userPos, closestPt);
+                    if (dist < closestDist)
+                    {
+                        closestDist = dist;
+                        closestSegment = i;
+                    }
+                }
+
+                // If they are reasonably close to the path (e.g. within 8 meters), snap and trim!
+                if (closestDist < 8.0f)
+                {
+                    List<Vector3> trimmed = new List<Vector3>();
+                    trimmed.Add(userPos); // Start exactly at the user
+                    
+                    // Add the rest of the path from the END of the closest segment onwards
+                    for (int i = closestSegment + 1; i < transformed.Count; i++)
+                    {
+                        // Prevent adding nodes that are too close to the user to avoid sharp kinks
+                        if (Vector3.Distance(userPos, transformed[i]) > 0.5f)
+                        {
+                            trimmed.Add(transformed[i]);
+                        }
+                    }
+                    
+                    // If we accidentally trimmed everything, keep at least the destination
+                    if (trimmed.Count == 1)
+                        trimmed.Add(transformed[transformed.Count - 1]);
+                        
+                    transformed = trimmed;
                 }
             }
 
@@ -538,6 +569,17 @@ public class NavigationFlowController : MonoBehaviour
         m_UI.ShowStatus("Navigation active.");
         UpdateGuidance("Follow the arrows to your destination", new Color(1f, 0.6f, 0.2f, 1f));
         RefreshControls();
+    }
+
+    private Vector3 ClosestPointOnLineSegment(Vector3 p, Vector3 a, Vector3 b)
+    {
+        Vector3 ab = b - a;
+        float sqrMag = ab.sqrMagnitude;
+        if (sqrMag < 0.0001f) return a;
+        
+        float t = Vector3.Dot(p - a, ab) / sqrMag;
+        t = Mathf.Clamp01(t);
+        return a + t * ab;
     }
 
     void Update()
