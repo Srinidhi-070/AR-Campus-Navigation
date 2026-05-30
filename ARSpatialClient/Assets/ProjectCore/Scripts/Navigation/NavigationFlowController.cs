@@ -29,6 +29,8 @@ public class NavigationFlowController : MonoBehaviour
     private const float OFF_PATH_DISTANCE = 5f;  // meters
     private const float OFF_PATH_TIMEOUT = 3f;   // seconds before recalculating
     private const float RECALC_COOLDOWN = 5f;    // prevent spamming recalculations
+    private float m_PathUpdateTimer = 0f;
+    private QRLocationManager.CalibrationState m_LastCalibrationState = QRLocationManager.CalibrationState.Uncalibrated;
     private float m_LastRecalcTime = -999f;
 
     [Header("UI Feedback")]
@@ -584,6 +586,17 @@ public class NavigationFlowController : MonoBehaviour
 
     void Update()
     {
+        // Auto-recalculate the path the exact moment Walk-to-Calibrate succeeds!
+        if (m_QRLocationManager != null && m_QRLocationManager.CurrentCalibrationState != m_LastCalibrationState)
+        {
+            if (m_QRLocationManager.CurrentCalibrationState == QRLocationManager.CalibrationState.Calibrated && m_ActiveWorldPath != null)
+            {
+                Debug.Log("[NavigationFlowController] Calibration just completed! Redrawing path with accurate rotation.");
+                TryRecalculateFromNearestNode();
+            }
+            m_LastCalibrationState = m_QRLocationManager.CurrentCalibrationState;
+        }
+
         // Update guidance banner during calibration
         UpdateCalibrationGuidance();
 
