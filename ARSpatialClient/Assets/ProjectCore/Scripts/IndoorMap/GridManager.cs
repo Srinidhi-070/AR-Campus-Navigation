@@ -9,8 +9,8 @@ public class GridManager : MonoBehaviour
 {
     public GameObject wallPrefab;
     Dictionary<Vector2Int, GameObject> wallObjects = new Dictionary<Vector2Int, GameObject>();
-    public int width = 60;
-    public int height = 60;
+    public int width = 100;
+    public int height = 100;
     public float cellSize = 1f;
 
     public Node[,] grid;
@@ -29,6 +29,13 @@ public class GridManager : MonoBehaviour
         currentWidth  = width;
         currentHeight = height;
         CreateGrid();
+    }
+
+    void OnValidate()
+    {
+        // Auto-upgrade existing 60x60 grids to 100x100
+        if (width == 60) width = 100;
+        if (height == 60) height = 100;
     }
 
     public void UpdateWalls()

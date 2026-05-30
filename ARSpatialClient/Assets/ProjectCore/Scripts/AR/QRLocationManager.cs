@@ -23,6 +23,7 @@ public class QRLocationManager : MonoBehaviour
 
     public CalibrationState CurrentCalibrationState { get; private set; } = CalibrationState.NotCalibrated;
     public float CalibratedYawOffset { get; private set; } = 0f;
+    public Vector3 CalibrationStartPos => m_CalibrationStartPos;
 
     /// <summary>How far the user has walked since calibration started (XZ plane).</summary>
     public float CalibrationWalkDistance { get; private set; } = 0f;
@@ -75,6 +76,7 @@ public class QRLocationManager : MonoBehaviour
         {
             ScanCameraRotationY = Camera.main.transform.eulerAngles.y;
             ScanCompassHeading  = Input.compass.trueHeading;
+            m_CalibrationStartPos = Camera.main.transform.position;
             Debug.Log($"[QRLocation] Camera Y rotation at scan: {ScanCameraRotationY}° | Compass: {ScanCompassHeading}°");
         }
 

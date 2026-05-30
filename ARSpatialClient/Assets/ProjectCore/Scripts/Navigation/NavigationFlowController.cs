@@ -34,6 +34,12 @@ public class NavigationFlowController : MonoBehaviour
     [Header("UI Feedback")]
     private float m_PathUpdateTimer = 0f;
 
+    // ── Floor Transition State ──
+    private bool m_IsPendingTransition = false;
+    private string m_PendingFloorNextNodeId = null;
+    private int m_PendingFloorNextFloor = 0;
+    private string m_PendingTransitionType = "";
+
     private readonly List<string> m_BuildingOptions = new List<string>();
     private readonly List<int> m_FloorOptions = new List<int>();
     private readonly List<LocationData> m_RoomOptions = new List<LocationData>();
@@ -71,6 +77,12 @@ public class NavigationFlowController : MonoBehaviour
         {
             m_QRLocationManager.OnLocationChanged += HandleQrLocationChanged;
             m_QRLocationManager.OnCalibrationComplete += HandleCalibrationComplete;
+        }
+
+        if (m_UI != null && m_UI.FloorTransitionButton != null)
+        {
+            m_UI.FloorTransitionButton.onClick.RemoveAllListeners();
+            m_UI.FloorTransitionButton.onClick.AddListener(HandleFloorTransitionResume);
         }
 
         RefreshControls();
@@ -210,7 +222,7 @@ public class NavigationFlowController : MonoBehaviour
         string startNodeId = m_QRLocationManager.CurrentNodeId;
         string destinationNodeId = destination.id;
 
-        if (m_UseLocalRouting || m_ApiClient == null)
+        if (m_ApiClient == null)
         {
             if (!TryNavigateLocally(startNodeId, destinationNodeId, out string localError))
             {
@@ -351,6 +363,11 @@ public class NavigationFlowController : MonoBehaviour
         // ── Detect floor transitions BEFORE coordinate transformation ──
         // We need the original floor/building data from the response.
         List<PathVisualizer.FloorTransition> transitions = new List<PathVisualizer.FloorTransition>();
+        
+        m_IsPendingTransition = false;
+        if (m_UI != null && m_UI.FloorTransitionButton != null)
+            m_UI.FloorTransitionButton.gameObject.SetActive(false);
+
         for (int i = 0; i < response.path.Count - 1; i++)
         {
             CampusApiClient.PathPointPayload current = response.path[i];
@@ -359,7 +376,6 @@ public class NavigationFlowController : MonoBehaviour
             if (current.floor != next.floor)
             {
                 // Determine transition type using the node 'type' field from the backend.
-                // Fallback: check if node ID contains "LIFT".
                 string currentType = (current.type ?? "").ToUpper();
                 string nextType = (next.type ?? "").ToUpper();
                 string currentId = (current.id ?? "").ToUpper();
@@ -368,20 +384,24 @@ public class NavigationFlowController : MonoBehaviour
                 bool isLift = currentType.Contains("LIFT") || nextType.Contains("LIFT") ||
                               currentId.Contains("LIFT") || nextId.Contains("LIFT");
 
-                transitions.Add(new PathVisualizer.FloorTransition
-                {
-                    segmentStartIndex = i,
-                    type = isLift
-                        ? PathVisualizer.TransitionType.Lift
-                        : PathVisualizer.TransitionType.Staircase,
-                    fromFloor = current.floor,
-                    toFloor = next.floor,
-                    goingUp = next.floor > current.floor
-                });
-
+                // Do NOT add to 'transitions' list. We want the AR path to stop exactly at the stairs
+                // without rendering the 3D stair prefab leading up to the ceiling.
+                
                 Debug.Log($"[NavigationFlowController] Floor transition at segment {i}: " +
-                          $"{(isLift ? "Lift" : "Stairs")} Floor {current.floor} → {next.floor}" +
-                          $" (type: {current.type} → {next.type})");
+                          $"{(isLift ? "Lift" : "Stairs")} Floor {current.floor} → {next.floor}");
+                          
+                m_IsPendingTransition = true;
+                m_PendingFloorNextNodeId = next.id;
+                m_PendingFloorNextFloor = next.floor;
+                m_PendingTransitionType = isLift ? "Lift" : "Stairs";
+
+                // Truncate path so we stop exactly at the stairs (node i).
+                // Remove everything from i + 1 onwards.
+                if (i + 1 < response.path.Count)
+                {
+                    response.path.RemoveRange(i + 1, response.path.Count - (i + 1));
+                }
+                break; // Only handle the FIRST transition!
             }
         }
 
@@ -395,28 +415,50 @@ public class NavigationFlowController : MonoBehaviour
         // 2) using the calibrated yaw offset (computed from walk-to-calibrate)
         if (worldPath.Count > 0)
         {
-            // 1) Get a stable world anchor point via AR plane raycast
-            Vector3 worldAnchorPos;
-            bool gotAnchor = TryGetWorldAnchorFromRaycast(out worldAnchorPos);
-
-            if (!gotAnchor)
+            // 1) Get a stable world anchor point
+            Vector3 worldAnchorPos = Vector3.zero;
+            Vector3 mapAnchorPos = worldPath[0]; // Fallback to start of path
+            
+            if (m_QRLocationManager != null && m_QRLocationManager.HasLocation)
             {
-                // Fallback: use camera position, estimate floor ~1.5m below phone
-                Transform fallbackCam = Camera.main != null ? Camera.main.transform : null;
-                if (fallbackCam != null)
+                // Lock the AR map anchor to the exact physical location of the QR scan!
+                worldAnchorPos = m_QRLocationManager.CalibrationStartPos;
+                
+                // Get the grid map coordinates of the scanned node
+                LocationData startNode = m_LocationRegistry.GetLocation(m_QRLocationManager.CurrentNodeId);
+                if (startNode != null)
                 {
-                    worldAnchorPos = fallbackCam.position + Vector3.down * 1.5f;
-                    Debug.LogWarning("[NavigationFlowController] No AR plane detected. Using camera position as anchor.");
+                    mapAnchorPos = new Vector3(startNode.x, startNode.y, startNode.z);
                 }
+                
+                // Project the camera's scan height down to the physical AR floor
+                if (TryGetWorldAnchorFromRaycast(out Vector3 floorAnchor))
+                    worldAnchorPos.y = floorAnchor.y;
                 else
+                    worldAnchorPos.y -= 1.5f;
+            }
+            else
+            {
+                // Uncalibrated fallback
+                bool gotAnchor = TryGetWorldAnchorFromRaycast(out worldAnchorPos);
+                if (!gotAnchor)
                 {
-                    Debug.LogWarning("[NavigationFlowController] No camera or AR plane available. Rendering path unaligned.");
-                    m_PathVisualizer.ClearPath();
-                    m_PathVisualizer.DrawPath(worldPath, transitions);
-                    m_UI.UpdateNavigationGuidance("↑", "Calculating...");
-                    m_UI.ShowStatus("Navigation active (unaligned).");
-                    RefreshControls();
-                    return;
+                    Transform fallbackCam = Camera.main != null ? Camera.main.transform : null;
+                    if (fallbackCam != null)
+                    {
+                        worldAnchorPos = fallbackCam.position + Vector3.down * 1.5f;
+                        Debug.LogWarning("[NavigationFlowController] No AR plane detected. Using camera position as anchor.");
+                    }
+                    else
+                    {
+                        Debug.LogWarning("[NavigationFlowController] No camera or AR plane available. Rendering path unaligned.");
+                        m_PathVisualizer.ClearPath();
+                        m_PathVisualizer.DrawPath(worldPath, transitions);
+                        m_UI.UpdateNavigationGuidance("↑", "Calculating...");
+                        m_UI.ShowStatus("Navigation active (unaligned).");
+                        RefreshControls();
+                        return;
+                    }
                 }
             }
 
@@ -441,18 +483,17 @@ public class NavigationFlowController : MonoBehaviour
             Debug.Log($"[NavigationFlowController] Calibrated yawOffset={yawOffset:F1} mapOffset={m_MapCompassOffset:F1}");
 
             // 3) Transform all points:
-            // translate so worldPath[0] lands at worldAnchorPos, then rotate around Y
-            Vector3 mapStart = worldPath[0];
+            // translate so mapAnchorPos lands at worldAnchorPos, then rotate around Y
             List<Vector3> transformed = new List<Vector3>(worldPath.Count);
             for (int i = 0; i < worldPath.Count; i++)
             {
                 Vector3 p = worldPath[i];
-                Vector3 v = p - mapStart;        // local vector in map space relative to start
+                Vector3 v = p - mapAnchorPos;    // local vector relative to static map anchor
                 v *= m_MetersPerGridUnit;        // scale grid units to real-world meters
                 v = rotationOffset * v;          // rotate heading
                 Vector3 outPos = new Vector3(
                     worldAnchorPos.x + v.x,
-                    worldAnchorPos.y + (p.y - mapStart.y) * m_MetersPerGridUnit, // keep scaled vertical delta
+                    worldAnchorPos.y + (p.y - mapAnchorPos.y) * m_MetersPerGridUnit, // keep scaled vertical delta
                     worldAnchorPos.z + v.z
                 );
                 transformed.Add(outPos);
@@ -554,12 +595,28 @@ public class NavigationFlowController : MonoBehaviour
             if (m_ActiveWorldPath.Count < 2)
             {
                 m_PathVisualizer.ClearPath();
-                m_UI.ShowStatus("Destination Reached!");
-                m_UI.UpdateNavigationGuidance("📍", "Arrived");
-                UpdateGuidance("You've arrived!", new Color(0.2f, 0.9f, 0.4f, 1f));
+                
+                if (m_IsPendingTransition)
+                {
+                    m_UI.UpdateNavigationGuidance("⬆", $"Take {m_PendingTransitionType}");
+                    UpdateGuidance($"Take {m_PendingTransitionType} to Floor {m_PendingFloorNextFloor}", new Color(0.2f, 0.6f, 1f, 1f));
+                    m_UI.ShowStatus($"Arrived at {m_PendingTransitionType}.");
+                    
+                    if (m_UI.FloorTransitionText != null)
+                        m_UI.FloorTransitionText.text = $"RESUME ON FLOOR {m_PendingFloorNextFloor}";
+                    if (m_UI.FloorTransitionButton != null)
+                        m_UI.FloorTransitionButton.gameObject.SetActive(true);
+                }
+                else
+                {
+                    m_UI.ShowStatus("Destination Reached!");
+                    m_UI.UpdateNavigationGuidance("📍", "Arrived");
+                    UpdateGuidance("You've arrived!", new Color(0.2f, 0.9f, 0.4f, 1f));
+                    m_ActiveDestinationId = null;
+                }
+                
                 m_ActiveWorldPath = null;
                 m_ActiveTransitions = null;
-                m_ActiveDestinationId = null;
             }
             else
             {
@@ -591,7 +648,7 @@ public class NavigationFlowController : MonoBehaviour
                     text = $"Destination {distText}";
                 break;
             case NavManeuver.SlightLeft:
-                icon = "↖";
+                icon = "←";
                 text = $"Slight left {distText}";
                 break;
             case NavManeuver.TurnLeft:
@@ -599,7 +656,7 @@ public class NavigationFlowController : MonoBehaviour
                 text = $"Turn left {distText}";
                 break;
             case NavManeuver.SlightRight:
-                icon = "↗";
+                icon = "→";
                 text = $"Slight right {distText}";
                 break;
             case NavManeuver.TurnRight:
@@ -703,6 +760,24 @@ public class NavigationFlowController : MonoBehaviour
         }
     }
 
+    private void HandleFloorTransitionResume()
+    {
+        if (!m_IsPendingTransition || string.IsNullOrEmpty(m_PendingFloorNextNodeId) || m_QRLocationManager == null)
+            return;
+
+        if (m_UI != null && m_UI.FloorTransitionButton != null)
+            m_UI.FloorTransitionButton.gameObject.SetActive(false);
+            
+        m_IsPendingTransition = false;
+
+        // Auto-Correct: Force QRLocationManager to update to the top of the stairs/lift
+        m_QRLocationManager.SetLocation(m_PendingFloorNextNodeId, m_QRLocationManager.CurrentBuilding, m_PendingFloorNextFloor);
+
+        // Resume navigation to the final destination
+        m_UI.ShowStatus("Resuming navigation...");
+        NavigateToDestination(m_ActiveDestinationId, m_ActiveDestinationName);
+    }
+
     private void TryRecalculateFromNearestNode()
     {
         if (string.IsNullOrEmpty(m_ActiveDestinationId))
@@ -715,7 +790,7 @@ public class NavigationFlowController : MonoBehaviour
         string startNodeId = m_QRLocationManager.CurrentNodeId;
         string destId = m_ActiveDestinationId;
 
-        if (m_UseLocalRouting || m_ApiClient == null)
+        if (m_ApiClient == null)
         {
             if (TryNavigateLocally(startNodeId, destId, out string localError))
             {

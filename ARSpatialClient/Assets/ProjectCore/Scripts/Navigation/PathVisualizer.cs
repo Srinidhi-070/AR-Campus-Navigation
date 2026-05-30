@@ -260,21 +260,40 @@ public class PathVisualizer : MonoBehaviour
                 continue;
             }
 
-            // ── Normal segment — render regular arrows ──
-            Vector3 dir = (end - start) / distance;
+        }
+
+        // Apply Chaikin's corner cutting algorithm to smooth out sharp zig-zags from the grid map
+        // This ensures the continuous spawning doesn't squash arrows together at tight corners.
+        List<Vector3> smoothedPath = SmoothPath(worldPath, 3);
+
+        // ── Normal segment — render regular arrows continuously ──
+        // This prevents clumping at corners by walking the path evenly and using look-ahead for smooth rotation.
+        float totalDist = GetTotalPathDistance(smoothedPath);
+        float currentDist = 0f;
+        
+        while (currentDist < totalDist - 0.2f)
+        {
+            Vector3 pos = GetPointAtDistance(smoothedPath, currentDist);
+            // Look ahead to smooth out corners
+            Vector3 lookAheadPos = GetPointAtDistance(smoothedPath, Mathf.Min(currentDist + 0.6f, totalDist));
             
-            // Removed old curved arrow logic since chevrons curve naturally around corners
-
-            int steps = Mathf.Max(1, Mathf.FloorToInt(distance / spacing));
-
-            for (int j = 0; j < steps; j++)
+            Vector3 dir = (lookAheadPos - pos).normalized;
+            if (dir.sqrMagnitude < 0.001f)
             {
-                Vector3 pos = Vector3.Lerp(start, end, j / (float)steps);
-
-                GameObject arrowInstance = Instantiate(arrowPrefab, pos, Quaternion.LookRotation(dir), transform);
-                arrowInstance.SetActive(true);
-                spawnedArrows.Add(arrowInstance);
+                // Fallback to strict segment direction if look-ahead fails (e.g. at very end of path)
+                int segIdx = GetSegmentIndexAtDistance(smoothedPath, currentDist);
+                if (segIdx < smoothedPath.Count - 1)
+                    dir = (smoothedPath[segIdx + 1] - smoothedPath[segIdx]).normalized;
+                else
+                    dir = Vector3.forward;
             }
+            
+            // Spawn the regular arrow
+            GameObject arrowInstance = Instantiate(arrowPrefab, pos, Quaternion.LookRotation(dir), transform);
+            arrowInstance.SetActive(true);
+            spawnedArrows.Add(arrowInstance);
+            
+            currentDist += spacing;
         }
 
         // Final arrow at destination
@@ -293,6 +312,74 @@ public class PathVisualizer : MonoBehaviour
         spawnedArrows.Add(lastArrow);
         
         Debug.Log($"[PathVisualizer] ✅ Spawned {spawnedArrows.Count} path elements");
+    }
+
+    private List<Vector3> SmoothPath(List<Vector3> path, int iterations = 2)
+    {
+        if (path == null || path.Count < 3) return path;
+
+        List<Vector3> currentPath = new List<Vector3>(path);
+        
+        for (int iter = 0; iter < iterations; iter++)
+        {
+            List<Vector3> smoothed = new List<Vector3>();
+            smoothed.Add(currentPath[0]); // Keep the first point
+            
+            for (int i = 0; i < currentPath.Count - 1; i++)
+            {
+                Vector3 p0 = currentPath[i];
+                Vector3 p1 = currentPath[i + 1];
+                
+                // Cut corners at 25% and 75% to smooth zig-zags into curves/diagonals
+                smoothed.Add(Vector3.Lerp(p0, p1, 0.25f));
+                smoothed.Add(Vector3.Lerp(p0, p1, 0.75f));
+            }
+            
+            smoothed.Add(currentPath[currentPath.Count - 1]); // Keep the last point
+            currentPath = smoothed;
+        }
+        
+        return currentPath;
+    }
+
+    private float GetTotalPathDistance(List<Vector3> path)
+    {
+        float dist = 0f;
+        for (int i = 0; i < path.Count - 1; i++)
+            dist += Vector3.Distance(path[i], path[i+1]);
+        return dist;
+    }
+
+    private int GetSegmentIndexAtDistance(List<Vector3> path, float targetDist)
+    {
+        float dist = 0f;
+        for (int i = 0; i < path.Count - 1; i++)
+        {
+            float segLen = Vector3.Distance(path[i], path[i+1]);
+            if (targetDist <= dist + segLen)
+                return i;
+            dist += segLen;
+        }
+        return Mathf.Max(0, path.Count - 2);
+    }
+
+    private Vector3 GetPointAtDistance(List<Vector3> path, float targetDist)
+    {
+        if (path == null || path.Count == 0) return Vector3.zero;
+        if (path.Count == 1 || targetDist <= 0f) return path[0];
+
+        float dist = 0f;
+        for (int i = 0; i < path.Count - 1; i++)
+        {
+            float segLen = Vector3.Distance(path[i], path[i + 1]);
+            if (targetDist <= dist + segLen)
+            {
+                float t = (targetDist - dist) / segLen;
+                return Vector3.Lerp(path[i], path[i + 1], t);
+            }
+            dist += segLen;
+        }
+        return path[path.Count - 1];
     }
 
     private void StripRogueComponents(GameObject obj)

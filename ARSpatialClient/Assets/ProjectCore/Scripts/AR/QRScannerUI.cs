@@ -437,6 +437,13 @@ public class QRScannerUI : MonoBehaviour
 #endif
         m_OnQRDetected?.Invoke(payload);
 
+        // Auto-calibrate in Editor mode so navigation works without physical walking
+        if (QRLocationManager.Instance != null)
+        {
+            QRLocationManager.Instance.ForceCalibrate(0f);
+            Debug.Log("[QRScannerUI] Editor mode: auto-calibrated with yawOffset=0");
+        }
+
         // QRScanner.cs will call CloseScanner() after location set,
         // but we close the UI here too to keep Simulator responsive.
         CloseScanner();

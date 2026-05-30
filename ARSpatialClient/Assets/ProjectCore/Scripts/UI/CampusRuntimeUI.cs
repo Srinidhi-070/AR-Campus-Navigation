@@ -27,6 +27,9 @@ public class CampusRuntimeUI : MonoBehaviour
     public Button SendButton { get; private set; }
     public Button ChatCloseButton { get; private set; }
     public Button RetryButton { get; private set; }
+    public Button RecalibrateButton { get; private set; }
+    public Button FloorTransitionButton { get; private set; }
+    public TextMeshProUGUI FloorTransitionText { get; private set; }
 
     public TMP_Dropdown BuildingDropdown { get; private set; }
     public TMP_Dropdown FloorDropdown { get; private set; }
@@ -37,6 +40,14 @@ public class CampusRuntimeUI : MonoBehaviour
 
     public TextMeshProUGUI StatusText { get; private set; }
     public TextMeshProUGUI DirectionText { get; private set; }
+    public TextMeshProUGUI DirectionIcon { get; private set; }
+
+    // ── Guidance Banner ────────────────────────────────────────────────────────
+    public GameObject GuidanceBanner { get; private set; }
+    public TextMeshProUGUI GuidanceText { get; private set; }
+    public Image GuidanceProgressBar { get; private set; }
+    private Image m_GuidanceBannerBg;
+    private Coroutine m_GuidancePulse;
 
     private bool m_Built;
     private Sprite m_RoundedSprite;
@@ -100,10 +111,13 @@ public class CampusRuntimeUI : MonoBehaviour
         }
     }
 
-    public void ShowDirections(IList<string> directions)
+    public void UpdateNavigationGuidance(string iconText, string instruction)
     {
-        if (DirectionText == null) return;
-        DirectionText.text = directions == null ? string.Empty : string.Join("\n", directions);
+        if (DirectionText != null)
+            DirectionText.text = instruction ?? string.Empty;
+            
+        if (DirectionIcon != null)
+            DirectionIcon.text = iconText ?? string.Empty;
     }
 
     private void EnsureEventSystem()
@@ -155,6 +169,7 @@ public class CampusRuntimeUI : MonoBehaviour
         BuildMenuOverlay();
         BuildMenuPanel();
         BuildBottomBar();
+        BuildFloorTransitionButton();
         BuildChatPanel();
 
         SetMenuVisible(false);
@@ -320,27 +335,48 @@ public class CampusRuntimeUI : MonoBehaviour
         handleRT.anchoredPosition = new Vector2(0, -20);
         handleRT.sizeDelta = new Vector2(120, 8);
 
-        // Direction text (Large Blue)
+        // Direction Icon (Large Arrow)
+        GameObject iconGO = new GameObject("DirectionIcon", typeof(RectTransform), typeof(TextMeshProUGUI));
+        iconGO.transform.SetParent(statusPill.transform, false);
+        RectTransform iconRT = iconGO.GetComponent<RectTransform>();
+        iconRT.anchorMin = new Vector2(0.5f, 1f);
+        iconRT.anchorMax = new Vector2(0.5f, 1f);
+        iconRT.pivot = new Vector2(0.5f, 1f);
+        iconRT.anchoredPosition = new Vector2(0, -40);
+        iconRT.sizeDelta = new Vector2(160, 100);
+        DirectionIcon = iconGO.GetComponent<TextMeshProUGUI>();
+
+        TMP_FontAsset defaultFont = Resources.Load<TMP_FontAsset>("Fonts & Materials/LiberationSans SDF");
+        if (defaultFont != null) DirectionIcon.font = defaultFont;
+
+        DirectionIcon.text = string.Empty;
+        DirectionIcon.fontSize = 110;
+        DirectionIcon.alignment = TextAlignmentOptions.Center;
+        DirectionIcon.color = new Color(0.35f, 0.55f, 1f, 1f); // Vibrant blue
+        DirectionIcon.fontStyle = FontStyles.Bold;
+        DirectionIcon.raycastTarget = false;
+
+        // Direction text (Instruction)
         GameObject dirGO = new GameObject("DirectionText", typeof(RectTransform), typeof(TextMeshProUGUI));
         dirGO.transform.SetParent(statusPill.transform, false);
         RectTransform dirRT = dirGO.GetComponent<RectTransform>();
         dirRT.anchorMin = new Vector2(0, 1f);
         dirRT.anchorMax = new Vector2(1, 1f);
         dirRT.pivot = new Vector2(0.5f, 1f);
-        dirRT.anchoredPosition = new Vector2(0, -60);
-        dirRT.sizeDelta = new Vector2(-48, 80);
+        dirRT.anchoredPosition = new Vector2(0, -150);
+        dirRT.sizeDelta = new Vector2(-48, 60);
         DirectionText = dirGO.GetComponent<TextMeshProUGUI>();
         
-        TMP_FontAsset defaultFont = Resources.Load<TMP_FontAsset>("Fonts & Materials/LiberationSans SDF");
         if (defaultFont != null) DirectionText.font = defaultFont;
         
         DirectionText.text = string.Empty;
-        DirectionText.fontSize = 64;
+        DirectionText.fontSize = 42;
         DirectionText.alignment = TextAlignmentOptions.Center;
-        DirectionText.color = new Color(0.35f, 0.55f, 1f, 1f); // Vibrant blue to match image
+        DirectionText.color = new Color(0.85f, 0.9f, 1f, 1f); // Lighter blue/white for text
         DirectionText.enableWordWrapping = true;
         DirectionText.overflowMode = TextOverflowModes.Ellipsis;
         DirectionText.fontStyle = FontStyles.Bold;
+        DirectionText.raycastTarget = false;
 
         // Floating Status Toast (above the drawer)
         GameObject statusToast = CreatePanel("StatusToast", NavigationChrome.transform, new Color(0.04f, 0.05f, 0.08f, 0.95f));
@@ -382,8 +418,26 @@ public class CampusRuntimeUI : MonoBehaviour
         chatRT.anchorMin = new Vector2(0.5f, 0f);
         chatRT.anchorMax = new Vector2(0.5f, 0f);
         chatRT.pivot = new Vector2(0.5f, 0f);
-        chatRT.anchoredPosition = new Vector2(0, 90); // Pushed up further to clear safe area
+        chatRT.anchoredPosition = new Vector2(0, 90); // Centered by default
         chatRT.sizeDelta = new Vector2(400, 90);
+
+        // Recalibrate button (small, to the right of ASK AI)
+        RecalibrateButton = CreateButton(statusPill.transform, "RecalibrateButton", "R");
+        RecalibrateButton.GetComponent<Image>().color = new Color(0.18f, 0.20f, 0.26f, 1f);
+        RectTransform recalRT = RecalibrateButton.GetComponent<RectTransform>();
+        recalRT.anchorMin = new Vector2(0.5f, 0f);
+        recalRT.anchorMax = new Vector2(0.5f, 0f);
+        recalRT.pivot = new Vector2(0.5f, 0f);
+        recalRT.anchoredPosition = new Vector2(200, 100);
+        recalRT.sizeDelta = new Vector2(70, 70);
+        // Style the label
+        TextMeshProUGUI recalLabel = RecalibrateButton.GetComponentInChildren<TextMeshProUGUI>();
+        if (recalLabel != null)
+        {
+            recalLabel.fontSize = 38;
+            recalLabel.alignment = TextAlignmentOptions.Center;
+        }
+        RecalibrateButton.gameObject.SetActive(false); // Hidden until first calibration
 
         // Retry button (hidden by default)
         RetryButton = CreateButton(statusPill.transform, "RetryButton", "RETRY");
@@ -400,6 +454,173 @@ public class CampusRuntimeUI : MonoBehaviour
         drawerAnim.targetRect = pillRT;
         drawerAnim.directionText = DirectionText;
         drawerAnim.floatingToastRect = toastRT;
+
+        // Guidance banner above the chat button
+        BuildGuidanceBanner(NavigationChrome.transform, chatRT);
+        drawerAnim.guidanceBannerRect = GuidanceBanner.GetComponent<RectTransform>();
+    }
+
+    private void BuildFloorTransitionButton()
+    {
+        FloorTransitionButton = CreateButton(NavigationChrome.transform, "FloorTransitionButton", "RESUME ON NEW FLOOR");
+        RectTransform transRT = FloorTransitionButton.GetComponent<RectTransform>();
+        transRT.anchorMin = new Vector2(0.5f, 0.5f);
+        transRT.anchorMax = new Vector2(0.5f, 0.5f);
+        transRT.pivot = new Vector2(0.5f, 0.5f);
+        transRT.anchoredPosition = new Vector2(0, 0); // Center of the screen
+        transRT.sizeDelta = new Vector2(600, 140);
+        
+        Image img = FloorTransitionButton.GetComponent<Image>();
+        img.color = new Color(0.1f, 0.7f, 0.2f, 1f); // Vibrant Green to indicate action
+        
+        Outline outline = FloorTransitionButton.GetComponent<Outline>();
+        if (outline != null)
+        {
+            outline.effectColor = new Color(0, 0, 0, 0.6f);
+            outline.effectDistance = new Vector2(3, -3);
+        }
+
+        FloorTransitionText = FloorTransitionButton.transform.Find("Label")?.GetComponent<TextMeshProUGUI>();
+        if (FloorTransitionText != null)
+        {
+            FloorTransitionText.fontSize = 36;
+            FloorTransitionText.alignment = TextAlignmentOptions.Center;
+            FloorTransitionText.enableWordWrapping = true;
+            RectTransform labelRT = FloorTransitionText.GetComponent<RectTransform>();
+            labelRT.offsetMin = new Vector2(20, 20);
+            labelRT.offsetMax = new Vector2(-20, -20);
+        }
+        
+        FloorTransitionButton.gameObject.SetActive(false);
+    }
+
+    /// <summary>
+    /// Updates the guidance banner with a message, color, and optional pulse animation.
+    /// </summary>
+    public void ShowGuidance(string text, Color color, bool pulse = false, float progress = -1f)
+    {
+        if (GuidanceBanner == null) return;
+
+        GuidanceBanner.SetActive(!string.IsNullOrEmpty(text));
+        if (GuidanceText != null)
+        {
+            GuidanceText.text = text ?? "";
+            GuidanceText.color = color;
+        }
+
+        // Progress bar (0-1 range, or -1 to hide)
+        if (GuidanceProgressBar != null)
+        {
+            GuidanceProgressBar.gameObject.SetActive(progress >= 0f);
+            if (progress >= 0f)
+                GuidanceProgressBar.fillAmount = Mathf.Clamp01(progress);
+        }
+
+        // Pulse animation
+        if (m_GuidancePulse != null)
+        {
+            StopCoroutine(m_GuidancePulse);
+            m_GuidancePulse = null;
+        }
+
+        if (pulse && m_GuidanceBannerBg != null)
+        {
+            m_GuidancePulse = StartCoroutine(PulseGuidanceBanner(color));
+        }
+        else if (m_GuidanceBannerBg != null)
+        {
+            m_GuidanceBannerBg.color = new Color(0.06f, 0.08f, 0.12f, 0.95f);
+        }
+    }
+
+    private IEnumerator PulseGuidanceBanner(Color accentColor)
+    {
+        float t = 0f;
+        Color baseColor = new Color(0.06f, 0.08f, 0.12f, 0.95f);
+        Color pulseColor = new Color(accentColor.r * 0.15f, accentColor.g * 0.15f, accentColor.b * 0.15f, 0.95f);
+        while (true)
+        {
+            t += Time.deltaTime * 2.5f;
+            float lerp = (Mathf.Sin(t) + 1f) * 0.5f;
+            if (m_GuidanceBannerBg != null)
+                m_GuidanceBannerBg.color = Color.Lerp(baseColor, pulseColor, lerp);
+            yield return null;
+        }
+    }
+
+    private void BuildGuidanceBanner(Transform parent, RectTransform chatButtonRT)
+    {
+        // Banner positioned above the Chat button
+        GuidanceBanner = new GameObject("GuidanceBanner", typeof(RectTransform), typeof(Image));
+        GuidanceBanner.transform.SetParent(parent, false);
+        RectTransform bannerRT = GuidanceBanner.GetComponent<RectTransform>();
+        bannerRT.anchorMin = new Vector2(0f, 0f);
+        bannerRT.anchorMax = new Vector2(1f, 0f);
+        bannerRT.pivot = new Vector2(0.5f, 0f);
+        bannerRT.anchoredPosition = new Vector2(0, 200); // Above the chat button
+        bannerRT.sizeDelta = new Vector2(-48f, 80f);
+
+        m_GuidanceBannerBg = GuidanceBanner.GetComponent<Image>();
+        m_GuidanceBannerBg.sprite = GetRoundedSprite();
+        m_GuidanceBannerBg.type = Image.Type.Sliced;
+        m_GuidanceBannerBg.color = new Color(0.06f, 0.08f, 0.12f, 0.95f);
+
+        Outline bannerOutline = GuidanceBanner.AddComponent<Outline>();
+        bannerOutline.effectColor = new Color(0, 0, 0, 0.4f);
+        bannerOutline.effectDistance = new Vector2(1, -1);
+
+        // Guidance text
+        GameObject textGO = new GameObject("GuidanceText", typeof(RectTransform), typeof(TextMeshProUGUI));
+        textGO.transform.SetParent(GuidanceBanner.transform, false);
+        RectTransform textRT = textGO.GetComponent<RectTransform>();
+        textRT.anchorMin = Vector2.zero;
+        textRT.anchorMax = Vector2.one;
+        textRT.offsetMin = new Vector2(20, 6);
+        textRT.offsetMax = new Vector2(-20, -6);
+        GuidanceText = textGO.GetComponent<TextMeshProUGUI>();
+
+        TMP_FontAsset defaultFont = Resources.Load<TMP_FontAsset>("Fonts & Materials/LiberationSans SDF");
+        if (defaultFont != null) GuidanceText.font = defaultFont;
+
+        GuidanceText.text = "";
+        GuidanceText.fontSize = 26;
+        GuidanceText.alignment = TextAlignmentOptions.Center;
+        GuidanceText.color = new Color(0.7f, 0.75f, 0.85f, 1f);
+        GuidanceText.enableWordWrapping = true;
+        GuidanceText.fontStyle = FontStyles.Bold;
+
+        // Progress bar (for walk calibration)
+        GameObject progressBg = new GameObject("ProgressBg", typeof(RectTransform), typeof(Image));
+        progressBg.transform.SetParent(GuidanceBanner.transform, false);
+        RectTransform progressBgRT = progressBg.GetComponent<RectTransform>();
+        progressBgRT.anchorMin = new Vector2(0f, 0f);
+        progressBgRT.anchorMax = new Vector2(1f, 0f);
+        progressBgRT.pivot = new Vector2(0.5f, 0f);
+        progressBgRT.anchoredPosition = Vector2.zero;
+        progressBgRT.sizeDelta = new Vector2(-40f, 6f);
+        Image progressBgImg = progressBg.GetComponent<Image>();
+        progressBgImg.sprite = GetRoundedSprite();
+        progressBgImg.type = Image.Type.Sliced;
+        progressBgImg.color = new Color(0.15f, 0.17f, 0.22f, 1f);
+
+        GameObject progressFill = new GameObject("ProgressFill", typeof(RectTransform), typeof(Image));
+        progressFill.transform.SetParent(progressBg.transform, false);
+        RectTransform progressFillRT = progressFill.GetComponent<RectTransform>();
+        progressFillRT.anchorMin = Vector2.zero;
+        progressFillRT.anchorMax = Vector2.one;
+        progressFillRT.pivot = new Vector2(0f, 0.5f);
+        progressFillRT.offsetMin = Vector2.zero;
+        progressFillRT.offsetMax = Vector2.zero;
+
+        GuidanceProgressBar = progressFill.GetComponent<Image>();
+        GuidanceProgressBar.sprite = GetRoundedSprite();
+        GuidanceProgressBar.type = Image.Type.Filled;
+        GuidanceProgressBar.fillMethod = Image.FillMethod.Horizontal;
+        GuidanceProgressBar.fillOrigin = 0;
+        GuidanceProgressBar.fillAmount = 0f;
+        GuidanceProgressBar.color = new Color(0.25f, 0.6f, 1f, 1f);
+
+        GuidanceBanner.SetActive(false);
     }
 
     private void BuildChatPanel()
@@ -1033,9 +1254,10 @@ public class DrawerAnimator : MonoBehaviour
 {
     public RectTransform targetRect;
     public RectTransform floatingToastRect;
+    public RectTransform guidanceBannerRect;
     public TextMeshProUGUI directionText;
     
-    public float expandedHeight = 330f;
+    public float expandedHeight = 420f;
     public float collapsedHeight = 220f;
     public float toastOffset = 20f;
     public float animationSpeed = 10f;
@@ -1051,11 +1273,22 @@ public class DrawerAnimator : MonoBehaviour
         float newHeight = Mathf.Lerp(currentHeight, targetHeight, Time.deltaTime * animationSpeed);
         targetRect.sizeDelta = new Vector2(targetRect.sizeDelta.x, newHeight);
         
+        float currentY = newHeight + toastOffset;
+
+        if (guidanceBannerRect != null && guidanceBannerRect.gameObject.activeSelf)
+        {
+            guidanceBannerRect.anchoredPosition = new Vector2(
+                guidanceBannerRect.anchoredPosition.x,
+                currentY
+            );
+            currentY += guidanceBannerRect.sizeDelta.y + 20f; // add banner height + gap
+        }
+
         if (floatingToastRect != null)
         {
             floatingToastRect.anchoredPosition = new Vector2(
                 floatingToastRect.anchoredPosition.x,
-                newHeight + toastOffset
+                currentY
             );
         }
     }
