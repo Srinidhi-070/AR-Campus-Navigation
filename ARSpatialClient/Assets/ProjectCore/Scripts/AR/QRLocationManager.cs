@@ -292,9 +292,11 @@ public class QRLocationManager : MonoBehaviour
             return;
         }
 
-        // Compare the user's AR walk direction against each graph edge from the start node
-        float bestDot = -2f;
-        Vector3 bestEdgeDir = Vector3.forward;
+        // We need to compare AR walk direction to Map edge directions.
+        // Since they are in different coordinate systems, we use the rough compass heading
+        // to temporarily align them just enough to disambiguate which corridor the user chose!
+        float roughCompassYaw = ScanCameraRotationY - ScanCompassHeading;
+        Quaternion roughRot = Quaternion.Euler(0, roughCompassYaw, 0);
 
         foreach (string neighborId in startNode.neighbors)
         {
@@ -303,22 +305,26 @@ public class QRLocationManager : MonoBehaviour
                 continue;
 
             // Map-space edge direction (XZ plane)
-            Vector3 edgeDir = new Vector3(
+            Vector3 edgeDirMap = new Vector3(
                 neighbor.x - startNode.x,
                 0f,
                 neighbor.z - startNode.z
             );
 
-            if (edgeDir.sqrMagnitude < 0.0001f)
+            if (edgeDirMap.sqrMagnitude < 0.0001f)
                 continue;
 
-            edgeDir.Normalize();
+            edgeDirMap.Normalize();
 
-            float dot = Vector3.Dot(walkDir, edgeDir);
+            // Rotate the map edge into rough AR space using the compass
+            Vector3 edgeDirAR_Rough = roughRot * edgeDirMap;
+
+            // Now compare the physical AR walk direction to the rough AR edge direction
+            float dot = Vector3.Dot(walkDir, edgeDirAR_Rough);
             if (dot > bestDot)
             {
                 bestDot = dot;
-                bestEdgeDir = edgeDir;
+                bestEdgeDir = edgeDirMap; // Save the pristine map edge for final math
             }
         }
 
