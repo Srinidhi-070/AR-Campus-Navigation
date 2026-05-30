@@ -498,6 +498,25 @@ public class NavigationFlowController : MonoBehaviour
                 );
                 transformed.Add(outPos);
             }
+            
+            // 4) Dynamic User Snapping
+            // If the user's current physical position is slightly off the start of the mapped path,
+            // insert their current position at the beginning so the AR line starts exactly at their feet
+            // and smoothly curves (via PathVisualizer) into the statically anchored corridor.
+            Transform cam = Camera.main != null ? Camera.main.transform : null;
+            if (cam != null && transformed.Count > 0)
+            {
+                Vector3 userPos = cam.position;
+                userPos.y = transformed[0].y; // Project to the path's floor level
+                
+                float distToStart = Vector3.Distance(userPos, transformed[0]);
+                
+                // If they are reasonably close to the start node (e.g. within 6 meters), snap the path to them!
+                if (distToStart > 0.3f && distToStart < 6.0f)
+                {
+                    transformed.Insert(0, userPos);
+                }
+            }
 
             worldPath = transformed;
 
