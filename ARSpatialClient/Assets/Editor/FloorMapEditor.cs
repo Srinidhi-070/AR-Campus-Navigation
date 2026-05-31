@@ -205,6 +205,20 @@ public class FloorMapEditor : EditorWindow
         GUI.backgroundColor = new Color(0.3f, 0.6f, 1f);
         if (GUILayout.Button("💾 Save Map", GUILayout.Height(32)))
             SaveMap();
+            
+        GUI.backgroundColor = new Color(1f, 0.8f, 0.3f);
+        if (GUILayout.Button("📋 Copy Map", GUILayout.Height(32)))
+        {
+            if (m_NewMapName == m_MapManager.currentMapName || string.IsNullOrEmpty(m_NewMapName))
+            {
+                EditorUtility.DisplayDialog("Notice", "Please change the 'Map Name' text field to a new name before copying!", "OK");
+            }
+            else
+            {
+                m_MapManager.CopyCurrentMap(m_NewMapName);
+                Repaint();
+            }
+        }
         
         GUI.backgroundColor = Color.white;
         EditorGUILayout.EndHorizontal();
