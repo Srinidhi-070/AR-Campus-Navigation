@@ -298,6 +298,9 @@ public class QRLocationManager : MonoBehaviour
         float roughCompassYaw = ScanCameraRotationY - ScanCompassHeading;
         Quaternion roughRot = Quaternion.Euler(0, roughCompassYaw, 0);
 
+        float bestDot = -2f;
+        Vector3 bestEdgeDir = Vector3.forward;
+
         foreach (string neighborId in startNode.neighbors)
         {
             LocationData neighbor = registry.GetLocation(neighborId);

@@ -30,7 +30,7 @@ public class NavigationFlowController : MonoBehaviour
     private const float OFF_PATH_TIMEOUT = 3f;   // seconds before recalculating
     private const float RECALC_COOLDOWN = 5f;    // prevent spamming recalculations
     private float m_PathUpdateTimer = 0f;
-    private QRLocationManager.CalibrationState m_LastCalibrationState = QRLocationManager.CalibrationState.Uncalibrated;
+    private QRLocationManager.CalibrationState m_LastCalibrationState = QRLocationManager.CalibrationState.NotCalibrated;
     private float m_LastRecalcTime = -999f;
 
     [Header("UI Feedback")]
