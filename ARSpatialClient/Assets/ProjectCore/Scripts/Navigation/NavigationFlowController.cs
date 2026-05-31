@@ -34,7 +34,6 @@ public class NavigationFlowController : MonoBehaviour
     private float m_LastRecalcTime = -999f;
 
     [Header("UI Feedback")]
-    private float m_PathUpdateTimer = 0f;
 
     // ── Floor Transition State ──
     private bool m_IsPendingTransition = false;
