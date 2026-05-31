@@ -194,24 +194,17 @@ public class MapManager : MonoBehaviour
         string building = mapToBuilding.ContainsKey(currentMapName) ? mapToBuilding[currentMapName] : "Default";
         int floor = mapToFloor.ContainsKey(currentMapName) ? mapToFloor[currentMapName] : 0;
 
+        // Change active name
         currentMapName = newMapName;
         mapToFloor[newMapName] = floor;
         RegisterMapToBuilding(newMapName, building);
 
-        // Update the active grid nodes so they now belong to the new map
-        for (int x = 0; x < gridManager.width; x++)
-        {
-            for (int y = 0; y < gridManager.height; y++)
-            {
-                if (gridManager.grid[x, y] != null)
-                {
-                    gridManager.grid[x, y].mapName = newMapName;
-                }
-            }
-        }
-
+        // SaveCurrentMap creates a deep copy of the grid, sets the mapName properly, and saves it
         SaveCurrentMap();
         SaveBuildingsToFile();
+
+        // Reload the new map into the active grid so we stop pointing at the old map's memory
+        LoadMap(newMapName);
 
         Debug.Log("Map duplicated to: " + newMapName);
     }

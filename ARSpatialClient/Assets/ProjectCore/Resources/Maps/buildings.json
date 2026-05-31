@@ -2,7 +2,9 @@
     "list": [
         {
             "buildingName": "Main Block",
-            "maps": []
+            "maps": [
+                "7th Floor "
+            ]
         },
         {
             "buildingName": "House",
