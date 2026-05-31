@@ -180,6 +180,42 @@ public class MapManager : MonoBehaviour
         Debug.Log("New map created: " + mapName);
     }
 
+    public void CopyCurrentMap(string newMapName)
+    {
+        if (string.IsNullOrEmpty(newMapName))
+            return;
+
+        if (gridManager == null || gridManager.grid == null)
+        {
+            Debug.LogError("Cannot copy: no active map loaded.");
+            return;
+        }
+
+        string building = mapToBuilding.ContainsKey(currentMapName) ? mapToBuilding[currentMapName] : "Default";
+        int floor = mapToFloor.ContainsKey(currentMapName) ? mapToFloor[currentMapName] : 0;
+
+        currentMapName = newMapName;
+        mapToFloor[newMapName] = floor;
+        RegisterMapToBuilding(newMapName, building);
+
+        // Update the active grid nodes so they now belong to the new map
+        for (int x = 0; x < gridManager.width; x++)
+        {
+            for (int y = 0; y < gridManager.height; y++)
+            {
+                if (gridManager.grid[x, y] != null)
+                {
+                    gridManager.grid[x, y].mapName = newMapName;
+                }
+            }
+        }
+
+        SaveCurrentMap();
+        SaveBuildingsToFile();
+
+        Debug.Log("Map duplicated to: " + newMapName);
+    }
+
     public void DeleteMap(string mapName)
     {
         // Always clear any currently spawned wall visuals.
