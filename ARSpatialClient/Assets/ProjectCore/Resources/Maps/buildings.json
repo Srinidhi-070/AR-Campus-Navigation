@@ -20,7 +20,14 @@
         {
             "buildingName": "Apex Block ",
             "maps": [
-                "7th Floor "
+                "7th Floor ",
+                "6th Floor ",
+                "5th Floor ",
+                "4th Floor ",
+                "3rd Floor ",
+                "2nd Floor ",
+                "1st Floor ",
+                "Ground Floor "
             ]
         }
     ]

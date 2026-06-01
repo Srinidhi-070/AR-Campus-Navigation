@@ -206,6 +206,23 @@ public class MapManager : MonoBehaviour
         // Reload the new map into the active grid so we stop pointing at the old map's memory
         LoadMap(newMapName);
 
+        // Clear out old unique node names and cross-floor connections on the new map
+        for (int x = 0; x < gridManager.width; x++)
+        {
+            for (int y = 0; y < gridManager.height; y++)
+            {
+                if (gridManager.grid[x, y] != null)
+                {
+                    gridManager.grid[x, y].nodeName = "";
+                    gridManager.grid[x, y].connectedMap = "";
+                    gridManager.grid[x, y].connectedNode = Vector2Int.zero;
+                }
+            }
+        }
+        
+        // Save the cleaned-up copy
+        SaveCurrentMap();
+
         Debug.Log("Map duplicated to: " + newMapName);
     }
 
