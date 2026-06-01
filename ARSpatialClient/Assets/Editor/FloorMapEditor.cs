@@ -1036,9 +1036,9 @@ public class FloorMapEditor : EditorWindow
         int movedCount = 0;
         foreach (var mapName in maps)
         {
-            if (!m_MapManager.maps.ContainsKey(mapName)) continue;
+            Node[,] grid = m_MapManager.GetMap(mapName);
+            if (grid == null) continue;
             
-            Node[,] grid = m_MapManager.maps[mapName];
             string building = m_MapManager.mapToBuilding.ContainsKey(mapName) ? m_MapManager.mapToBuilding[mapName] : "Main Block";
             int floor = m_MapManager.mapToFloor.ContainsKey(mapName) ? m_MapManager.mapToFloor[mapName] : 0;
             string buildingFolder = string.Join("_", building.Split(System.IO.Path.GetInvalidFileNameChars()));
