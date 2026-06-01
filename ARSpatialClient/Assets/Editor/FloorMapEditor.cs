@@ -39,6 +39,8 @@ public class FloorMapEditor : EditorWindow
     private Node    m_SelectedNode = null;
     private Texture2D m_QRPreview   = null;
     private Vector2 m_ControlScrollPos;
+    
+    private bool    m_IsDirty = false;
 
     private enum PaintMode
     {
@@ -90,7 +92,11 @@ public class FloorMapEditor : EditorWindow
         {
             // Force reload maps from disk since Awake() doesn't run in Edit mode
             m_MapManager.LoadBuildingsFromFile();
-            m_MapManager.LoadAllMapsFromDisk();
+            
+            if (!m_IsDirty)
+            {
+                m_MapManager.LoadAllMapsFromDisk();
+            }
             
             // Force refresh the maps dictionary by calling GetAllMaps
             // This ensures the editor sees all saved maps
@@ -98,6 +104,20 @@ public class FloorMapEditor : EditorWindow
             Debug.Log($"[FloorMapEditor] Found {maps.Count} saved maps");
             
             Repaint();
+        }
+    }
+
+    void OnDestroy()
+    {
+        if (m_IsDirty && m_MapManager != null && !string.IsNullOrEmpty(m_MapManager.currentMapName))
+        {
+            if (EditorUtility.DisplayDialog("Unsaved Changes", 
+                $"You have unsaved changes on '{m_MapManager.currentMapName}'. Save before closing?", 
+                "Save", "Discard"))
+            {
+                m_MapManager.SaveCurrentMap();
+                Debug.Log($"[FloorMapEditor] Saved {m_MapManager.currentMapName} on close.");
+            }
         }
     }
 
@@ -145,8 +165,13 @@ public class FloorMapEditor : EditorWindow
         string mapInfo = string.IsNullOrEmpty(m_MapManager.currentMapName) 
             ? "No map loaded" 
             : $"📍 {m_MapManager.currentMapName}   |   🏢 {bldg}   |   ↕ Floor {flr}";
+            
+        if (m_IsDirty)
+            mapInfo += "   <color=#ff8800><b>* (Unsaved Changes)</b></color>";
         
-        GUILayout.Label(mapInfo, EditorStyles.miniLabel);
+        GUIStyle richStyle = new GUIStyle(EditorStyles.miniLabel);
+        richStyle.richText = true;
+        GUILayout.Label(mapInfo, richStyle);
         
         GUILayout.FlexibleSpace();
         
@@ -223,12 +248,26 @@ public class FloorMapEditor : EditorWindow
             }
             else
             {
+                if (m_MapManager.GetAllMaps().Contains(m_NewMapName))
+                {
+                    if (!EditorUtility.DisplayDialog("Map Already Exists", 
+                        $"A map named '{m_NewMapName}' already exists. Overwriting it will permanently delete its contents. Are you sure?", 
+                        "Yes, Overwrite", "Cancel"))
+                    {
+                        GUI.backgroundColor = Color.white;
+                        EditorGUILayout.EndHorizontal();
+                        EditorGUILayout.EndVertical();
+                        return;
+                    }
+                }
+                
                 m_MapManager.CopyCurrentMap(m_NewMapName);
                 
                 // Clear inspector selection so it doesn't show ghost nodes from the old map
                 m_SelectedNode = null;
                 m_NodeNameInput = "";
                 m_QRPreview = null;
+                m_IsDirty = false;
                 
                 Repaint();
             }
@@ -291,6 +330,7 @@ public class FloorMapEditor : EditorWindow
                     m_SelectedNode = null;
                     m_NodeNameInput = "";
                     m_QRPreview = null;
+                    m_IsDirty = false;
                     
                     Debug.Log($"[FloorMapEditor] Loaded map: {mapName}");
                     Repaint();
@@ -348,7 +388,7 @@ public class FloorMapEditor : EditorWindow
         EditorGUILayout.Space(8);
 
         // ── Selected Node ─────────────────────────────────────────────────────
-        if (m_SelectedNode != null)
+        if (m_SelectedNode != null && m_PaintMode == PaintMode.Select)
         {
             EditorGUILayout.BeginVertical(sectionStyle);
             GUILayout.Label("🎯 SELECTED NODE", EditorStyles.boldLabel);
@@ -376,6 +416,7 @@ public class FloorMapEditor : EditorWindow
             if (GUILayout.Button("✓ Assign Name", GUILayout.Height(32)))
             {
                 m_SelectedNode.nodeName = m_NodeNameInput.Trim().ToUpper();
+                m_IsDirty = true;
                 Debug.Log($"[FloorMapEditor] Node named: {m_SelectedNode.nodeName}");
                 m_QRPreview = LoadExistingQR(m_SelectedNode.nodeName);
                 Repaint();
@@ -389,6 +430,7 @@ public class FloorMapEditor : EditorWindow
                 m_SelectedNode.connectedMap = "";
                 m_SelectedNode.connectedNode = Vector2Int.zero;
                 m_QRPreview = null;
+                m_IsDirty = true;
                 Debug.Log("[FloorMapEditor] Cleared node data.");
                 Repaint();
             }
@@ -467,6 +509,7 @@ public class FloorMapEditor : EditorWindow
                 "Remove all wall GameObjects from the scene?", "Clear", "Cancel"))
             {
                 m_GridManager.ClearWalls();
+                m_IsDirty = true;
                 Debug.Log("[FloorMapEditor] Cleared all wall objects");
             }
         }
@@ -493,7 +536,9 @@ public class FloorMapEditor : EditorWindow
                 m_SelectedNode = null;
                 m_NodeNameInput = "";
                 m_QRPreview = null;
+                m_IsDirty = true;
                 m_MapManager.SaveCurrentMap();
+                m_IsDirty = false;
                 Debug.Log("[FloorMapEditor] Cleared all node names and connections.");
                 Repaint();
             }
@@ -789,27 +834,32 @@ public class FloorMapEditor : EditorWindow
                 node.isWalkable = false;
                 node.nodeType   = NodeType.Obstacle;
                 m_GridManager.UpdateWalls();
+                m_IsDirty = true;
                 break;
 
             case PaintMode.Walkable:
                 node.isWalkable = true;
                 node.nodeType   = NodeType.Normal;
                 m_GridManager.UpdateWalls();
+                m_IsDirty = true;
                 break;
 
             case PaintMode.Room:
                 node.isWalkable = true;
                 node.nodeType   = NodeType.RoomDoor;
+                m_IsDirty = true;
                 break;
 
             case PaintMode.Stair:
                 node.isWalkable = true;
                 node.nodeType   = NodeType.StairEntry;
+                m_IsDirty = true;
                 break;
 
             case PaintMode.Lift:
                 node.isWalkable = true;
                 node.nodeType   = NodeType.LiftEntry;
+                m_IsDirty = true;
                 break;
 
             case PaintMode.Entrance:
@@ -817,6 +867,7 @@ public class FloorMapEditor : EditorWindow
                 node.nodeType   = NodeType.Normal;
                 if (string.IsNullOrEmpty(node.nodeName))
                     node.nodeName = $"ENTRANCE_{x}_{y}";
+                m_IsDirty = true;
                 break;
 
             case PaintMode.Select:
@@ -895,6 +946,16 @@ public class FloorMapEditor : EditorWindow
             return;
         }
 
+        if (m_MapManager.GetAllMaps().Contains(m_NewMapName))
+        {
+            if (!EditorUtility.DisplayDialog("Map Already Exists", 
+                $"A map named '{m_NewMapName}' already exists. Overwriting it will permanently delete its contents. Are you sure?", 
+                "Yes, Overwrite", "Cancel"))
+            {
+                return;
+            }
+        }
+
         // IMPORTANT: Save current work BEFORE creating new map
         if (!string.IsNullOrEmpty(m_MapManager.currentMapName) && 
             m_GridManager.grid != null)
@@ -923,6 +984,7 @@ public class FloorMapEditor : EditorWindow
         // Save the fresh empty grid
         m_MapManager.SaveCurrentMap();
         m_MapManager.SaveBuildingsToFile();
+        m_IsDirty = false;
 
         Debug.Log($"[FloorMapEditor] Created new map: {m_NewMapName} | Floor {m_FloorNumber} | Building: {m_BuildingName}");
         Repaint();
@@ -937,6 +999,7 @@ public class FloorMapEditor : EditorWindow
         }
 
         m_MapManager.SaveCurrentMap();
+        m_IsDirty = false;
         AssetDatabase.Refresh();
         Debug.Log($"[FloorMapEditor] Saved map: {m_MapManager.currentMapName}");
         EditorUtility.DisplayDialog("Saved", $"Map '{m_MapManager.currentMapName}' saved successfully.", "OK");
