@@ -216,6 +216,12 @@ public class FloorMapEditor : EditorWindow
             else
             {
                 m_MapManager.CopyCurrentMap(m_NewMapName);
+                
+                // Clear inspector selection so it doesn't show ghost nodes from the old map
+                m_SelectedNode = null;
+                m_NodeNameInput = "";
+                m_QRPreview = null;
+                
                 Repaint();
             }
         }
@@ -270,6 +276,11 @@ public class FloorMapEditor : EditorWindow
                     m_NewMapName  = mapName;
                     m_FloorNumber = m_MapManager.mapToFloor.ContainsKey(mapName)
                         ? m_MapManager.mapToFloor[mapName] : 0;
+                    
+                    // Clear the old inspector data so we don't show ghost nodes
+                    m_SelectedNode = null;
+                    m_NodeNameInput = "";
+                    m_QRPreview = null;
                     
                     Debug.Log($"[FloorMapEditor] Loaded map: {mapName}");
                     Repaint();
