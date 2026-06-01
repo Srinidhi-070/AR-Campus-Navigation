@@ -201,7 +201,7 @@ public class MapManager : MonoBehaviour
         Debug.Log("New map created: " + mapName);
     }
 
-    public void CopyCurrentMap(string newMapName)
+    public void CopyCurrentMap(string newMapName, string newBuilding = null, int? newFloor = null)
     {
         if (string.IsNullOrEmpty(newMapName))
             return;
@@ -212,8 +212,8 @@ public class MapManager : MonoBehaviour
             return;
         }
 
-        string building = mapToBuilding.ContainsKey(currentMapName) ? mapToBuilding[currentMapName] : "Default";
-        int floor = mapToFloor.ContainsKey(currentMapName) ? mapToFloor[currentMapName] : 0;
+        string building = newBuilding != null ? newBuilding : (mapToBuilding.ContainsKey(currentMapName) ? mapToBuilding[currentMapName] : "Default");
+        int floor = newFloor.HasValue ? newFloor.Value : (mapToFloor.ContainsKey(currentMapName) ? mapToFloor[currentMapName] : 0);
 
         // Change active name
         currentMapName = newMapName;

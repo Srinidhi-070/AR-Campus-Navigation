@@ -261,7 +261,7 @@ public class FloorMapEditor : EditorWindow
                     }
                 }
                 
-                m_MapManager.CopyCurrentMap(m_NewMapName);
+                m_MapManager.CopyCurrentMap(m_NewMapName, m_BuildingName, m_FloorNumber);
                 
                 // Clear inspector selection so it doesn't show ghost nodes from the old map
                 m_SelectedNode = null;
@@ -998,7 +998,12 @@ public class FloorMapEditor : EditorWindow
             return;
         }
 
+        // Apply UI values to the current map in memory before saving
+        m_MapManager.mapToFloor[m_MapManager.currentMapName] = m_FloorNumber;
+        m_MapManager.RegisterMapToBuilding(m_MapManager.currentMapName, m_BuildingName);
+
         m_MapManager.SaveCurrentMap();
+        m_MapManager.SaveBuildingsToFile();
         m_IsDirty = false;
         AssetDatabase.Refresh();
         Debug.Log($"[FloorMapEditor] Saved map: {m_MapManager.currentMapName}");
