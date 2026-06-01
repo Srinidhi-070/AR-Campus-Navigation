@@ -89,10 +89,31 @@ public class MapManager : MonoBehaviour
 
         gridManager.ClearWalls();
 
-        //DIRECT REFERENCE (NO COPY)
-        gridManager.grid = map;
-        gridManager.width = map.GetLength(0);
-        gridManager.height = map.GetLength(1);
+        // DEEP COPY: Create a working copy so we don't mutate the saved map directly
+        Node[,] copyGrid = new Node[map.GetLength(0), map.GetLength(1)];
+        for (int x = 0; x < map.GetLength(0); x++)
+        {
+            for (int y = 0; y < map.GetLength(1); y++)
+            {
+                Node original = map[x, y];
+                if (original != null)
+                {
+                    Node copy = new Node(original.x, original.y);
+                    copy.mapName = original.mapName;
+                    copy.isWalkable = original.isWalkable;
+                    copy.nodeType = original.nodeType;
+                    copy.connectedMap = original.connectedMap;
+                    copy.connectedNode = original.connectedNode;
+                    copy.connectionID = original.connectionID;
+                    copy.nodeName = original.nodeName;
+                    copyGrid[x, y] = copy;
+                }
+            }
+        }
+
+        gridManager.grid = copyGrid;
+        gridManager.width = copyGrid.GetLength(0);
+        gridManager.height = copyGrid.GetLength(1);
         
         // Only update walls if wallPrefab is assigned
         if (gridManager.wallPrefab != null)
@@ -228,12 +249,6 @@ public class MapManager : MonoBehaviour
 
     public void DeleteMap(string mapName)
     {
-        // Always clear any currently spawned wall visuals.
-        // This fixes cases where a deleted map wasn't the active one,
-        // so gridManager.ResetGrid() never ran.
-        if (gridManager != null)
-            gridManager.ClearWalls();
-
         if (maps.ContainsKey(mapName))
             maps.Remove(mapName);
 
@@ -261,6 +276,8 @@ public class MapManager : MonoBehaviour
 
         if (currentMapName == mapName)
         {
+            if (gridManager != null)
+                gridManager.ClearWalls();
             gridManager.ResetGrid();
             currentMapName = "";
             gridManager.startNode = null;
