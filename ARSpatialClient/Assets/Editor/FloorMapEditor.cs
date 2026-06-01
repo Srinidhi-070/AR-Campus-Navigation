@@ -275,6 +275,18 @@ public class FloorMapEditor : EditorWindow
         
         GUI.backgroundColor = Color.white;
         EditorGUILayout.EndHorizontal();
+
+        EditorGUILayout.Space(8);
+        GUI.backgroundColor = new Color(0.2f, 0.6f, 0.8f);
+        if (GUILayout.Button("📁 Auto-Organize All Existing QR Codes", GUILayout.Height(28)))
+        {
+            if (EditorUtility.DisplayDialog("Organize QR Codes", "This will scan all maps and move any existing QR codes in the root folder into their correct Building and Floor folders. Continue?", "Yes, Organize", "Cancel"))
+            {
+                OrganizeQRCodes();
+            }
+        }
+        GUI.backgroundColor = Color.white;
+
         EditorGUILayout.EndVertical();
 
         EditorGUILayout.Space(8);
@@ -1016,6 +1028,50 @@ public class FloorMapEditor : EditorWindow
         AssetDatabase.Refresh();
         Debug.Log($"[FloorMapEditor] Saved map: {m_MapManager.currentMapName}");
         EditorUtility.DisplayDialog("Saved", $"Map '{m_MapManager.currentMapName}' saved successfully.", "OK");
+    }
+
+    void OrganizeQRCodes()
+    {
+        var maps = m_MapManager.GetAllMaps();
+        int movedCount = 0;
+        foreach (var mapName in maps)
+        {
+            if (!m_MapManager.maps.ContainsKey(mapName)) continue;
+            
+            Node[,] grid = m_MapManager.maps[mapName];
+            string building = m_MapManager.mapToBuilding.ContainsKey(mapName) ? m_MapManager.mapToBuilding[mapName] : "Main Block";
+            int floor = m_MapManager.mapToFloor.ContainsKey(mapName) ? m_MapManager.mapToFloor[mapName] : 0;
+            string buildingFolder = string.Join("_", building.Split(System.IO.Path.GetInvalidFileNameChars()));
+            string targetDir = $"Assets/ProjectCore/Resources/QRCodes/{buildingFolder}/Floor_{floor}";
+
+            for (int x = 0; x < grid.GetLength(0); x++)
+            {
+                for (int y = 0; y < grid.GetLength(1); y++)
+                {
+                    Node node = grid[x, y];
+                    if (node != null && !string.IsNullOrEmpty(node.nodeName))
+                    {
+                        string oldPath = $"Assets/ProjectCore/Resources/QRCodes/{node.nodeName}.png";
+                        string newPath = $"{targetDir}/{node.nodeName}.png";
+
+                        if (System.IO.File.Exists(oldPath))
+                        {
+                            if (!System.IO.Directory.Exists(targetDir))
+                                System.IO.Directory.CreateDirectory(targetDir);
+
+                            System.IO.File.Move(oldPath, newPath);
+                            string metaPath = oldPath + ".meta";
+                            if (System.IO.File.Exists(metaPath))
+                                System.IO.File.Move(metaPath, newPath + ".meta");
+                                
+                            movedCount++;
+                        }
+                    }
+                }
+            }
+        }
+        AssetDatabase.Refresh();
+        EditorUtility.DisplayDialog("Organize QR Codes", $"Successfully moved {movedCount} legacy QR codes to their correct folders!", "OK");
     }
 
     // ── Export to nodes.json ──────────────────────────────────────────────────
