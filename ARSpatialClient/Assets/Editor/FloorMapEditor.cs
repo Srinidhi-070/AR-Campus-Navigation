@@ -460,11 +460,14 @@ public class FloorMapEditor : EditorWindow
 
                 if (m_QRPreview != null)
                 {
-                    float previewSize = 200f;
-                    Rect previewRect = GUILayoutUtility.GetRect(previewSize, previewSize, GUILayout.ExpandWidth(false));
-                    EditorGUI.DrawPreviewTexture(previewRect, m_QRPreview);
-                    EditorGUILayout.LabelField("Saved to: QRCodes/" + m_SelectedNode.nodeName + ".png",
-                        EditorStyles.miniLabel);
+                    GUILayout.Label(m_QRPreview, GUILayout.Width(128), GUILayout.Height(128));
+                    
+                    string building = m_MapManager.mapToBuilding.ContainsKey(m_MapManager.currentMapName) ? m_MapManager.mapToBuilding[m_MapManager.currentMapName] : "Main Block";
+                    int floor = m_MapManager.mapToFloor.ContainsKey(m_MapManager.currentMapName) ? m_MapManager.mapToFloor[m_MapManager.currentMapName] : 0;
+                    string buildingFolder = string.Join("_", building.Split(System.IO.Path.GetInvalidFileNameChars()));
+                    
+                    EditorGUILayout.LabelField($"Saved to: QRCodes/{buildingFolder}/Floor_{floor}/{m_SelectedNode.nodeName}.png",
+                        EditorStyles.wordWrappedMiniLabel);
                 }
             }
 
@@ -915,11 +918,12 @@ public class FloorMapEditor : EditorWindow
         tex.SetPixels32(colors);
         tex.Apply();
 
-        string dir  = "Assets/ProjectCore/Resources/QRCodes";
-        if (!Directory.Exists(dir)) Directory.CreateDirectory(dir);
+        string buildingFolder = string.Join("_", building.Split(System.IO.Path.GetInvalidFileNameChars()));
+        string dir  = $"Assets/ProjectCore/Resources/QRCodes/{buildingFolder}/Floor_{floor}";
+        if (!System.IO.Directory.Exists(dir)) System.IO.Directory.CreateDirectory(dir);
 
         string path = $"{dir}/{node.nodeName}.png";
-        File.WriteAllBytes(path, tex.EncodeToPNG());
+        System.IO.File.WriteAllBytes(path, tex.EncodeToPNG());
         AssetDatabase.Refresh();
 
         Debug.Log($"[FloorMapEditor] QR saved: {path} | payload: {payload}");
@@ -928,9 +932,13 @@ public class FloorMapEditor : EditorWindow
 
     Texture2D LoadExistingQR(string nodeName)
     {
-        string path = $"Assets/ProjectCore/Resources/QRCodes/{nodeName}.png";
-        if (!File.Exists(path)) return null;
-        byte[] bytes = File.ReadAllBytes(path);
+        string building = m_MapManager.mapToBuilding.ContainsKey(m_MapManager.currentMapName) ? m_MapManager.mapToBuilding[m_MapManager.currentMapName] : "Main Block";
+        int floor = m_MapManager.mapToFloor.ContainsKey(m_MapManager.currentMapName) ? m_MapManager.mapToFloor[m_MapManager.currentMapName] : 0;
+        string buildingFolder = string.Join("_", building.Split(System.IO.Path.GetInvalidFileNameChars()));
+        
+        string path = $"Assets/ProjectCore/Resources/QRCodes/{buildingFolder}/Floor_{floor}/{nodeName}.png";
+        if (!System.IO.File.Exists(path)) return null;
+        byte[] bytes = System.IO.File.ReadAllBytes(path);
         Texture2D tex = new Texture2D(2, 2);
         tex.LoadImage(bytes);
         return tex;
