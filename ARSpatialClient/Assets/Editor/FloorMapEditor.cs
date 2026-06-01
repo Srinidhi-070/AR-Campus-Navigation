@@ -133,10 +133,18 @@ public class FloorMapEditor : EditorWindow
     {
         Rect statusRect = EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
         
+        string bldg = "Unknown";
+        int flr = 0;
+        if (m_MapManager != null)
+        {
+            if (m_MapManager.mapToBuilding.TryGetValue(m_MapManager.currentMapName, out string b)) bldg = b;
+            if (m_MapManager.mapToFloor.TryGetValue(m_MapManager.currentMapName, out int f)) flr = f;
+        }
+
         // Current map info
         string mapInfo = string.IsNullOrEmpty(m_MapManager.currentMapName) 
             ? "No map loaded" 
-            : $"📍 {m_MapManager.currentMapName}";
+            : $"📍 {m_MapManager.currentMapName}   |   🏢 {bldg}   |   ↕ Floor {flr}";
         
         GUILayout.Label(mapInfo, EditorStyles.miniLabel);
         
@@ -276,6 +284,8 @@ public class FloorMapEditor : EditorWindow
                     m_NewMapName  = mapName;
                     m_FloorNumber = m_MapManager.mapToFloor.ContainsKey(mapName)
                         ? m_MapManager.mapToFloor[mapName] : 0;
+                    m_BuildingName = m_MapManager.mapToBuilding.ContainsKey(mapName)
+                        ? m_MapManager.mapToBuilding[mapName] : "Main Block";
                     
                     // Clear the old inspector data so we don't show ghost nodes
                     m_SelectedNode = null;
