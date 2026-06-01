@@ -460,6 +460,34 @@ public class FloorMapEditor : EditorWindow
                 Debug.Log("[FloorMapEditor] Cleared all wall objects");
             }
         }
+        
+        EditorGUILayout.Space(2);
+        GUI.backgroundColor = new Color(0.9f, 0.3f, 0.3f);
+        if (GUILayout.Button("🧨 Clear All Node Names", GUILayout.Height(28)))
+        {
+            if (EditorUtility.DisplayDialog("Clear All Node Names",
+                "This will wipe out all named locations and cross-floor connections on the current map. Are you sure?", "Yes, Wipe Them", "Cancel"))
+            {
+                for (int x = 0; x < m_GridManager.width; x++)
+                {
+                    for (int y = 0; y < m_GridManager.height; y++)
+                    {
+                        if (m_GridManager.grid[x, y] != null)
+                        {
+                            m_GridManager.grid[x, y].nodeName = "";
+                            m_GridManager.grid[x, y].connectedMap = "";
+                            m_GridManager.grid[x, y].connectedNode = Vector2Int.zero;
+                        }
+                    }
+                }
+                m_SelectedNode = null;
+                m_NodeNameInput = "";
+                m_QRPreview = null;
+                m_MapManager.SaveCurrentMap();
+                Debug.Log("[FloorMapEditor] Cleared all node names and connections.");
+                Repaint();
+            }
+        }
         GUI.backgroundColor = Color.white;
         EditorGUILayout.EndVertical();
         
