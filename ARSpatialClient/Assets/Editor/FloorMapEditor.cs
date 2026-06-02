@@ -855,6 +855,9 @@ public class FloorMapEditor : EditorWindow
             case PaintMode.Walkable:
                 node.isWalkable = true;
                 node.nodeType   = NodeType.Normal;
+                node.nodeName   = "";
+                node.connectedMap = "";
+                node.connectedNode = Vector2Int.zero;
                 m_GridManager.UpdateWalls();
                 m_IsDirty = true;
                 break;
