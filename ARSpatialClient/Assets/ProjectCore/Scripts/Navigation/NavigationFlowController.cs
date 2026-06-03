@@ -46,6 +46,10 @@ public class NavigationFlowController : MonoBehaviour
     private int m_CurrentPathStartIndex = 0;
     private int m_NextPathStartIndex = 0;
 
+    // ── Floor Transition Anchor State ──
+    private Vector3 m_FloorTransitionARPos;
+    private bool m_HasFloorTransitionAnchor = false;
+
     private readonly List<string> m_BuildingOptions = new List<string>();
     private readonly List<int> m_FloorOptions = new List<int>();
     private readonly List<LocationData> m_RoomOptions = new List<LocationData>();
@@ -222,6 +226,7 @@ public class NavigationFlowController : MonoBehaviour
         m_ActiveWorldPath = null;
         m_CurrentPathStartIndex = 0;
         m_NextPathStartIndex = 0;
+        m_HasFloorTransitionAnchor = false;
         
         string label = m_ActiveDestinationName;
         m_UI.ShowStatus($"Calculating path to {label}...");
@@ -442,7 +447,14 @@ public class NavigationFlowController : MonoBehaviour
             Vector3 worldAnchorPos = Vector3.zero;
             Vector3 mapAnchorPos = worldPath[0]; // Fallback to start of path
             
-            if (m_QRLocationManager != null && m_QRLocationManager.HasLocation)
+            if (m_HasFloorTransitionAnchor && m_CurrentPathStartIndex > 0 && m_CurrentPathStartIndex < m_LastRawPathResponse.path.Count)
+            {
+                // Lock the AR map anchor to the physical location where the user clicked "Resume"
+                worldAnchorPos = m_FloorTransitionARPos;
+                var startNode = m_LastRawPathResponse.path[m_CurrentPathStartIndex];
+                mapAnchorPos = new Vector3(startNode.x, startNode.y, startNode.z);
+            }
+            else if (m_QRLocationManager != null && m_QRLocationManager.HasLocation)
             {
                 // Lock the AR map anchor to the exact physical location of the QR scan!
                 worldAnchorPos = m_QRLocationManager.ScanCameraPosition;
@@ -808,7 +820,6 @@ public class NavigationFlowController : MonoBehaviour
         Arrived
     }
 
-    // ── State ─────────────────────────────────────────────────────────────────
     private bool m_IsSimulating = false;
 
     private void HandleFloorTransitionResume()
@@ -1323,6 +1334,10 @@ public class NavigationFlowController : MonoBehaviour
 
     private void HandleQrLocationChanged(string nodeId)
     {
+        // A physical QR scan acts as a hard override for calibration.
+        // We no longer rely on a floating floor transition anchor if they scan a physical code.
+        m_HasFloorTransitionAnchor = false;
+
         RefreshControls();
 
         if (m_UI != null && !string.IsNullOrEmpty(nodeId))

@@ -60237,8 +60237,8 @@
         {
             "x": 46,
             "y": 33,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
