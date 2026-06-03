@@ -433,7 +433,7 @@ public class NavigationFlowController : MonoBehaviour
                 if (TryGetWorldAnchorFromRaycast(out Vector3 floorAnchor))
                     worldAnchorPos.y = floorAnchor.y;
                 else
-                    worldAnchorPos.y += m_PathHeightOffset; // Use configurable offset
+                    worldAnchorPos.y -= 1.5f; // Fallback to 1.5m below camera if no planes
             }
             else
             {
@@ -1155,23 +1155,41 @@ public class NavigationFlowController : MonoBehaviour
     {
         worldAnchorPos = Vector3.zero;
 
-        // Find raycast manager (created by ARFoundationBootstrap / XROrigin)
         ARRaycastManager raycastManager = FindObjectOfType<ARRaycastManager>();
         if (raycastManager == null)
             return false;
 
-        // Raycast from screen center for stability
-        Vector2 screenCenter = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
-
         var hits = new List<ARRaycastHit>();
-        if (!raycastManager.Raycast(screenCenter, hits, TrackableType.PlaneWithinPolygon))
-            return false;
+        Transform cam = Camera.main != null ? Camera.main.transform : null;
 
-        if (hits.Count == 0)
-            return false;
+        // Strategy 1: Raycast straight down from the camera.
+        // This guarantees we hit the floor beneath the user, not a wall in the distance.
+        if (cam != null)
+        {
+            Ray downRay = new Ray(cam.position, Vector3.down);
+            if (raycastManager.Raycast(downRay, hits, TrackableType.PlaneWithinPolygon) && hits.Count > 0)
+            {
+                worldAnchorPos = hits[0].pose.position;
+                return true;
+            }
+        }
 
-        worldAnchorPos = hits[0].pose.position;
-        return true;
+        // Strategy 2: Raycast from screen center (fallback if no floor directly below)
+        Vector2 screenCenter = new Vector2(Screen.width * 0.5f, Screen.height * 0.5f);
+        if (raycastManager.Raycast(screenCenter, hits, TrackableType.PlaneWithinPolygon))
+        {
+            foreach (var hit in hits)
+            {
+                // Filter out vertical wall planes by ensuring the hit is significantly below eye level
+                if (cam == null || hit.pose.position.y < cam.position.y - 0.5f)
+                {
+                    worldAnchorPos = hit.pose.position;
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private string GetLowestCostNode(List<string> open, Dictionary<string, float> costs)
