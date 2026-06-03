@@ -302,7 +302,22 @@ public class QRLocationManager : MonoBehaviour
         // candidate by checking if OTHER edges also make sense under this offset.
         // The correct offset will be consistent across multiple edges.
 
-        float bestScore = -1f;
+        // ── Symmetry Disambiguation (Tie-Breaker) ──
+        // At a straight corridor or cross intersection, the user's walk direction 
+        // could align with multiple edges by rotating the map 0, 90, 180, or 270 degrees.
+        // We use the compass (or GPS) purely as a rough tie-breaker to pick the correct side.
+        float roughExpectedYaw = 0f;
+        GPSLocationService gps = AppController.Instance != null ? AppController.Instance.GPS : null;
+        if (gps != null && gps.HasGPSHeading)
+        {
+            roughExpectedYaw = ScanCameraRotationY - gps.GPSHeading;
+        }
+        else
+        {
+            roughExpectedYaw = ScanCameraRotationY - ScanCompassHeading;
+        }
+
+        float bestScore = -9999f;
         float bestYaw = 0f;
         string bestEdgeName = "";
 
@@ -326,8 +341,6 @@ public class QRLocationManager : MonoBehaviour
             float candidateYaw = walkAngle - edgeAngle;
 
             // Score: how well does this yaw offset explain ALL edges?
-            // Under the correct offset, the user's walk direction should match
-            // one edge with high confidence, and not counter-match others.
             Quaternion candidateRot = Quaternion.Euler(0, candidateYaw, 0);
             float score = 0f;
 
@@ -343,10 +356,18 @@ public class QRLocationManager : MonoBehaviour
                 Vector3 eDirAR = candidateRot * eDir;
                 float dot = Vector3.Dot(walkDir, eDirAR);
 
-                // The walk direction should match exactly ONE edge well (dot ≈ 1.0)
-                // and be roughly perpendicular or opposite to others.
-                // We heavily reward the best-matching edge.
                 if (dot > 0.7f) score += dot * 2f;
+            }
+
+            // TIE-BREAKER: Penalize candidates that are completely opposite to the compass/GPS
+            // Mathf.DeltaAngle returns the shortest difference between two angles (-180 to 180)
+            float angleDiff = Mathf.Abs(Mathf.DeltaAngle(roughExpectedYaw, candidateYaw));
+            
+            // If the candidate is more than 90 degrees away from the rough compass heading,
+            // we heavily penalize it to prevent 180-degree flips at symmetric intersections.
+            if (angleDiff > 90f)
+            {
+                score -= 5f; 
             }
 
             if (score > bestScore)
