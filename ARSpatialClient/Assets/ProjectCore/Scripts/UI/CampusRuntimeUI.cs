@@ -31,6 +31,7 @@ public class CampusRuntimeUI : MonoBehaviour
     public Button FloorTransitionButton { get; private set; }
     public TextMeshProUGUI FloorTransitionText { get; private set; }
 
+
     public TMP_Dropdown BuildingDropdown { get; private set; }
     public TMP_Dropdown FloorDropdown { get; private set; }
     public TMP_Dropdown RoomDropdown { get; private set; }
@@ -464,20 +465,20 @@ public class CampusRuntimeUI : MonoBehaviour
     {
         FloorTransitionButton = CreateButton(NavigationChrome.transform, "FloorTransitionButton", "RESUME ON NEW FLOOR");
         RectTransform transRT = FloorTransitionButton.GetComponent<RectTransform>();
-        transRT.anchorMin = new Vector2(0.5f, 0.5f);
-        transRT.anchorMax = new Vector2(0.5f, 0.5f);
-        transRT.pivot = new Vector2(0.5f, 0.5f);
-        transRT.anchoredPosition = new Vector2(0, 0); // Center of the screen
-        transRT.sizeDelta = new Vector2(600, 140);
+        transRT.anchorMin = new Vector2(0.5f, 0f);
+        transRT.anchorMax = new Vector2(0.5f, 0f);
+        transRT.pivot = new Vector2(0.5f, 0f);
+        transRT.anchoredPosition = new Vector2(0, 450); // Placed comfortably above the drawer/toast
+        transRT.sizeDelta = new Vector2(600, 120);
         
         Image img = FloorTransitionButton.GetComponent<Image>();
-        img.color = new Color(0.1f, 0.7f, 0.2f, 1f); // Vibrant Green to indicate action
+        img.color = new Color(0.25f, 0.35f, 1f, 1f); // Vibrant blue to match system theme
         
         Outline outline = FloorTransitionButton.GetComponent<Outline>();
         if (outline != null)
         {
-            outline.effectColor = new Color(0, 0, 0, 0.6f);
-            outline.effectDistance = new Vector2(3, -3);
+            outline.effectColor = new Color(0, 0, 0, 0.4f);
+            outline.effectDistance = new Vector2(2, -2);
         }
 
         FloorTransitionText = FloorTransitionButton.transform.Find("Label")?.GetComponent<TextMeshProUGUI>();
@@ -622,6 +623,7 @@ public class CampusRuntimeUI : MonoBehaviour
 
         GuidanceBanner.SetActive(false);
     }
+
 
     private void BuildChatPanel()
     {

@@ -39983,8 +39983,8 @@
         {
             "x": 30,
             "y": 75,
-            "isWalkable": true,
-            "nodeType": 0,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,
@@ -48825,13 +48825,13 @@
             "y": 55,
             "isWalkable": true,
             "nodeType": 2,
-            "connectedMap": "",
+            "connectedMap": "7th Floor",
             "connectedNode": {
-                "x": 0,
-                "y": 0
+                "x": 37,
+                "y": 51
             },
             "connectionID": -1,
-            "nodeName": ""
+            "nodeName": "STAIRCASE_TO_7TH_FLOOR"
         },
         {
             "x": 37,
@@ -53986,13 +53986,13 @@
             "y": 52,
             "isWalkable": true,
             "nodeType": 3,
-            "connectedMap": "",
+            "connectedMap": "7th floor",
             "connectedNode": {
-                "x": 0,
-                "y": 0
+                "x": 41,
+                "y": 52
             },
             "connectionID": -1,
-            "nodeName": ""
+            "nodeName": "LIFT_TO_7TH_FLOOR_1"
         },
         {
             "x": 41,
@@ -63281,13 +63281,13 @@
             "y": 67,
             "isWalkable": true,
             "nodeType": 2,
-            "connectedMap": "",
+            "connectedMap": "7th Floor",
             "connectedNode": {
-                "x": 0,
-                "y": 0
+                "x": 52,
+                "y": 67
             },
             "connectionID": -1,
-            "nodeName": ""
+            "nodeName": "STAIRCASE_TO_7TH_FLOOR_1"
         },
         {
             "x": 48,
@@ -67129,13 +67129,13 @@
             "y": 63,
             "isWalkable": true,
             "nodeType": 3,
-            "connectedMap": "",
+            "connectedMap": "7th Floor",
             "connectedNode": {
-                "x": 0,
-                "y": 0
+                "x": 51,
+                "y": 63
             },
             "connectionID": -1,
-            "nodeName": ""
+            "nodeName": "LIFT_TO_7TH_FLOOR_2"
         },
         {
             "x": 51,
@@ -77152,13 +77152,13 @@
             "y": 34,
             "isWalkable": true,
             "nodeType": 3,
-            "connectedMap": "",
+            "connectedMap": "7th Floor",
             "connectedNode": {
-                "x": 0,
-                "y": 0
+                "x": 59,
+                "y": 34
             },
             "connectionID": -1,
-            "nodeName": ""
+            "nodeName": "LIFT_TO_7TH_FLOOR_6"
         },
         {
             "x": 59,
@@ -77191,13 +77191,13 @@
             "y": 37,
             "isWalkable": true,
             "nodeType": 3,
-            "connectedMap": "",
+            "connectedMap": "7th Floor",
             "connectedNode": {
-                "x": 0,
-                "y": 0
+                "x": 59,
+                "y": 37
             },
             "connectionID": -1,
-            "nodeName": ""
+            "nodeName": "LIFT_7TH_FLOOR_5"
         },
         {
             "x": 59,
@@ -81000,13 +81000,13 @@
             "y": 30,
             "isWalkable": true,
             "nodeType": 2,
-            "connectedMap": "",
+            "connectedMap": "7th Floor",
             "connectedNode": {
-                "x": 0,
-                "y": 0
+                "x": 62,
+                "y": 31
             },
             "connectionID": -1,
-            "nodeName": ""
+            "nodeName": "STAIRCASE_TO_7TH_FLOOR_2"
         },
         {
             "x": 62,
@@ -85069,13 +85069,13 @@
             "y": 43,
             "isWalkable": true,
             "nodeType": 3,
-            "connectedMap": "",
+            "connectedMap": "7th Floor",
             "connectedNode": {
-                "x": 0,
-                "y": 0
+                "x": 65,
+                "y": 43
             },
             "connectionID": -1,
-            "nodeName": ""
+            "nodeName": "LIFT_TO_7TH_FLOOR_3"
         },
         {
             "x": 65,
@@ -88969,13 +88969,13 @@
             "y": 43,
             "isWalkable": true,
             "nodeType": 3,
-            "connectedMap": "",
+            "connectedMap": "7th Floor",
             "connectedNode": {
-                "x": 0,
-                "y": 0
+                "x": 68,
+                "y": 43
             },
             "connectionID": -1,
-            "nodeName": ""
+            "nodeName": "LIFT_TO7TH_FLOOR_4"
         },
         {
             "x": 68,
@@ -94130,13 +94130,13 @@
             "y": 40,
             "isWalkable": true,
             "nodeType": 2,
-            "connectedMap": "",
+            "connectedMap": "7th Floor",
             "connectedNode": {
-                "x": 0,
-                "y": 0
+                "x": 71,
+                "y": 40
             },
             "connectionID": -1,
-            "nodeName": ""
+            "nodeName": "STAIRCASE_TO_7TH_FLOOR_3"
         },
         {
             "x": 72,

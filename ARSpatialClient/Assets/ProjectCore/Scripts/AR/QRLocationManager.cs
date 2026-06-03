@@ -3,52 +3,21 @@ using UnityEngine;
 
 /// <summary>
 /// Stores the user's current location after a QR scan.
-/// Acts as the single source of truth for "where am I right now".
-/// 
-/// Flow:
-///   QRScanner scans → calls QRLocationManager.SetLocation()
-///   → BeginCalibration() starts walk tracking
-///   → User walks 2-3 steps → ARCore VIO tracks displacement
-///   → Walk direction is matched against graph edges from the start node
-///   → CalibratedYawOffset is computed (AR space → Map space rotation)
-///   → OnCalibrationComplete fires
-///   → NavigationFlowController uses CalibratedYawOffset for path alignment
 /// </summary>
 public class QRLocationManager : MonoBehaviour
 {
     public static QRLocationManager Instance { get; private set; }
 
-    // ── Calibration ───────────────────────────────────────────────────────────
-    public enum CalibrationState { NotCalibrated, WaitingForWalk, Calibrated }
-
-    public CalibrationState CurrentCalibrationState { get; private set; } = CalibrationState.NotCalibrated;
-    public float CalibratedYawOffset { get; private set; } = 0f;
-    public Vector3 CalibrationStartPos => m_CalibrationStartPos;
-
-    /// <summary>How far the user has walked since calibration started (XZ plane).</summary>
-    public float CalibrationWalkDistance { get; private set; } = 0f;
-
-    /// <summary>Minimum walk distance required to calibrate (meters).</summary>
-    public float RequiredWalkDistance => CALIBRATION_WALK_THRESHOLD;
-
-    /// <summary>Fires when walk-to-calibrate completes successfully.</summary>
-    public event Action OnCalibrationComplete;
-
-    private const float CALIBRATION_WALK_THRESHOLD = 1.0f; // meters — needs a genuine walk
-    private const float CALIBRATION_MIN_TIME = 1.5f;       // seconds — let AR fully stabilize after scanner closes
-    private const float CALIBRATION_MIN_SPEED = 0.3f;      // m/s — reject jitter / standing still
-    private const float CALIBRATION_MAX_JUMP = 1.0f;       // meters/frame — reject AR relocalization jumps
-    private Vector3 m_CalibrationStartPos;
-    private Vector3 m_CalibrationPrevPos;
-    private float m_CalibrationStartTime;
-    private float m_CalibrationAccumulatedDist;             // incremental step distance (not straight-line)
-
     // ── Current Location ──────────────────────────────────────────────────────
     public string CurrentNodeId   { get; private set; } = "";
     public string CurrentBuilding { get; private set; } = "";
     public int    CurrentFloor    { get; private set; } = 0;
+    
+    // The exact rotation of the AR Camera (Y-axis) at the moment the QR code was scanned.
+    // Used by NavigationFlowController to instantly align the AR map.
     public float  ScanCameraRotationY { get; private set; } = 0f;
-    public float  ScanCompassHeading  { get; private set; } = 0f;
+    public Vector3 ScanCameraPosition { get; private set; } = Vector3.zero;
+    
     public bool   HasLocation     => !string.IsNullOrEmpty(CurrentNodeId);
 
     // ── Event fired when location changes ─────────────────────────────────────
@@ -60,8 +29,6 @@ public class QRLocationManager : MonoBehaviour
         Instance = this;
         Debug.Log("[QRLocationManager] Ready.");
     }
-
-    // ── Public API ────────────────────────────────────────────────────────────
 
     /// <summary>
     /// Called by QRScanner after a successful scan.
@@ -75,9 +42,8 @@ public class QRLocationManager : MonoBehaviour
         if (Camera.main != null)
         {
             ScanCameraRotationY = Camera.main.transform.eulerAngles.y;
-            ScanCompassHeading  = Input.compass.trueHeading;
-            m_CalibrationStartPos = Camera.main.transform.position;
-            Debug.Log($"[QRLocation] Camera Y rotation at scan: {ScanCameraRotationY}° | Compass: {ScanCompassHeading}°");
+            ScanCameraPosition = Camera.main.transform.position;
+            Debug.Log($"[QRLocation] Camera Y rotation at scan: {ScanCameraRotationY}°");
         }
 
         Debug.Log($"[QRLocation] Location set → Node: {CurrentNodeId} | Building: {CurrentBuilding} | Floor: {CurrentFloor}");
@@ -86,45 +52,14 @@ public class QRLocationManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Starts walk-to-calibrate. Called after a successful QR scan.
-    /// Records the camera position and waits for the user to walk ~2m.
+    /// Safely updates the user's current floor without resetting the AR world anchor.
+    /// Used when transitioning via stairs/lifts natively in AR.
     /// </summary>
-    public void BeginCalibration()
+    public void UpdateFloor(int floor)
     {
-        if (!HasLocation)
-        {
-            Debug.LogWarning("[QRLocationManager] Cannot calibrate without a location.");
-            return;
-        }
-
-        Transform cam = Camera.main != null ? Camera.main.transform : null;
-        if (cam == null)
-        {
-            Debug.LogWarning("[QRLocationManager] No camera for calibration. Auto-calibrating with compass fallback.");
-            ForceCalibrationFromCompass();
-            return;
-        }
-
-        m_CalibrationStartPos = cam.position;
-        m_CalibrationPrevPos = cam.position;
-        m_CalibrationStartTime = Time.time;
-        m_CalibrationAccumulatedDist = 0f;
-        CalibrationWalkDistance = 0f;
-        CurrentCalibrationState = CalibrationState.WaitingForWalk;
-
-        Debug.Log($"[QRLocationManager] Calibration started. Walk {CALIBRATION_WALK_THRESHOLD}m to calibrate direction.");
-    }
-
-    /// <summary>
-    /// Forces calibration to complete immediately with a specific yaw offset.
-    /// Used by the Editor simulator and for re-anchoring from a second QR scan.
-    /// </summary>
-    public void ForceCalibrate(float yawOffset)
-    {
-        CalibratedYawOffset = yawOffset;
-        CurrentCalibrationState = CalibrationState.Calibrated;
-        Debug.Log($"[QRLocationManager] Force-calibrated with yawOffset={yawOffset:F1}°");
-        OnCalibrationComplete?.Invoke();
+        CurrentFloor = floor;
+        Debug.Log($"[QRLocation] Floor updated seamlessly to {CurrentFloor}");
+        // We don't invoke OnLocationChanged here because the core AR anchor hasn't changed.
     }
 
     /// <summary>
@@ -191,246 +126,9 @@ public class QRLocationManager : MonoBehaviour
         CurrentNodeId   = "";
         CurrentBuilding = "";
         CurrentFloor    = 0;
-        CurrentCalibrationState = CalibrationState.NotCalibrated;
-        CalibratedYawOffset = 0f;
-        CalibrationWalkDistance = 0f;
+        ScanCameraRotationY = 0f;
+        ScanCameraPosition = Vector3.zero;
         Debug.Log("[QRLocationManager] Location cleared.");
-    }
-
-    // ── Walk-to-Calibrate Update Loop ─────────────────────────────────────────
-
-    void Update()
-    {
-        if (CurrentCalibrationState != CalibrationState.WaitingForWalk)
-            return;
-
-        Transform cam = Camera.main != null ? Camera.main.transform : null;
-        if (cam == null)
-            return;
-
-        // Debounce: don't track in the first 1.5s (let AR fully stabilize after scanner closes)
-        float elapsed = Time.time - m_CalibrationStartTime;
-        if (elapsed < CALIBRATION_MIN_TIME)
-        {
-            // Keep resetting start position during debounce so jitter doesn't count
-            m_CalibrationStartPos = cam.position;
-            m_CalibrationPrevPos = cam.position;
-            return;
-        }
-
-        Vector3 currentPos = cam.position;
-
-        // Incremental step distance (frame-to-frame) in XZ plane
-        Vector3 stepDelta = currentPos - m_CalibrationPrevPos;
-        stepDelta.y = 0f;
-        float stepDist = stepDelta.magnitude;
-
-        // Reject AR relocalization jumps (>1m in a single frame is not real walking)
-        if (stepDist > CALIBRATION_MAX_JUMP)
-        {
-            Debug.LogWarning($"[QRLocationManager] AR position jump detected ({stepDist:F2}m). Resetting calibration anchor.");
-            m_CalibrationStartPos = currentPos;
-            m_CalibrationPrevPos = currentPos;
-            m_CalibrationAccumulatedDist = 0f;
-            CalibrationWalkDistance = 0f;
-            return;
-        }
-
-        // Only count movement above minimum speed (reject jitter / standing still)
-        float speed = stepDist / Mathf.Max(Time.deltaTime, 0.001f);
-        if (speed >= CALIBRATION_MIN_SPEED)
-        {
-            m_CalibrationAccumulatedDist += stepDist;
-        }
-
-        m_CalibrationPrevPos = currentPos;
-
-        // Use straight-line displacement for direction, but accumulated distance for threshold
-        Vector3 displacement = currentPos - m_CalibrationStartPos;
-        displacement.y = 0f;
-        CalibrationWalkDistance = m_CalibrationAccumulatedDist;
-
-        if (m_CalibrationAccumulatedDist < CALIBRATION_WALK_THRESHOLD)
-            return;
-
-        // Also require that straight-line displacement is at least 50% of accumulated
-        // (rejects pacing back and forth — user must walk in a consistent direction)
-        float straightLine = displacement.magnitude;
-        if (straightLine < m_CalibrationAccumulatedDist * 0.5f)
-        {
-            Debug.Log($"[QRLocationManager] Walk too meandering (straight={straightLine:F2}m, total={m_CalibrationAccumulatedDist:F2}m). Keep walking straight.");
-            return;
-        }
-
-        // User has walked far enough in a straight line — compute the yaw offset
-        TryCompleteCalibration(displacement);
-    }
-
-    // ── Core Calibration Logic ────────────────────────────────────────────────
-
-    private void TryCompleteCalibration(Vector3 walkDisplacementXZ)
-    {
-        Vector3 walkDir = walkDisplacementXZ.normalized;
-
-        // Get the start node's data and neighbors from the registry
-        LocationRegistry registry = AppController.Instance != null
-            ? AppController.Instance.Locations
-            : FindObjectOfType<LocationRegistry>();
-
-        if (registry == null || !registry.IsLoaded)
-        {
-            Debug.LogWarning("[QRLocationManager] Registry not loaded. Using compass fallback.");
-            ForceCalibrationFromCompass();
-            return;
-        }
-
-        LocationData startNode = registry.GetLocation(CurrentNodeId);
-        if (startNode == null || startNode.neighbors == null || startNode.neighbors.Length == 0)
-        {
-            Debug.LogWarning("[QRLocationManager] Start node has no neighbors. Using compass fallback.");
-            ForceCalibrationFromCompass();
-            return;
-        }
-
-        // ── Compass-Free Calibration ──
-        // Indoor compass is extremely unreliable (metal, electronics, etc.) and causes
-        // horizontal/vertical path inversions. Instead of using compass to pre-align,
-        // we test ALL possible orientations and pick the one with the best match.
-        //
-        // Strategy: For each graph edge from the start node, compute the yaw offset
-        // that would align the user's walk direction with that edge. Then score each
-        // candidate by checking if OTHER edges also make sense under this offset.
-        // The correct offset will be consistent across multiple edges.
-
-        // ── Symmetry Disambiguation (Tie-Breaker) ──
-        // At a straight corridor or cross intersection, the user's walk direction 
-        // could align with multiple edges by rotating the map 0, 90, 180, or 270 degrees.
-        // We use the compass (or GPS) purely as a rough tie-breaker to pick the correct side.
-        float roughExpectedYaw = 0f;
-        GPSLocationService gps = AppController.Instance != null ? AppController.Instance.GPS : null;
-        if (gps != null && gps.HasGPSHeading)
-        {
-            roughExpectedYaw = ScanCameraRotationY - gps.GPSHeading;
-        }
-        else
-        {
-            roughExpectedYaw = ScanCameraRotationY - ScanCompassHeading;
-        }
-
-        float bestScore = -9999f;
-        float bestYaw = 0f;
-        string bestEdgeName = "";
-
-        foreach (string neighborId in startNode.neighbors)
-        {
-            LocationData neighbor = registry.GetLocation(neighborId);
-            if (neighbor == null) continue;
-
-            Vector3 edgeDirMap = new Vector3(
-                neighbor.x - startNode.x,
-                0f,
-                neighbor.z - startNode.z
-            );
-
-            if (edgeDirMap.sqrMagnitude < 0.0001f) continue;
-            edgeDirMap.Normalize();
-
-            // Compute the yaw offset that maps this edge onto the walk direction
-            float walkAngle = Mathf.Atan2(walkDir.x, walkDir.z) * Mathf.Rad2Deg;
-            float edgeAngle = Mathf.Atan2(edgeDirMap.x, edgeDirMap.z) * Mathf.Rad2Deg;
-            float candidateYaw = walkAngle - edgeAngle;
-
-            // Score: how well does this yaw offset explain ALL edges?
-            Quaternion candidateRot = Quaternion.Euler(0, candidateYaw, 0);
-            float score = 0f;
-
-            foreach (string nId in startNode.neighbors)
-            {
-                LocationData n = registry.GetLocation(nId);
-                if (n == null) continue;
-
-                Vector3 eDir = new Vector3(n.x - startNode.x, 0f, n.z - startNode.z);
-                if (eDir.sqrMagnitude < 0.0001f) continue;
-                eDir.Normalize();
-
-                Vector3 eDirAR = candidateRot * eDir;
-                float dot = Vector3.Dot(walkDir, eDirAR);
-
-                if (dot > 0.7f) score += dot * 2f;
-            }
-
-            // TIE-BREAKER: Penalize candidates that are completely opposite or orthogonal to the compass/GPS
-            // Mathf.DeltaAngle returns the shortest difference between two angles (-180 to 180)
-            float angleDiff = Mathf.Abs(Mathf.DeltaAngle(roughExpectedYaw, candidateYaw));
-            
-            // If the candidate is more than 70 degrees away from the rough compass heading,
-            // we heavily penalize it to prevent 180-degree flips AND 90-degree orthogonal walks (walking into a wall).
-            if (angleDiff > 70f)
-            {
-                score -= 5f; 
-            }
-
-            if (score > bestScore)
-            {
-                bestScore = score;
-                bestYaw = candidateYaw;
-                bestEdgeName = neighborId;
-            }
-        }
-
-        if (bestScore < 1.0f)
-        {
-            if (m_CalibrationAccumulatedDist > CALIBRATION_WALK_THRESHOLD * 2.5f)
-            {
-                Debug.LogWarning($"[QRLocationManager] Forcing calibration after extended walk. Best score={bestScore:F2}");
-            }
-            else
-            {
-                Debug.Log($"[QRLocationManager] Low calibration score ({bestScore:F2}). Walk further along a corridor.");
-                return;
-            }
-        }
-
-        CalibratedYawOffset = bestYaw;
-        CurrentCalibrationState = CalibrationState.Calibrated;
-
-        Debug.Log($"[QRLocationManager] ✅ Calibration complete! " +
-                  $"yawOffset={bestYaw:F1}° bestEdge={bestEdgeName} score={bestScore:F2}");
-
-        OnCalibrationComplete?.Invoke();
-    }
-
-    private void ForceCalibrationFromCompass()
-    {
-        // Prefer GPS-derived heading when available (much more reliable than indoor compass)
-        GPSLocationService gps = AppController.Instance != null ? AppController.Instance.GPS : null;
-
-        if (gps != null && gps.HasGPSHeading)
-        {
-            // GPS heading is in geographic degrees (0=North). Use it instead of compass.
-            float camYaw = ScanCameraRotationY;
-            float gpsHeading = gps.GPSHeading;
-            float yawOffset = camYaw - gpsHeading;
-
-            CalibratedYawOffset = yawOffset;
-            CurrentCalibrationState = CalibrationState.Calibrated;
-
-            Debug.Log($"[QRLocationManager] GPS heading fallback calibration: yawOffset={yawOffset:F1}° (GPS heading={gpsHeading:F1}°)");
-            OnCalibrationComplete?.Invoke();
-            return;
-        }
-
-        // Last resort: use compass heading as a rough alignment
-        // Unreliable indoors but better than nothing
-        float compassCamYaw = ScanCameraRotationY;
-        float compassHeading = ScanCompassHeading;
-        float compassYawOffset = compassCamYaw - compassHeading;
-
-        CalibratedYawOffset = compassYawOffset;
-        CurrentCalibrationState = CalibrationState.Calibrated;
-
-        Debug.LogWarning($"[QRLocationManager] Compass fallback calibration: yawOffset={compassYawOffset:F1}°");
-        OnCalibrationComplete?.Invoke();
     }
 
     // ── Serializable QR payload ───────────────────────────────────────────────

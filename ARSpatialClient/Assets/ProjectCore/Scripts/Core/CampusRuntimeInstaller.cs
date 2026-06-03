@@ -128,51 +128,7 @@ public class CampusRuntimeInstaller : MonoBehaviour
         m_UI = ui;
         navigationFlow.BeginLoad();
 
-        // Subscribe to calibration events for UI updates
-        if (qrLocationManager != null)
-        {
-            qrLocationManager.OnCalibrationComplete += () =>
-            {
-                Debug.Log("[CampusRuntimeInstaller] Calibration complete — updating UI.");
-                ui.ShowGuidance("Direction calibrated! Select your destination.",
-                    new Color(0.2f, 0.9f, 0.4f, 1f));
 
-                // Show recalibrate button now that user knows the flow
-                if (ui.RecalibrateButton != null)
-                {
-                    ui.RecalibrateButton.gameObject.SetActive(true);
-                    
-                    // Shift ASK AI button left to make room
-                    if (ui.ChatButton != null)
-                    {
-                        RectTransform chatRT = ui.ChatButton.GetComponent<RectTransform>();
-                        chatRT.anchoredPosition = new Vector2(-40, chatRT.anchoredPosition.y);
-                        chatRT.sizeDelta = new Vector2(360, chatRT.sizeDelta.y);
-                    }
-                }
-
-                // Auto-hide the success message after 3 seconds
-                StartCoroutine(HideGuidanceAfterDelay(ui, 3f));
-            };
-        }
-
-        // Recalibrate button — restarts walk-to-calibrate
-        if (ui.RecalibrateButton != null)
-        {
-            ui.RecalibrateButton.onClick.RemoveAllListeners();
-            ui.RecalibrateButton.onClick.AddListener(() =>
-            {
-                if (qrLocationManager != null && qrLocationManager.HasLocation)
-                {
-                    qrLocationManager.BeginCalibration();
-                    ui.ShowStatus("Walk to recalibrate direction...");
-                }
-                else
-                {
-                    ui.ShowStatus("Scan a QR code first.");
-                }
-            });
-        }
     }
     
     private void BindUI(

@@ -261,9 +261,9 @@ public class PathVisualizer : MonoBehaviour
 
         }
 
-        // Apply Chaikin's corner cutting algorithm to smooth out sharp zig-zags from the grid map
-        // This ensures the continuous spawning doesn't squash arrows together at tight corners.
-        List<Vector3> smoothedPath = SmoothPath(worldPath, 3);
+        // Do not use Chaikin's corner cutting as it causes the path to cut heavily through walls
+        // at 90-degree corners, making it look like it doesn't fit the corridor cleanly.
+        List<Vector3> smoothedPath = worldPath;
 
         // ── Normal segment — render regular arrows continuously ──
         // This prevents clumping at corners by walking the path evenly and using look-ahead for smooth rotation.
@@ -407,26 +407,11 @@ public class PathVisualizer : MonoBehaviour
         float distance = Vector3.Distance(start, end);
         if (distance < 0.1f) return;
 
-        Vector3 dir = (end - start) / distance;
-        
-        // Create a "staircase" label at the midpoint
-        Vector3 midpoint = Vector3.Lerp(start, end, 0.5f);
+        // Create a "staircase" label at the start point so it's clearly visible before ascending
         string label = transition.goingUp
             ? $"▲ Stairs to Floor {transition.toFloor}"
             : $"▼ Stairs to Floor {transition.toFloor}";
-        SpawnTextLabel(midpoint + Vector3.up * 0.4f, label, staircaseMaterial);
-
-        // Draw simple diagonal arrows using the stair prefab
-        GameObject prefabToUse = stairPrefab != null ? stairPrefab : arrowPrefab;
-        int steps = Mathf.Max(1, Mathf.FloorToInt(distance / spacing));
-
-        for (int j = 0; j < steps; j++)
-        {
-            Vector3 pos = Vector3.Lerp(start, end, j / (float)steps);
-            GameObject arrowInstance = Instantiate(prefabToUse, pos, Quaternion.LookRotation(dir), transform);
-            arrowInstance.SetActive(true);
-            spawnedArrows.Add(arrowInstance);
-        }
+        SpawnTextLabel(start + Vector3.up * 0.4f, label, staircaseMaterial);
 
         Debug.Log($"[PathVisualizer] 🪜 Staircase: {(transition.goingUp ? "UP" : "DOWN")} to Floor {transition.toFloor}");
     }
@@ -436,58 +421,13 @@ public class PathVisualizer : MonoBehaviour
     // Clearly different from stairs — uses a box shape with vertical line markers.
     private void DrawLiftSegment(Vector3 start, Vector3 end, FloorTransition transition)
     {
-        float totalHeight = Mathf.Abs(end.y - start.y);
-        Vector3 bottom = start.y < end.y ? start : end;
-        Vector3 top = start.y < end.y ? end : start;
-        Vector3 center = (bottom + top) * 0.5f;
-
-        // ── Lift shaft (tall thin box) ──
-        GameObject shaft = GameObject.CreatePrimitive(PrimitiveType.Cube);
-        shaft.transform.SetParent(transform, false);
-        shaft.transform.position = center;
-        shaft.transform.localScale = new Vector3(0.4f, totalHeight, 0.4f);
-        Destroy(shaft.GetComponent<Collider>());
-        
-        // Semi-transparent shaft
-        Shader shader = FindBestShader();
-        if (shader != null)
-        {
-            Material shaftMat = new Material(shader);
-            SetMaterialColor(shaftMat, new Color(0.5f, 0.25f, 0.9f, 0.3f));
-            shaftMat.renderQueue = 3000;
-            shaft.GetComponent<Renderer>().material = shaftMat;
-        }
-        shaft.SetActive(true);
-        spawnedArrows.Add(shaft);
-
-        // ── Vertical guide arrows inside the shaft ──
-        int arrowCount = Mathf.Max(3, Mathf.RoundToInt(totalHeight / 0.5f));
-        Vector3 arrowDir = transition.goingUp ? Vector3.up : Vector3.down;
-        
-        for (int i = 0; i < arrowCount; i++)
-        {
-            float t = (i + 0.5f) / arrowCount;
-            Vector3 pos = Vector3.Lerp(bottom, top, t);
-            
-            GameObject prefabToUse = stairPrefab != null ? stairPrefab : arrowPrefab;
-
-            // Use forward direction for LookRotation since arrows point up/down
-            GameObject arrow = Instantiate(prefabToUse, pos, Quaternion.LookRotation(arrowDir, Vector3.forward), transform);
-            arrow.SetActive(true);
-            spawnedArrows.Add(arrow);
-        }
-
-        // ── Platform markers at entry/exit ──
-        SpawnPlatformMarker(bottom, liftMaterial);
-        SpawnPlatformMarker(top, liftMaterial);
-
-        // ── Label ──
+        // Create a "lift" label at the start point so it's clearly visible right where they are standing
         string label = transition.goingUp
             ? $"▲ Lift to Floor {transition.toFloor}"
             : $"▼ Lift to Floor {transition.toFloor}";
-        SpawnTextLabel(center + Vector3.up * (totalHeight * 0.5f + 0.3f), label, liftMaterial);
+        SpawnTextLabel(start + Vector3.up * 0.4f, label, liftMaterial);
 
-        Debug.Log($"[PathVisualizer] 🛗 Lift: {(transition.goingUp ? "UP" : "DOWN")} from Floor {transition.fromFloor} → Floor {transition.toFloor}, height={totalHeight:F1}m");
+        Debug.Log($"[PathVisualizer] 🛗 Lift: {(transition.goingUp ? "UP" : "DOWN")} from Floor {transition.fromFloor} → Floor {transition.toFloor}");
     }
 
     // ── Helper: Platform Marker (flat disc at entry/exit) ────────────────

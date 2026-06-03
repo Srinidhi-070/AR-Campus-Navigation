@@ -23,15 +23,16 @@ public class NavigationFlowController : MonoBehaviour
     [SerializeField] private float m_PathHeightOffset = -1.5f;
     [SerializeField] private float m_MapCompassOffset = 0f; // Offset to align Grid North with True North
 
+    private CampusApiClient.PathResponsePayload m_LastRawPathResponse;
+
     // ── Dynamic Navigation State ──────────────────────────────────────────────
     private string m_ActiveDestinationId;      // Stored for off-path recalculation
     private string m_ActiveDestinationName;
     private float m_OffPathTimer = 0f;
-    private const float OFF_PATH_DISTANCE = 5f;  // meters
+    private const float OFF_PATH_DISTANCE = 12f;  // meters
     private const float OFF_PATH_TIMEOUT = 3f;   // seconds before recalculating
     private const float RECALC_COOLDOWN = 5f;    // prevent spamming recalculations
     private float m_PathUpdateTimer = 0f;
-    private QRLocationManager.CalibrationState m_LastCalibrationState = QRLocationManager.CalibrationState.NotCalibrated;
     private float m_LastRecalcTime = -999f;
 
     [Header("UI Feedback")]
@@ -41,6 +42,9 @@ public class NavigationFlowController : MonoBehaviour
     private string m_PendingFloorNextNodeId = null;
     private int m_PendingFloorNextFloor = 0;
     private string m_PendingTransitionType = "";
+    
+    private int m_CurrentPathStartIndex = 0;
+    private int m_NextPathStartIndex = 0;
 
     private readonly List<string> m_BuildingOptions = new List<string>();
     private readonly List<int> m_FloorOptions = new List<int>();
@@ -65,7 +69,6 @@ public class NavigationFlowController : MonoBehaviour
         if (m_QRLocationManager != null)
         {
             m_QRLocationManager.OnLocationChanged -= HandleQrLocationChanged;
-            m_QRLocationManager.OnCalibrationComplete -= HandleCalibrationComplete;
         }
 
         m_ApiClient = apiClient;
@@ -78,7 +81,6 @@ public class NavigationFlowController : MonoBehaviour
         if (m_QRLocationManager != null)
         {
             m_QRLocationManager.OnLocationChanged += HandleQrLocationChanged;
-            m_QRLocationManager.OnCalibrationComplete += HandleCalibrationComplete;
         }
 
         if (m_UI != null && m_UI.FloorTransitionButton != null)
@@ -187,14 +189,7 @@ public class NavigationFlowController : MonoBehaviour
             return;
         }
 
-        // Block navigation until walk-to-calibrate is complete
-        if (m_QRLocationManager != null &&
-            m_QRLocationManager.HasLocation &&
-            m_QRLocationManager.CurrentCalibrationState != QRLocationManager.CalibrationState.Calibrated)
-        {
-            m_UI.ShowStatus("Walk a few steps first to calibrate direction.");
-            return;
-        }
+
 
         if (!m_Validator.CanRequestPath(
                 m_LocationRegistry,
@@ -225,6 +220,9 @@ public class NavigationFlowController : MonoBehaviour
         m_OffPathTimer = 0f;
 
         m_ActiveWorldPath = null;
+        m_CurrentPathStartIndex = 0;
+        m_NextPathStartIndex = 0;
+        
         string label = m_ActiveDestinationName;
         m_UI.ShowStatus($"Calculating path to {label}...");
 
@@ -347,7 +345,7 @@ public class NavigationFlowController : MonoBehaviour
 
     private void HandlePathResponse(CampusApiClient.PathResponsePayload response)
     {
-        m_ActiveWorldPath = null;
+        m_LastRawPathResponse = response;
 
         if (response == null || response.path == null || response.path.Count < 2)
         {
@@ -357,6 +355,22 @@ public class NavigationFlowController : MonoBehaviour
             RefreshControls();
             return;
         }
+        RebuildPathVisuals();
+    }
+
+    private void RebuildPathVisuals()
+    {
+        if (m_LastRawPathResponse == null || m_LastRawPathResponse.path == null || m_LastRawPathResponse.path.Count < 2)
+            return;
+
+        m_ActiveWorldPath = null;
+        
+        // Deep copy the path so we don't truncate the original on floor transitions
+        CampusApiClient.PathResponsePayload response = new CampusApiClient.PathResponsePayload
+        {
+            path = new List<CampusApiClient.PathPointPayload>(m_LastRawPathResponse.path),
+            directions = m_LastRawPathResponse.directions
+        };
 
         // ── Detect floor transitions BEFORE coordinate transformation ──
         // We need the original floor/building data from the response.
@@ -366,7 +380,9 @@ public class NavigationFlowController : MonoBehaviour
         if (m_UI != null && m_UI.FloorTransitionButton != null)
             m_UI.FloorTransitionButton.gameObject.SetActive(false);
 
-        for (int i = 0; i < response.path.Count - 1; i++)
+        int endIndex = response.path.Count - 1;
+
+        for (int i = m_CurrentPathStartIndex; i < response.path.Count - 1; i++)
         {
             CampusApiClient.PathPointPayload current = response.path[i];
             CampusApiClient.PathPointPayload next = response.path[i + 1];
@@ -382,9 +398,6 @@ public class NavigationFlowController : MonoBehaviour
                 bool isLift = currentType.Contains("LIFT") || nextType.Contains("LIFT") ||
                               currentId.Contains("LIFT") || nextId.Contains("LIFT");
 
-                // Do NOT add to 'transitions' list. We want the AR path to stop exactly at the stairs
-                // without rendering the 3D stair prefab leading up to the ceiling.
-                
                 Debug.Log($"[NavigationFlowController] Floor transition at segment {i}: " +
                           $"{(isLift ? "Lift" : "Stairs")} Floor {current.floor} → {next.floor}");
                           
@@ -392,15 +405,27 @@ public class NavigationFlowController : MonoBehaviour
                 m_PendingFloorNextNodeId = next.id;
                 m_PendingFloorNextFloor = next.floor;
                 m_PendingTransitionType = isLift ? "Lift" : "Stairs";
-
-                // Truncate path so we stop exactly at the stairs (node i).
-                // Remove everything from i + 1 onwards.
-                if (i + 1 < response.path.Count)
+                m_NextPathStartIndex = i + 1; // Mark the index where the next floor starts
+                
+                transitions.Add(new PathVisualizer.FloorTransition
                 {
-                    response.path.RemoveRange(i + 1, response.path.Count - (i + 1));
-                }
-                break; // Only handle the FIRST transition!
+                    segmentStartIndex = i - m_CurrentPathStartIndex,
+                    fromFloor = current.floor,
+                    toFloor = next.floor,
+                    goingUp = next.floor > current.floor,
+                    type = isLift ? PathVisualizer.TransitionType.Lift : PathVisualizer.TransitionType.Staircase
+                });
+                
+                endIndex = i; // Stop rendering at the stairs
+                break;
             }
+        }
+
+        // Sub-slice the path so we only render up to the transition
+        if (m_CurrentPathStartIndex < response.path.Count)
+        {
+            int count = (endIndex - m_CurrentPathStartIndex) + 1;
+            response.path = response.path.GetRange(m_CurrentPathStartIndex, count);
         }
 
         List<Vector3> worldPath = new List<Vector3>();
@@ -420,7 +445,7 @@ public class NavigationFlowController : MonoBehaviour
             if (m_QRLocationManager != null && m_QRLocationManager.HasLocation)
             {
                 // Lock the AR map anchor to the exact physical location of the QR scan!
-                worldAnchorPos = m_QRLocationManager.CalibrationStartPos;
+                worldAnchorPos = m_QRLocationManager.ScanCameraPosition;
                 
                 // Get the grid map coordinates of the scanned node
                 LocationData startNode = m_LocationRegistry.GetLocation(m_QRLocationManager.CurrentNodeId);
@@ -460,25 +485,27 @@ public class NavigationFlowController : MonoBehaviour
                 }
             }
 
-            // 2) Use calibrated yaw offset from walk-to-calibrate (replaces unreliable compass)
-            float yawOffset = 0f;
-            if (m_QRLocationManager != null &&
-                m_QRLocationManager.CurrentCalibrationState == QRLocationManager.CalibrationState.Calibrated)
+            // 2) Use fixed QR orientation math
+            // The physical poster's orientation in the map grid is the QR node's rotation_y
+            // When looking at the poster, the user is facing the opposite direction (poster + 180).
+            // Thus, the camera's Y rotation (ScanCameraRotationY) in the AR session corresponds to (poster + 180) in the map.
+            float nodeRotY = 0f;
+            if (m_QRLocationManager != null && m_QRLocationManager.HasLocation)
             {
-                yawOffset = m_QRLocationManager.CalibratedYawOffset + m_MapCompassOffset;
+                LocationData qrNode = m_LocationRegistry.GetLocation(m_QRLocationManager.CurrentNodeId);
+                if (qrNode != null)
+                {
+                    nodeRotY = qrNode.rotation_y;
+                }
             }
-            else
+            else if (response.path.Count > 0)
             {
-                // Fallback to compass if calibration hasn't happened (shouldn't reach here normally)
-                float camYaw = m_QRLocationManager != null ? m_QRLocationManager.ScanCameraRotationY : 0f;
-                float compassHeading = m_QRLocationManager != null ? m_QRLocationManager.ScanCompassHeading : 0f;
-                yawOffset = (camYaw - compassHeading) + m_MapCompassOffset;
-                Debug.LogWarning("[NavigationFlowController] Using compass fallback for alignment.");
+                nodeRotY = response.path[0].rotation_y;
             }
+            float camYaw = m_QRLocationManager != null ? m_QRLocationManager.ScanCameraRotationY : 0f;
+            float yawOffset = camYaw - (nodeRotY + 180f) + m_MapCompassOffset;
 
             Quaternion rotationOffset = Quaternion.Euler(0f, yawOffset, 0f);
-
-            Debug.Log($"[NavigationFlowController] Calibrated yawOffset={yawOffset:F1} mapOffset={m_MapCompassOffset:F1}");
 
             // 3) Transform all points:
             // translate so mapAnchorPos lands at worldAnchorPos, then rotate around Y
@@ -505,7 +532,8 @@ public class NavigationFlowController : MonoBehaviour
             if (cam != null && transformed.Count > 1)
             {
                 Vector3 userPos = cam.position;
-                userPos.y = transformed[0].y; // Project to the path's floor level
+                // We do NOT project userPos.y to transformed[0].y anymore, because the path
+                // goes up and down multiple floors. We use true 3D distance!
                 
                 int closestSegment = 0;
                 float closestDist = float.MaxValue;
@@ -582,20 +610,6 @@ public class NavigationFlowController : MonoBehaviour
 
     void Update()
     {
-        // Auto-recalculate the path the exact moment Walk-to-Calibrate succeeds!
-        if (m_QRLocationManager != null && m_QRLocationManager.CurrentCalibrationState != m_LastCalibrationState)
-        {
-            if (m_QRLocationManager.CurrentCalibrationState == QRLocationManager.CalibrationState.Calibrated && m_ActiveWorldPath != null)
-            {
-                Debug.Log("[NavigationFlowController] Calibration just completed! Redrawing path with accurate rotation.");
-                TryRecalculateFromNearestNode();
-            }
-            m_LastCalibrationState = m_QRLocationManager.CurrentCalibrationState;
-        }
-
-        // Update guidance banner during calibration
-        UpdateCalibrationGuidance();
-
         if (m_ActiveWorldPath == null || m_ActiveWorldPath.Count < 2)
             return;
 
@@ -777,31 +791,6 @@ public class NavigationFlowController : MonoBehaviour
         return (NavManeuver.Straight, totalDist);
     }
 
-    // ── Calibration Guidance UI Updates ────────────────────────────────────────
-
-    private void UpdateCalibrationGuidance()
-    {
-        if (m_QRLocationManager == null || m_UI == null)
-            return;
-
-        if (!m_QRLocationManager.HasLocation)
-        {
-            UpdateGuidance("", Color.clear);
-            return;
-        }
-
-        if (m_QRLocationManager.CurrentCalibrationState == QRLocationManager.CalibrationState.WaitingForWalk)
-        {
-            float progress = Mathf.Clamp01(m_QRLocationManager.CalibrationWalkDistance / m_QRLocationManager.RequiredWalkDistance);
-            UpdateGuidance(
-                "Walk down the corridor to calibrate...",
-                new Color(0.3f, 0.6f, 1f, 1f),
-                true,
-                progress
-            );
-        }
-    }
-
     private void UpdateGuidance(string text, Color color, bool pulse = false, float progress = -1f)
     {
         if (m_UI == null) return;
@@ -821,14 +810,6 @@ public class NavigationFlowController : MonoBehaviour
 
     // ── State ─────────────────────────────────────────────────────────────────
     private bool m_IsSimulating = false;
-    private void HandleCalibrationComplete()
-    {
-        if (!string.IsNullOrEmpty(m_ActiveDestinationId))
-        {
-            Debug.Log("[NavigationFlowController] Calibration complete. Recalculating path to apply new alignment.");
-            TryRecalculateFromNearestNode();
-        }
-    }
 
     private void HandleFloorTransitionResume()
     {
@@ -839,13 +820,15 @@ public class NavigationFlowController : MonoBehaviour
             m_UI.FloorTransitionButton.gameObject.SetActive(false);
             
         m_IsPendingTransition = false;
-
-        // Auto-Correct: Force QRLocationManager to update to the top of the stairs/lift
-        m_QRLocationManager.SetLocation(m_PendingFloorNextNodeId, m_QRLocationManager.CurrentBuilding, m_PendingFloorNextFloor);
-
-        // Resume navigation to the final destination
-        m_UI.ShowStatus("Resuming navigation...");
-        NavigateToDestination(m_ActiveDestinationId, m_ActiveDestinationName);
+        
+        // Fast-forward the path index to the next floor and redraw.
+        // We do NOT recalculate from the backend so that we preserve the original AR anchor!
+        m_CurrentPathStartIndex = m_NextPathStartIndex;
+        
+        // Safely update the floor for snapping logic without breaking the AR anchor
+        m_QRLocationManager.UpdateFloor(m_PendingFloorNextFloor);
+        
+        RebuildPathVisuals();
     }
 
     private void TryRecalculateFromNearestNode()
@@ -920,16 +903,16 @@ public class NavigationFlowController : MonoBehaviour
         Vector3 userARPos = cam.position;
 
         // Get the anchor points (same logic as HandlePathResponse)
-        Vector3 worldAnchorPos = m_QRLocationManager.CalibrationStartPos;
+        Vector3 worldAnchorPos = m_QRLocationManager.ScanCameraPosition;
         LocationData qrNode = m_LocationRegistry.GetLocation(m_QRLocationManager.CurrentNodeId);
         if (qrNode == null) return null;
 
         Vector3 mapAnchorPos = new Vector3(qrNode.x, qrNode.y, qrNode.z);
 
         // Get calibrated yaw offset
-        float yawOffset = 0f;
-        if (m_QRLocationManager.CurrentCalibrationState == QRLocationManager.CalibrationState.Calibrated)
-            yawOffset = m_QRLocationManager.CalibratedYawOffset + m_MapCompassOffset;
+        float nodeRotY = qrNode.rotation_y;
+        float camYaw = m_QRLocationManager != null ? m_QRLocationManager.ScanCameraRotationY : 0f;
+        float yawOffset = camYaw - (nodeRotY + 180f) + m_MapCompassOffset;
 
         // Inverse transform: AR world → Map space
         // Forward: mapPoint → (p - mapAnchor) * scale → rotate(yaw) → + worldAnchor = arPoint

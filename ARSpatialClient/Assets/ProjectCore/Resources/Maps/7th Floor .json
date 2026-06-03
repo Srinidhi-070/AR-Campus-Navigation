@@ -48773,13 +48773,13 @@
             "y": 51,
             "isWalkable": true,
             "nodeType": 2,
-            "connectedMap": "",
+            "connectedMap": "6th Floor",
             "connectedNode": {
-                "x": 0,
-                "y": 0
+                "x": 37,
+                "y": 55
             },
             "connectionID": -1,
-            "nodeName": ""
+            "nodeName": "STAIRCASE_TO_6TH_FLOOR"
         },
         {
             "x": 37,
@@ -53986,13 +53986,13 @@
             "y": 52,
             "isWalkable": true,
             "nodeType": 3,
-            "connectedMap": "",
+            "connectedMap": "6th Floor",
             "connectedNode": {
-                "x": 0,
-                "y": 0
+                "x": 41,
+                "y": 52
             },
             "connectionID": -1,
-            "nodeName": ""
+            "nodeName": "LIFT_TO_6TH_FLOOR_1"
         },
         {
             "x": 41,
@@ -67129,13 +67129,13 @@
             "y": 63,
             "isWalkable": true,
             "nodeType": 3,
-            "connectedMap": "",
+            "connectedMap": "6th Floor",
             "connectedNode": {
-                "x": 0,
-                "y": 0
+                "x": 51,
+                "y": 63
             },
             "connectionID": -1,
-            "nodeName": ""
+            "nodeName": "LIFT_TO_6TH_FLOOR_2"
         },
         {
             "x": 51,
@@ -68481,13 +68481,13 @@
             "y": 67,
             "isWalkable": true,
             "nodeType": 2,
-            "connectedMap": "",
+            "connectedMap": "6th Floor",
             "connectedNode": {
-                "x": 0,
-                "y": 0
+                "x": 48,
+                "y": 67
             },
             "connectionID": -1,
-            "nodeName": ""
+            "nodeName": "STAIRCASE_TO_6TH_FLOOR_1"
         },
         {
             "x": 52,
@@ -77152,13 +77152,13 @@
             "y": 34,
             "isWalkable": true,
             "nodeType": 3,
-            "connectedMap": "",
+            "connectedMap": "6th Floor",
             "connectedNode": {
-                "x": 0,
-                "y": 0
+                "x": 59,
+                "y": 34
             },
             "connectionID": -1,
-            "nodeName": ""
+            "nodeName": "LIFT_TO_6TH_FLOOR_6"
         },
         {
             "x": 59,
@@ -77191,13 +77191,13 @@
             "y": 37,
             "isWalkable": true,
             "nodeType": 3,
-            "connectedMap": "",
+            "connectedMap": "6th Floor",
             "connectedNode": {
-                "x": 0,
-                "y": 0
+                "x": 59,
+                "y": 37
             },
             "connectionID": -1,
-            "nodeName": ""
+            "nodeName": "LIFT_TO_6TH_FLOOR_5"
         },
         {
             "x": 59,
@@ -81013,13 +81013,13 @@
             "y": 31,
             "isWalkable": true,
             "nodeType": 2,
-            "connectedMap": "",
+            "connectedMap": "6th Floor",
             "connectedNode": {
-                "x": 0,
-                "y": 0
+                "x": 62,
+                "y": 30
             },
             "connectionID": -1,
-            "nodeName": ""
+            "nodeName": "STAIRCASE_TO_6TH_FLOOR_2"
         },
         {
             "x": 62,
@@ -85069,13 +85069,13 @@
             "y": 43,
             "isWalkable": true,
             "nodeType": 3,
-            "connectedMap": "",
+            "connectedMap": "6th Floor",
             "connectedNode": {
-                "x": 0,
-                "y": 0
+                "x": 65,
+                "y": 43
             },
             "connectionID": -1,
-            "nodeName": ""
+            "nodeName": "LIFT_TO_6TH_FLOOR_3"
         },
         {
             "x": 65,
@@ -88969,13 +88969,13 @@
             "y": 43,
             "isWalkable": true,
             "nodeType": 3,
-            "connectedMap": "",
+            "connectedMap": "6th Floor",
             "connectedNode": {
-                "x": 0,
-                "y": 0
+                "x": 68,
+                "y": 43
             },
             "connectionID": -1,
-            "nodeName": ""
+            "nodeName": "LIFT_TO_6TH_FLOOR_4"
         },
         {
             "x": 68,
@@ -92830,13 +92830,13 @@
             "y": 40,
             "isWalkable": true,
             "nodeType": 2,
-            "connectedMap": "",
+            "connectedMap": "6th Floor",
             "connectedNode": {
-                "x": 0,
-                "y": 0
+                "x": 72,
+                "y": 40
             },
             "connectionID": -1,
-            "nodeName": ""
+            "nodeName": "STAIRCASE_TO_6TH_FLOOR_3"
         },
         {
             "x": 71,

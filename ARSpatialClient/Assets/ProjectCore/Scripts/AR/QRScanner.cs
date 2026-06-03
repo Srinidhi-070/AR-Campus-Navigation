@@ -100,8 +100,6 @@ public class QRScanner : MonoBehaviour
         string displayName = GetDisplayName(QRLocationManager.Instance.CurrentNodeId);
         Debug.Log($"[QRScanner] Location set: {displayName}");
 
-        // Start walk-to-calibrate — user must walk 2-3 steps to determine heading
-        QRLocationManager.Instance.BeginCalibration();
 
         // Auto-close scanner and return to navigation mode
         CloseScanner();
