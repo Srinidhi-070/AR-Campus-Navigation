@@ -833,8 +833,16 @@ public class NavigationFlowController : MonoBehaviour
         m_IsPendingTransition = false;
         
         // Fast-forward the path index to the next floor and redraw.
-        // We do NOT recalculate from the backend so that we preserve the original AR anchor!
         m_CurrentPathStartIndex = m_NextPathStartIndex;
+        
+        // Capture the user's EXACT physical position right now as the new anchor for this floor!
+        m_FloorTransitionARPos = Camera.main != null ? Camera.main.transform.position : Vector3.zero;
+        if (TryGetWorldAnchorFromRaycast(out Vector3 floorPos))
+            m_FloorTransitionARPos.y = floorPos.y;
+        else
+            m_FloorTransitionARPos.y -= 1.5f;
+            
+        m_HasFloorTransitionAnchor = true;
         
         // Safely update the floor for snapping logic without breaking the AR anchor
         m_QRLocationManager.UpdateFloor(m_PendingFloorNextFloor);
