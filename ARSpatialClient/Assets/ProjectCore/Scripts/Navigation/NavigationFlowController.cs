@@ -220,7 +220,10 @@ public class NavigationFlowController : MonoBehaviour
         string label = m_ActiveDestinationName;
         m_UI.ShowStatus($"Calculating path to {label}...");
 
-        string startNodeId = m_QRLocationManager.CurrentNodeId;
+        // Find nearest node to user's actual position (they may have walked from the QR code)
+        string startNodeId = FindNearestGraphNode();
+        if (string.IsNullOrEmpty(startNodeId))
+            startNodeId = m_QRLocationManager.CurrentNodeId; // Fallback to QR node
         string destinationNodeId = destination.id;
 
         if (m_ApiClient == null)
@@ -422,7 +425,7 @@ public class NavigationFlowController : MonoBehaviour
                 if (TryGetWorldAnchorFromRaycast(out Vector3 floorAnchor))
                     worldAnchorPos.y = floorAnchor.y;
                 else
-                    worldAnchorPos.y -= 1.5f;
+                    worldAnchorPos.y += m_PathHeightOffset; // Use configurable offset
             }
             else
             {
@@ -844,10 +847,14 @@ public class NavigationFlowController : MonoBehaviour
 
         m_LastRecalcTime = Time.time;
 
-        // Re-request path from current QR node to destination
-        // (The user is still closest to their original start area in the graph)
-        string startNodeId = m_QRLocationManager.CurrentNodeId;
+        // Find the nearest graph node to the user's actual AR position
+        string startNodeId = FindNearestGraphNode();
+        if (string.IsNullOrEmpty(startNodeId))
+            startNodeId = m_QRLocationManager.CurrentNodeId; // Fallback to QR node
+        
         string destId = m_ActiveDestinationId;
+
+        Debug.Log($"[NavigationFlowController] Recalculating from nearest node: {startNodeId} → {destId}");
 
         if (m_ApiClient == null)
         {
@@ -884,6 +891,76 @@ public class NavigationFlowController : MonoBehaviour
                 Debug.LogWarning($"[NavigationFlowController] Recalculation failed: {error}");
                 UpdateGuidance("Follow the arrows to your destination", new Color(1f, 0.6f, 0.2f, 1f));
             }));
+    }
+
+    /// <summary>
+    /// Finds the graph node nearest to the user's current AR position by performing
+    /// an inverse transformation from AR world space back to map space.
+    /// This enables accurate path re-routing even when the user has walked away from the QR node.
+    /// </summary>
+    private string FindNearestGraphNode()
+    {
+        if (m_QRLocationManager == null || !m_QRLocationManager.HasLocation)
+            return null;
+        if (m_LocationRegistry == null || !m_LocationRegistry.IsLoaded)
+            return null;
+        
+        Transform cam = Camera.main != null ? Camera.main.transform : null;
+        if (cam == null) return null;
+
+        // Get the user's AR position
+        Vector3 userARPos = cam.position;
+
+        // Get the anchor points (same logic as HandlePathResponse)
+        Vector3 worldAnchorPos = m_QRLocationManager.CalibrationStartPos;
+        LocationData qrNode = m_LocationRegistry.GetLocation(m_QRLocationManager.CurrentNodeId);
+        if (qrNode == null) return null;
+
+        Vector3 mapAnchorPos = new Vector3(qrNode.x, qrNode.y, qrNode.z);
+
+        // Get calibrated yaw offset
+        float yawOffset = 0f;
+        if (m_QRLocationManager.CurrentCalibrationState == QRLocationManager.CalibrationState.Calibrated)
+            yawOffset = m_QRLocationManager.CalibratedYawOffset + m_MapCompassOffset;
+
+        // Inverse transform: AR world → Map space
+        // Forward: mapPoint → (p - mapAnchor) * scale → rotate(yaw) → + worldAnchor = arPoint
+        // Inverse: arPoint → (arPoint - worldAnchor) → rotate(-yaw) → / scale → + mapAnchor = mapPoint
+        Quaternion inverseRotation = Quaternion.Euler(0f, -yawOffset, 0f);
+        Vector3 arDelta = userARPos - worldAnchorPos;
+        arDelta.y = 0f; // Project to XZ plane
+        Vector3 mapDelta = inverseRotation * arDelta;
+        
+        if (m_MetersPerGridUnit > 0.001f)
+            mapDelta /= m_MetersPerGridUnit;
+
+        Vector3 userMapPos = mapAnchorPos + mapDelta;
+
+        // Find the closest node on the same floor
+        int userFloor = m_QRLocationManager.CurrentFloor;
+        string bestNodeId = null;
+        float bestDist = float.MaxValue;
+
+        foreach (LocationData loc in m_LocationRegistry.GetAllLocations())
+        {
+            if (loc == null || string.IsNullOrEmpty(loc.id)) continue;
+            if (loc.floor != userFloor) continue;
+
+            float dx = loc.x - userMapPos.x;
+            float dz = loc.z - userMapPos.z;
+            float dist = dx * dx + dz * dz; // sqrMagnitude for speed
+
+            if (dist < bestDist)
+            {
+                bestDist = dist;
+                bestNodeId = loc.id;
+            }
+        }
+
+        if (bestNodeId != null)
+            Debug.Log($"[NavigationFlowController] Nearest node: {bestNodeId} (dist={Mathf.Sqrt(bestDist):F1} grid units from user)");
+
+        return bestNodeId;
     }
 
     private bool IsValidPathResponse(CampusApiClient.PathResponsePayload response)

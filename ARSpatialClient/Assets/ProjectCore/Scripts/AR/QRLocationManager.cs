@@ -292,75 +292,89 @@ public class QRLocationManager : MonoBehaviour
             return;
         }
 
-        // We need to compare AR walk direction to Map edge directions.
-        // Since they are in different coordinate systems, we use the rough compass heading
-        // to temporarily align them just enough to disambiguate which corridor the user chose!
-        float roughCompassYaw = ScanCameraRotationY - ScanCompassHeading;
-        Quaternion roughRot = Quaternion.Euler(0, roughCompassYaw, 0);
+        // ── Compass-Free Calibration ──
+        // Indoor compass is extremely unreliable (metal, electronics, etc.) and causes
+        // horizontal/vertical path inversions. Instead of using compass to pre-align,
+        // we test ALL possible orientations and pick the one with the best match.
+        //
+        // Strategy: For each graph edge from the start node, compute the yaw offset
+        // that would align the user's walk direction with that edge. Then score each
+        // candidate by checking if OTHER edges also make sense under this offset.
+        // The correct offset will be consistent across multiple edges.
 
-        float bestDot = -2f;
-        Vector3 bestEdgeDir = Vector3.forward;
+        float bestScore = -1f;
+        float bestYaw = 0f;
+        string bestEdgeName = "";
 
         foreach (string neighborId in startNode.neighbors)
         {
             LocationData neighbor = registry.GetLocation(neighborId);
-            if (neighbor == null)
-                continue;
+            if (neighbor == null) continue;
 
-            // Map-space edge direction (XZ plane)
             Vector3 edgeDirMap = new Vector3(
                 neighbor.x - startNode.x,
                 0f,
                 neighbor.z - startNode.z
             );
 
-            if (edgeDirMap.sqrMagnitude < 0.0001f)
-                continue;
-
+            if (edgeDirMap.sqrMagnitude < 0.0001f) continue;
             edgeDirMap.Normalize();
 
-            // Rotate the map edge into rough AR space using the compass
-            Vector3 edgeDirAR_Rough = roughRot * edgeDirMap;
+            // Compute the yaw offset that maps this edge onto the walk direction
+            float walkAngle = Mathf.Atan2(walkDir.x, walkDir.z) * Mathf.Rad2Deg;
+            float edgeAngle = Mathf.Atan2(edgeDirMap.x, edgeDirMap.z) * Mathf.Rad2Deg;
+            float candidateYaw = walkAngle - edgeAngle;
 
-            // Now compare the physical AR walk direction to the rough AR edge direction
-            float dot = Vector3.Dot(walkDir, edgeDirAR_Rough);
-            if (dot > bestDot)
+            // Score: how well does this yaw offset explain ALL edges?
+            // Under the correct offset, the user's walk direction should match
+            // one edge with high confidence, and not counter-match others.
+            Quaternion candidateRot = Quaternion.Euler(0, candidateYaw, 0);
+            float score = 0f;
+
+            foreach (string nId in startNode.neighbors)
             {
-                bestDot = dot;
-                bestEdgeDir = edgeDirMap; // Save the pristine map edge for final math
+                LocationData n = registry.GetLocation(nId);
+                if (n == null) continue;
+
+                Vector3 eDir = new Vector3(n.x - startNode.x, 0f, n.z - startNode.z);
+                if (eDir.sqrMagnitude < 0.0001f) continue;
+                eDir.Normalize();
+
+                Vector3 eDirAR = candidateRot * eDir;
+                float dot = Vector3.Dot(walkDir, eDirAR);
+
+                // The walk direction should match exactly ONE edge well (dot ≈ 1.0)
+                // and be roughly perpendicular or opposite to others.
+                // We heavily reward the best-matching edge.
+                if (dot > 0.7f) score += dot * 2f;
+            }
+
+            if (score > bestScore)
+            {
+                bestScore = score;
+                bestYaw = candidateYaw;
+                bestEdgeName = neighborId;
             }
         }
 
-        if (bestDot < 0.5f)
+        if (bestScore < 1.0f)
         {
-            if (m_CalibrationAccumulatedDist > CALIBRATION_WALK_THRESHOLD * 2.0f)
+            if (m_CalibrationAccumulatedDist > CALIBRATION_WALK_THRESHOLD * 2.5f)
             {
-                Debug.LogWarning($"[QRLocationManager] Forcing calibration after walking far. Best match was ({bestDot:F2}).");
-                // Don't return, just accept the best edge we have so it doesn't get stuck forever
+                Debug.LogWarning($"[QRLocationManager] Forcing calibration after extended walk. Best score={bestScore:F2}");
             }
             else
             {
-                // Low confidence — user is walking at a steep angle to all edges.
-                // Wait for more data or a straighter walk.
-                Debug.Log($"[QRLocationManager] Low calibration confidence ({bestDot:F2}). Walk along a corridor for best results.");
+                Debug.Log($"[QRLocationManager] Low calibration score ({bestScore:F2}). Walk further along a corridor.");
                 return;
             }
         }
 
-        // Compute yaw offset:
-        // walkAngleAR  = angle of walk direction in AR world space
-        // edgeAngleMap = angle of matched edge in map space
-        // yawOffset    = how much to rotate map space to align with AR space
-        float walkAngleAR  = Mathf.Atan2(walkDir.x, walkDir.z) * Mathf.Rad2Deg;
-        float edgeAngleMap = Mathf.Atan2(bestEdgeDir.x, bestEdgeDir.z) * Mathf.Rad2Deg;
-        float yawOffset = walkAngleAR - edgeAngleMap;
-
-        CalibratedYawOffset = yawOffset;
+        CalibratedYawOffset = bestYaw;
         CurrentCalibrationState = CalibrationState.Calibrated;
 
         Debug.Log($"[QRLocationManager] ✅ Calibration complete! " +
-                  $"walkAngle={walkAngleAR:F1}° edgeAngle={edgeAngleMap:F1}° " +
-                  $"yawOffset={yawOffset:F1}° confidence={bestDot:F2}");
+                  $"yawOffset={bestYaw:F1}° bestEdge={bestEdgeName} score={bestScore:F2}");
 
         OnCalibrationComplete?.Invoke();
     }
