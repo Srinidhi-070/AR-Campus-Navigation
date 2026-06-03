@@ -794,7 +794,7 @@ public class NavigationFlowController : MonoBehaviour
         {
             float progress = Mathf.Clamp01(m_QRLocationManager.CalibrationWalkDistance / m_QRLocationManager.RequiredWalkDistance);
             UpdateGuidance(
-                "Walk a few steps to calibrate direction...",
+                "Walk down the corridor to calibrate...",
                 new Color(0.3f, 0.6f, 1f, 1f),
                 true,
                 progress

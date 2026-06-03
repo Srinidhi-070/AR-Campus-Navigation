@@ -359,13 +359,13 @@ public class QRLocationManager : MonoBehaviour
                 if (dot > 0.7f) score += dot * 2f;
             }
 
-            // TIE-BREAKER: Penalize candidates that are completely opposite to the compass/GPS
+            // TIE-BREAKER: Penalize candidates that are completely opposite or orthogonal to the compass/GPS
             // Mathf.DeltaAngle returns the shortest difference between two angles (-180 to 180)
             float angleDiff = Mathf.Abs(Mathf.DeltaAngle(roughExpectedYaw, candidateYaw));
             
-            // If the candidate is more than 90 degrees away from the rough compass heading,
-            // we heavily penalize it to prevent 180-degree flips at symmetric intersections.
-            if (angleDiff > 90f)
+            // If the candidate is more than 70 degrees away from the rough compass heading,
+            // we heavily penalize it to prevent 180-degree flips AND 90-degree orthogonal walks (walking into a wall).
+            if (angleDiff > 70f)
             {
                 score -= 5f; 
             }
