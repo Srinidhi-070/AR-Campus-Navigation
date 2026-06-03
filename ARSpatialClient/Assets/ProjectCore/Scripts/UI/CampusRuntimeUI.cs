@@ -468,11 +468,13 @@ public class CampusRuntimeUI : MonoBehaviour
         transRT.anchorMin = new Vector2(0.5f, 0f);
         transRT.anchorMax = new Vector2(0.5f, 0f);
         transRT.pivot = new Vector2(0.5f, 0f);
-        transRT.anchoredPosition = new Vector2(0, 450); // Placed comfortably above the drawer/toast
-        transRT.sizeDelta = new Vector2(600, 120);
+        transRT.anchoredPosition = new Vector2(0, 600); // Moved up to clear toasts
+        transRT.sizeDelta = new Vector2(650, 120);
         
         Image img = FloorTransitionButton.GetComponent<Image>();
-        img.color = new Color(0.25f, 0.35f, 1f, 1f); // Vibrant blue to match system theme
+        img.sprite = GetRoundedSprite();
+        img.type = Image.Type.Sliced;
+        img.color = new Color(0.25f, 0.35f, 1f, 1f); // Matches ASK AI
         
         Outline outline = FloorTransitionButton.GetComponent<Outline>();
         if (outline != null)
@@ -484,9 +486,12 @@ public class CampusRuntimeUI : MonoBehaviour
         FloorTransitionText = FloorTransitionButton.transform.Find("Label")?.GetComponent<TextMeshProUGUI>();
         if (FloorTransitionText != null)
         {
-            FloorTransitionText.fontSize = 36;
+            TMP_FontAsset defaultFont = Resources.Load<TMP_FontAsset>("Fonts & Materials/LiberationSans SDF");
+            if (defaultFont != null) FloorTransitionText.font = defaultFont;
+            FloorTransitionText.fontSize = 38;
             FloorTransitionText.alignment = TextAlignmentOptions.Center;
             FloorTransitionText.enableWordWrapping = true;
+            FloorTransitionText.fontStyle = FontStyles.Bold;
             RectTransform labelRT = FloorTransitionText.GetComponent<RectTransform>();
             labelRT.offsetMin = new Vector2(20, 20);
             labelRT.offsetMax = new Vector2(-20, -20);
