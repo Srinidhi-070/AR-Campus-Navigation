@@ -8,10 +8,7 @@
         },
         {
             "buildingName": "House",
-            "maps": [
-                "Floor _1",
-                "Floor_2"
-            ]
+            "maps": []
         },
         {
             "buildingName": "Ground Floor",
@@ -23,10 +20,11 @@
                 "7th Floor ",
                 "6th Floor",
                 "5th Floor",
-                "Ground Floor",
                 "4th Floor",
                 "3rd Floor",
-                "2nd Floor"
+                "2nd Floor",
+                "1st Floor",
+                "Ground Floor"
             ]
         }
     ]
