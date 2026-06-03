@@ -28,7 +28,6 @@ public class AppController : MonoBehaviour
         Debug.Log("[AppController] Awake called");
         Input.compass.enabled = true;
 
-
         // If previously set, override inspector default.
         if (PlayerPrefs.HasKey(BaseUrlPlayerPrefsKey))
         {

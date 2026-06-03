@@ -7,7 +7,7 @@ using UnityEngine.Networking;
 
 public class CampusApiClient : MonoBehaviour
 {
-    [SerializeField] private string m_BaseUrl = "http://192.168.1.4:8000";
+    [SerializeField] private string m_BaseUrl = "http://127.0.0.1:8000";
 
     public string BaseUrl
     {

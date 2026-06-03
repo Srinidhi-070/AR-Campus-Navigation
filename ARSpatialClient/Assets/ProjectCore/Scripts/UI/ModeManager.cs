@@ -91,7 +91,7 @@ public class ModeManager : MonoBehaviour
         }
     }
     
-    private System.Collections.IEnumerator FocusChatInput()
+    private IEnumerator FocusChatInput()
     {
         yield return null;
         if (m_UI.ChatInput != null)

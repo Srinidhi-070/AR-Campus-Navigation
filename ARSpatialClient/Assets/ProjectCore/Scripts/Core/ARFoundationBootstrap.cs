@@ -15,8 +15,7 @@ using Unity.XR.CoreUtils;
 /// </summary>
 public class ARFoundationBootstrap : MonoBehaviour
 {
-#if UNITY_ANDROID || UNITY_IOS
-#endif
+
 
     void Awake()
     {
@@ -139,7 +138,7 @@ public class ARFoundationBootstrap : MonoBehaviour
         // Add ARRaycastManager for placing objects
         xrOriginGO.AddComponent<ARRaycastManager>();
         
-        Debug.Log("[ARFoundationBootstrap] Created XR Origin with camera, plane detection, point cloud, and raycast");
+        Debug.Log("[ARFoundationBootstrap] Created XR Origin with camera, plane detection, and raycast");
 #endif
     }
 

@@ -214,32 +214,7 @@ public class QRScannerUI : MonoBehaviour
         m_ScannerPanel.SetActive(false);
     }
 
-    private Button CreatePillButton(Transform parent, string name, string label)
-    {
-        GameObject btnObj = new GameObject(name);
-        btnObj.transform.SetParent(parent, false);
-        
-        Image img = btnObj.AddComponent<Image>();
-        img.sprite = GetRoundedSprite();
-        img.type = Image.Type.Sliced;
-        img.color = new Color(0.3f, 0.33f, 0.38f, 0.9f); // Gray translucent pill
 
-        Button btn = btnObj.AddComponent<Button>();
-        btn.targetGraphic = img;
-
-        ColorBlock cb = btn.colors;
-        cb.normalColor = Color.white;
-        cb.highlightedColor = new Color(0.8f, 0.8f, 0.8f, 1f);
-        cb.pressedColor = new Color(0.6f, 0.6f, 0.6f, 1f);
-        cb.colorMultiplier = 1f;
-        btn.colors = cb;
-
-        TextMeshProUGUI txt = CreateText(btnObj.transform, "Text", label, 36, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
-        txt.alignment = TextAlignmentOptions.Center;
-        txt.fontStyle = FontStyles.Bold;
-
-        return btn;
-    }
 
     private Button CreateCircularButton(Transform parent, string name, string iconResourcePath, Vector2 anchor, Vector2 anchoredPos)
     {
@@ -499,10 +474,7 @@ public class QRScannerUI : MonoBehaviour
         yield break;
     }
 
-    private void FixCameraDisplay()
-    {
-        // Not needed anymore since we are reading from the screen!
-    }
+
 
     private IEnumerator ScanLoop()
     {

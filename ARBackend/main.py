@@ -1,5 +1,6 @@
 import os
 import sys
+import traceback
 from pathlib import Path
 
 user_site = (
@@ -39,6 +40,7 @@ try:
 except Exception as e:
     chat_service = None
     print(f"Chat service disabled (optional deps missing): {e}")
+    traceback.print_exc()
 
 
 @app.get("/")
@@ -99,6 +101,5 @@ if __name__ == "__main__":
     print("Starting AR Campus Navigation API...")
     print(f"Server will run on: http://0.0.0.0:8000")
     print(f"Access from this computer: http://localhost:8000")
-    print(f"Access from phone: http://192.168.1.4:8000")
     print("Press Ctrl+C to stop")
     uvicorn.run(app, host="0.0.0.0", port=8000)

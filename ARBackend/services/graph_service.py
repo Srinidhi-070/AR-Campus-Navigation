@@ -85,8 +85,8 @@ class GraphService:
                     x=node.x,
                     y=node.y,
                     z=node.z,
-                    rotation_y=getattr(node, 'rotation_y', 0.0),
-                    type=getattr(node, 'type', ''),
+                    rotation_y=node.rotation_y,
+                    type=node.type,
                     building=node.building,
                     floor=node.floor,
                 )

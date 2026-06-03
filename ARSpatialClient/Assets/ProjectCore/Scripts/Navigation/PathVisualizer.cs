@@ -238,7 +238,6 @@ public class PathVisualizer : MonoBehaviour
             }
         }
         
-        Vector3 lastCurvedArrowPos = new Vector3(-9999, -9999, -9999);
 
         Debug.Log($"[PathVisualizer] Drawing path: {worldPath.Count} waypoints, {transitionSegments.Count} floor transitions, spacing={spacing}");
 
