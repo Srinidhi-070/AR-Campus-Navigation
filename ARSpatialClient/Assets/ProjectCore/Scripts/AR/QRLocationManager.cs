@@ -381,16 +381,34 @@ public class QRLocationManager : MonoBehaviour
 
     private void ForceCalibrationFromCompass()
     {
-        // Fallback: use compass heading as a rough alignment
-        // This is the old behavior — unreliable indoors but better than nothing
-        float camYaw = ScanCameraRotationY;
-        float compassHeading = ScanCompassHeading;
-        float yawOffset = camYaw - compassHeading;
+        // Prefer GPS-derived heading when available (much more reliable than indoor compass)
+        GPSLocationService gps = AppController.Instance != null ? AppController.Instance.GPS : null;
 
-        CalibratedYawOffset = yawOffset;
+        if (gps != null && gps.HasGPSHeading)
+        {
+            // GPS heading is in geographic degrees (0=North). Use it instead of compass.
+            float camYaw = ScanCameraRotationY;
+            float gpsHeading = gps.GPSHeading;
+            float yawOffset = camYaw - gpsHeading;
+
+            CalibratedYawOffset = yawOffset;
+            CurrentCalibrationState = CalibrationState.Calibrated;
+
+            Debug.Log($"[QRLocationManager] GPS heading fallback calibration: yawOffset={yawOffset:F1}° (GPS heading={gpsHeading:F1}°)");
+            OnCalibrationComplete?.Invoke();
+            return;
+        }
+
+        // Last resort: use compass heading as a rough alignment
+        // Unreliable indoors but better than nothing
+        float compassCamYaw = ScanCameraRotationY;
+        float compassHeading = ScanCompassHeading;
+        float compassYawOffset = compassCamYaw - compassHeading;
+
+        CalibratedYawOffset = compassYawOffset;
         CurrentCalibrationState = CalibrationState.Calibrated;
 
-        Debug.LogWarning($"[QRLocationManager] Compass fallback calibration: yawOffset={yawOffset:F1}°");
+        Debug.LogWarning($"[QRLocationManager] Compass fallback calibration: yawOffset={compassYawOffset:F1}°");
         OnCalibrationComplete?.Invoke();
     }
 

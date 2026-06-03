@@ -18,9 +18,11 @@ public class AppController : MonoBehaviour
 
     private LocationRegistry m_LocationRegistry;
     private QRLocationManager m_QRLocationManager;
+    private GPSLocationService m_GPSService;
 
     public LocationRegistry Locations => m_LocationRegistry;
     public QRLocationManager QRLocations => m_QRLocationManager;
+    public GPSLocationService GPS => m_GPSService;
     public string BaseUrl => m_BaseUrl;
 
     void Awake()
@@ -64,8 +66,12 @@ public class AppController : MonoBehaviour
         m_QRLocationManager = GetComponent<QRLocationManager>();
         if (m_QRLocationManager == null)
             m_QRLocationManager = gameObject.AddComponent<QRLocationManager>();
+
+        m_GPSService = GetComponent<GPSLocationService>();
+        if (m_GPSService == null)
+            m_GPSService = gameObject.AddComponent<GPSLocationService>();
         
-        Debug.Log("[AppController] Core components ensured");
+        Debug.Log("[AppController] Core components ensured (LocationRegistry, QRLocationManager, GPSLocationService)");
     }
 
     private void EnsureRuntimeInstaller()

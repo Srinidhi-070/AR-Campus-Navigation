@@ -13,6 +13,7 @@ public class NavigationFlowController : MonoBehaviour
     private PathVisualizer m_PathVisualizer;
     private CampusRuntimeUI m_UI;
     private CampusRuntimeValidator m_Validator;
+    private GPSLocationService m_GPSService;
 
     // Scale factor: 1.0 means 1 grid unit = 1 meter.
     private float m_MetersPerGridUnit = 1.0f;
@@ -85,6 +86,13 @@ public class NavigationFlowController : MonoBehaviour
             m_UI.FloorTransitionButton.onClick.RemoveAllListeners();
             m_UI.FloorTransitionButton.onClick.AddListener(HandleFloorTransitionResume);
         }
+
+        // Subscribe to GPS building detection for auto-selecting building dropdown
+        if (m_GPSService != null)
+            m_GPSService.OnBuildingDetected -= HandleGPSBuildingDetected;
+        m_GPSService = AppController.Instance != null ? AppController.Instance.GPS : null;
+        if (m_GPSService != null)
+            m_GPSService.OnBuildingDetected += HandleGPSBuildingDetected;
 
         RefreshControls();
     }
@@ -1324,6 +1332,32 @@ public class NavigationFlowController : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Called by GPSLocationService when the user is detected near a known building.
+    /// Automatically pre-selects the building in the dropdown for convenience.
+    /// </summary>
+    private void HandleGPSBuildingDetected(string buildingName)
+    {
+        if (m_UI == null || m_BuildingOptions.Count == 0) return;
+
+        // Find the matching building in our dropdown options (case-insensitive, trimmed)
+        string trimmedName = buildingName.Trim();
+        for (int i = 0; i < m_BuildingOptions.Count; i++)
+        {
+            if (string.Equals(m_BuildingOptions[i].Trim(), trimmedName, System.StringComparison.OrdinalIgnoreCase))
+            {
+                if (m_UI.BuildingDropdown.value != i)
+                {
+                    Debug.Log($"[NavigationFlowController] GPS auto-selected building: {buildingName}");
+                    m_UI.BuildingDropdown.value = i;
+                    HandleBuildingChanged(i);
+                    m_UI.ShowStatus($"GPS detected: {trimmedName}");
+                }
+                return;
+            }
+        }
+    }
+
     private void RefreshControls()
     {
         if (m_UI == null)
@@ -1344,5 +1378,7 @@ public class NavigationFlowController : MonoBehaviour
     {
         if (m_QRLocationManager != null)
             m_QRLocationManager.OnLocationChanged -= HandleQrLocationChanged;
+        if (m_GPSService != null)
+            m_GPSService.OnBuildingDetected -= HandleGPSBuildingDetected;
     }
 }
