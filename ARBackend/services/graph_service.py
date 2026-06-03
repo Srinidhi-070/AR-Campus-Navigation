@@ -58,6 +58,14 @@ class GraphService:
         self.reload_if_needed()
         return list(self._locations)
 
+    def get_destination_locations(self) -> List[LocationNode]:
+        """Return only meaningful destinations (rooms, entrances, lifts, stairs) — not corridor cells."""
+        self.reload_if_needed()
+        return [
+            node for node in self._locations
+            if node.type != "corridor" and node.type != "wall" and node.displayName.strip()
+        ]
+
     def get_node(self, node_id: str) -> Optional[LocationNode]:
         self.reload_if_needed()
         if not node_id:

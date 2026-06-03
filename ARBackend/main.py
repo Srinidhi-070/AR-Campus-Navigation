@@ -57,7 +57,7 @@ def root():
 @app.get("/locations", response_model=LocationsResponse)
 def get_locations() -> LocationsResponse:
     graph_service.reload_if_needed()
-    return LocationsResponse(locations=graph_service.get_locations())
+    return LocationsResponse(locations=graph_service.get_destination_locations())
 
 
 @app.get("/health")

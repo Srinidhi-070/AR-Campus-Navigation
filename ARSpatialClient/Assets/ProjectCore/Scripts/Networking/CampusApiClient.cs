@@ -105,8 +105,9 @@ public class CampusApiClient : MonoBehaviour
             yield break;
         }
 
-        Debug.Log($"[CampusApiClient] FetchLocations success: {request.downloadHandler.text}");
-        LocationsResponseWrapper response = JsonUtility.FromJson<LocationsResponseWrapper>(request.downloadHandler.text);
+        string responseText = request.downloadHandler.text;
+        Debug.Log($"[CampusApiClient] FetchLocations success: {responseText.Length} bytes");
+        LocationsResponseWrapper response = JsonUtility.FromJson<LocationsResponseWrapper>(responseText);
         onSuccess?.Invoke(response?.locations ?? new List<LocationData>());
     }
 

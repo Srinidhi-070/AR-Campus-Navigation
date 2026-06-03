@@ -274,29 +274,15 @@ public class NavigationFlowController : MonoBehaviour
 
     private void HandleLocationsLoaded(List<LocationData> locations)
     {
-        Debug.Log($"[NavigationFlowController] HandleLocationsLoaded called with {locations?.Count ?? 0} locations");
+        int count = locations?.Count ?? 0;
+        Debug.Log($"[NavigationFlowController] HandleLocationsLoaded: {count} locations");
 
         m_UseLocalRouting = false;
         m_LocationRegistry.Clear();
         m_LocationRegistry.SetLocations(locations);
-
-        // Debug: Log all loaded locations
-        if (locations != null)
-        {
-            foreach (var loc in locations)
-            {
-                Debug.Log($"[NavigationFlowController] Loaded: {loc.id} | {loc.displayName} | Type: {loc.type} | Building: {loc.building} | Floor: {loc.floor}");
-            }
-        }
         
         PopulateBuildingOptions();
-        
-        // Debug: Log building options
-        Debug.Log($"[NavigationFlowController] Building options count: {m_BuildingOptions.Count}");
-        foreach (var building in m_BuildingOptions)
-        {
-            Debug.Log($"[NavigationFlowController] Building option: {building}");
-        }
+        Debug.Log($"[NavigationFlowController] Building options: {m_BuildingOptions.Count}");
         
         RefreshControls();
 
