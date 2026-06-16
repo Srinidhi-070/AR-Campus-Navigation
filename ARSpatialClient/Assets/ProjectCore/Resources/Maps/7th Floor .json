@@ -84014,8 +84014,8 @@
         {
             "x": 64,
             "y": 62,
-            "isWalkable": true,
-            "nodeType": 4,
+            "isWalkable": false,
+            "nodeType": 1,
             "connectedMap": "",
             "connectedNode": {
                 "x": 0,

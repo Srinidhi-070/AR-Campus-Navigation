@@ -26,6 +26,12 @@
                 "1st Floor",
                 "Ground Floor"
             ]
+        },
+        {
+            "buildingName": "Quadrangle",
+            "maps": [
+                "Pradarshana"
+            ]
         }
     ]
 }
