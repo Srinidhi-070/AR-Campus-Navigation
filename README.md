@@ -1,124 +1,211 @@
 <div align="center">
-  <img src="Documentation/Images/trailix_logo.png" alt="Trailix Logo" width="220" />
+  <img src="Documentation/Images/trailix_logo.png" alt="Trailix Logo" width="200" />
   <h1>Trailix</h1>
-  
-  <img src="https://readme-typing-svg.herokuapp.com?font=Inter&weight=500&size=18&duration=3000&pause=1000&color=34A853&center=true&vCenter=true&width=600&lines=Advanced+Spatial+Navigation;Augmented+Reality+Client;FastAPI+Powered+Pathfinding;Enterprise-Grade+Indoor+Routing" alt="Typing Animation" />
+  <p><strong>AR-Powered Indoor Campus Navigation System</strong></p>
 
-  [![Unity](https://img.shields.io/badge/Unity-2022.3.62f3-black.svg?style=for-the-badge&logo=unity)](#)
+  <br />
+
+  [![Backend](https://img.shields.io/badge/Backend-FastAPI-009688.svg?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com/)
+  [![Python](https://img.shields.io/badge/Python-3.10+-3776AB.svg?style=for-the-badge&logo=python&logoColor=white)](#)
   [![Platform](https://img.shields.io/badge/Platform-Android_ARCore-34A853.svg?style=for-the-badge&logo=android)](#)
-  [![Backend](https://img.shields.io/badge/Backend-FastAPI-009688.svg?style=for-the-badge&logo=fastapi)](#)
-  [![License](https://img.shields.io/badge/License-Proprietary-blue.svg?style=for-the-badge)](#)
+  [![Unity](https://img.shields.io/badge/Unity-2022.3.62f3-000000.svg?style=for-the-badge&logo=unity&logoColor=white)](#)
+  [![License](https://img.shields.io/badge/License-Proprietary-5C5C5C.svg?style=for-the-badge)](#)
 </div>
 
+<br />
+
+## Overview
+
+**Trailix** is an augmented reality indoor navigation system designed for multi-floor campus environments. It replaces traditional 2D maps with real-time 3D path overlays rendered directly through a mobile device camera, enabling users to follow physical directional cues anchored in the real world.
+
+The system pairs a **Unity AR client** (targeting Android with ARCore) with a lightweight **Python FastAPI backend** that handles graph-based pathfinding, location management, and an AI-powered natural language chat interface for destination resolution.
+
 ---
 
-## Executive Summary
+## Architecture
 
-**Trailix** is an enterprise-grade Augmented Reality (AR) spatial navigation system engineered specifically for complex, multi-floor indoor and outdoor campus environments. By leveraging Unity's robust AR Foundation framework coupled with a highly responsive, lightweight Python FastAPI backend, Trailix projects precise, contextual routing overlays directly onto the physical world through the user's mobile device camera.
-
-The system abandons traditional 2D map cognitive overload, allowing users to effortlessly follow physical path indicators anchored in real space.
-
----
-
-## System Architecture
-
-Trailix operates on a strictly decoupled, dual-layer architecture. Interaction between the local client and the server infrastructure is fully asynchronous, guaranteeing low-latency path updates during continuous physical movement.
-
-### Data Flow Diagram
+The system operates on a decoupled client-server architecture. The mobile AR client handles spatial rendering and user interaction, while the backend manages the campus graph, pathfinding algorithms, and AI chat services.
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant U as Trailix AR Client
-    participant QR as Physical QR Anchor
+    participant Client as AR Client (Unity)
+    participant QR as QR Anchor
     participant API as FastAPI Backend
-    participant DB as JSON Graph Database
+    participant Graph as Campus Graph
 
-    U->>QR: Scan Environmental QR Code
-    QR-->>U: Decode JSON Payload (node_id, building, floor)
-    U->>U: Calibrate AR World Origin
-    U->>API: POST /api/navigate (Current Node, Target Node)
-    API->>DB: Load Topographical Edges
-    DB-->>API: Return Graph Weights
-    API->>API: Execute Dijkstra Shortest-Path Algorithm
-    API-->>U: Return 200 OK (Array[Vector3], Floor Transitions)
-    U->>U: Generate 3D Catmull-Rom Splines
-    U->>U: Instantiate Procedural Chevron Indicators
-    U->>U: Begin Visualizer Animation Flow
+    Client->>QR: Scan QR Code
+    QR-->>Client: Decode Payload (node_id, building, floor)
+    Client->>Client: Calibrate AR World Origin
+    Client->>API: POST /get-path (start_node, destination_node)
+    API->>Graph: Load Topological Edges
+    Graph-->>API: Return Graph Weights
+    API->>API: Execute Dijkstra Shortest-Path
+    API-->>Client: Return Path Coordinates + Floor Transitions
+    Client->>Client: Render 3D Chevron Path Overlay
 ```
 
 ---
 
-## Comprehensive Feature Suite
+## Key Features
 
-### 1. Advanced Augmented Reality Visualization
-* **Procedural Chevron Arrays**: Instead of relying on static textures or heavy 3D models, Trailix dynamically generates flat, low-profile 3D chevron arrows at runtime. This drastically reduces draw calls and memory overhead.
-* **Flow Animation Vectors**: Arrows feature a seamless forward-flow animation algorithm applied to their spatial vectors, providing clear directional cues without overwhelming the user's field of view.
-* **Elevation & Multi-Floor Intelligence**: The routing visualizer automatically detects elevation changes. It paints paths intersecting staircases with high-visibility neon yellow markers and elevator shafts with electric violet indicators.
+### Spatial Navigation
+- **QR-Based Localization** -- Physical QR codes placed across campus serve as spatial anchors, calibrating the AR session coordinate system where GPS is unreliable.
+- **Procedural Path Rendering** -- Dynamically generated 3D chevron arrows with forward-flow animation provide clear directional guidance without heavy 3D assets.
+- **Multi-Floor Routing** -- Automatic detection of elevation changes with distinct visual markers for staircases (yellow) and elevators (violet).
 
-### 2. Precise Spatial Anchoring
-* **QR-Based World Localization**: Traditional GPS fails indoors. Trailix utilizes structured QR payloads placed strategically around the campus to instantly calibrate the local AR session coordinate system.
-* **Drift Mitigation**: The system continuously monitors the ARCore SLAM (Simultaneous Localization and Mapping) tracking state. If visual features are lost, the user is smoothly prompted to rescan the nearest anchor.
+### Intelligent Pathfinding
+- **Dijkstra Shortest-Path** -- Server-side graph traversal over a weighted campus topology ensures optimal routing.
+- **Floor Transition Handling** -- Seamless path continuity across floors with explicit transition metadata.
+- **GPS-Assisted Calibration** -- Automatic building detection and heading estimation to assist initial AR calibration.
 
-### 3. Dynamic User Experience & Interface
-* **Contextual Viewports**: The bottom navigation drawer programmatically expands and collapses based on the user's current routing state. This protects the bottom safe-area (gesture bar) of modern bezel-less devices.
-* **Floating State Management**: Non-intrusive, floating status toasts deliver real-time system feedback (e.g., "Scanning QR Payload...", "Navigation Active", "Target Reached").
+### AI Chat Interface
+- **Natural Language Destination Resolution** -- Users can describe destinations in plain language (e.g., "Take me to the library") and the system resolves them to graph nodes using semantic matching.
+- **LLM-Powered Responses** -- Backed by Hugging Face inference API with configurable model selection.
+
+### Mobile Experience
+- **Drift Mitigation** -- Continuous ARCore SLAM tracking state monitoring with automatic rescan prompts when visual features are lost.
+- **Contextual UI** -- Adaptive bottom navigation drawer that responds to routing state, respecting modern device safe areas.
+- **Real-Time Feedback** -- Floating status indicators for system state (scanning, navigating, arrived).
 
 ---
 
 ## Repository Structure
 
-The codebase is strictly segregated to enforce single-responsibility principles between the routing mathematics and graphical rendering.
-
-```text
+```
 Trailix/
-├── ARBackend/                      # Python Server Infrastructure
-│   ├── main.py                     # FastAPI Application Entry & Routing
-│   ├── requirements.txt            # Python Dependencies (Uvicorn, FastAPI)
-│   ├── nodes.json                  # Topographical Graph Data (Vertices/Edges)
-│   └── services/                   # Core Pathfinding (Dijkstra/A* Logic)
-│
-├── ARSpatialClient/                # Unity AR Application Frontend
-│   ├── Assets/
-│   │   ├── Editor/                 # Custom Unity Editor Tooling (Icon Generators)
-│   │   └── ProjectCore/
-│   │       ├── Scripts/            # Core C# Logic
-│   │       │   ├── AR/             # QR Tracking and SLAM Integrity
-│   │       │   ├── Navigation/     # Path Interpolation and Procedural Meshes
-│   │       │   ├── Networking/     # Asynchronous API Consumption
-│   │       │   └── UI/             # Dynamic Canvas Rendering and Layout
-│   │       ├── Textures/           # Sprites and Application Manifest Icons
-│   │       └── Scenes/             # Unity Scene Configurations
-│   └── Assembly-CSharp.csproj      # Managed Assembly Definitions
-│
-└── Documentation/                  # System Assets and External Guides
-    └── Images/                     # High-Resolution Logos and Schematics
+|
+|-- ARBackend/                        # Python Server Infrastructure
+|   |-- main.py                       # FastAPI entry point and route definitions
+|   |-- schemas.py                    # Pydantic request/response models
+|   |-- nodes.json                    # Campus graph data (vertices, edges, weights)
+|   |-- requirements.txt             # Python dependencies
+|   |-- Dockerfile                    # Container configuration
+|   |-- docker-compose.yml            # Multi-service orchestration
+|   |-- generate_qr.py               # QR code generation utility
+|   |-- start_backend.bat            # Windows launch script
+|   |-- start_backend.ps1            # PowerShell launch script
+|   +-- services/
+|       |-- graph_service.py          # Graph loading, Dijkstra pathfinding
+|       +-- chat_service.py          # AI chat and semantic destination matching
+|
++-- Documentation/
+    |-- BUILD_APK_GUIDE.md            # Android APK build instructions
+    |-- BUILD_PRODUCTION_SCENE.md     # Unity scene configuration guide
+    |-- HOW_TO_RUN_PROJECT.md         # End-to-end setup walkthrough
+    |-- INTEGRATION_TESTING_GUIDE.md  # QR detection and pathfinding validation
+    |-- START_BACKEND_GUIDE.md        # Backend deployment reference
+    |-- PROJECT_PROGRESS_REPORT.md    # Development progress log
+    +-- Images/                       # Logos and schematics
 ```
 
 ---
 
-## Backend API Reference
+## Getting Started
 
-The backend communicates exclusively via lightweight JSON payloads over REST HTTP.
+### Prerequisites
 
-### Endpoint: `/api/navigate`
-**Method**: `POST`  
-**Description**: Calculates the shortest physical path between two topological nodes.
+| Requirement | Version |
+|:---|:---|
+| Python | 3.10 or higher |
+| pip | Latest |
+| Network | Mobile device must reach the backend server on port 8000 |
 
-**Request Body**:
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/Srinidhi-070/AR-Campus-Navigation.git
+cd AR-Campus-Navigation
+```
+
+### 2. Set Up the Backend
+
+```bash
+cd ARBackend
+python -m venv venv
+```
+
+Activate the virtual environment:
+
+| Platform | Command |
+|:---|:---|
+| Windows (CMD) | `venv\Scripts\activate` |
+| Windows (PowerShell) | `venv\Scripts\Activate.ps1` |
+| macOS / Linux | `source venv/bin/activate` |
+
+Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+### 3. Configure Environment Variables (Optional)
+
+Create a `.env` file in `ARBackend/` for AI chat features:
+
+```env
+HF_API_TOKEN=your_huggingface_api_token
+HF_MODEL_ID=meta-llama/Llama-3.2-3B-Instruct
+```
+
+If not configured, the chat service will gracefully fall back to menu-based destination selection.
+
+### 4. Start the Server
+
+```bash
+python main.py
+```
+
+The API server will start on `http://0.0.0.0:8000`. Verify by visiting the root endpoint in a browser or with curl:
+
+```bash
+curl http://localhost:8000
+```
+
+Alternatively, use the provided launch scripts:
+
+```bash
+# Windows CMD
+start_backend.bat
+
+# PowerShell
+.\start_backend.ps1
+```
+
+---
+
+## API Reference
+
+### `GET /`
+
+Returns server status and configuration summary.
+
+### `GET /health`
+
+Health check endpoint.
+
+### `GET /locations`
+
+Returns all navigable destination locations in the campus graph.
+
+### `POST /get-path`
+
+Calculates the shortest path between two nodes.
+
+**Request:**
 ```json
 {
   "start_node_id": "main_entrance_01",
-  "end_node_id": "library_floor_3"
+  "destination_node_id": "library_floor_3"
 }
 ```
 
-**Response**:
+**Response:**
 ```json
 {
   "path": [
-    {"x": 10.5, "y": 0.0, "z": -5.2},
-    {"x": 12.0, "y": 0.0, "z": -5.2}
+    { "x": 10.5, "y": 0.0, "z": -5.2 },
+    { "x": 12.0, "y": 0.0, "z": -5.2 }
   ],
   "transitions": [
     {
@@ -131,61 +218,66 @@ The backend communicates exclusively via lightweight JSON payloads over REST HTT
 }
 ```
 
----
+### `POST /chat`
 
-## Build and Deployment Guide
+Resolves a natural language query to a campus destination using AI.
 
-### Phase 1: Backend Initialization
+**Request:**
+```json
+{
+  "query": "Where is the computer lab?",
+  "messages": []
+}
+```
 
-1. **Environment Setup**:
-   Navigate to the backend directory and establish a virtual environment.
-   ```bash
-   cd ARBackend
-   python -m venv venv
-   source venv/Scripts/activate  # (Windows)
-   ```
-2. **Install Requirements**:
-   ```bash
-   pip install -r requirements.txt
-   ```
-3. **Launch Uvicorn Server**:
-   ```bash
-   python main.py
-   ```
-   *The server will initialize on port 8000. Ensure your firewall permits local network traffic so the mobile device can reach this socket.*
-
-### Phase 2: Unity Client Compilation
-
-1. **Open Environment**: Launch `ARSpatialClient` using **Unity 2022.3.62f3**.
-2. **Configure API Endpoints**:
-   Navigate to `Assets/ProjectCore/Scripts/Networking/CampusApiClient.cs`. Update the `BaseUrl` variable to match the IPv4 address of your local machine hosting the FastAPI instance.
-3. **Generate Application Manifest Icons**:
-   From the Unity Editor top menu bar, select `Tools > Fix App Icon`. This executes a custom Editor script that maps the 500x500 Trailix PNG to the Android Adaptive, Legacy, and Round manifest properties.
-4. **Compile APK**:
-   Select `File > Build Settings`. Verify the target platform is set to `Android`. Ensure ARCore is enabled in XR Plugin Management, then click **Build**.
-5. **Device Deployment**:
-   With your Android device connected via USB (USB Debugging enabled), execute the automated deployment batch script:
-   ```bash
-   .\install_to_device.bat
-   ```
+**Response:**
+```json
+{
+  "answer": "The Computer Lab is located on the 2nd floor of the Main Block.",
+  "destination": "computer_lab_01",
+  "confidence": 0.92,
+  "source": "semantic"
+}
+```
 
 ---
 
-## Automated Editor Tooling
+## Docker Deployment
 
-Trailix utilizes custom C# Editor scripts to streamline the deployment pipeline. These tools are strictly isolated in `Assembly-CSharp-Editor.csproj` to prevent compilation errors in the final Android payload.
+```bash
+cd ARBackend
+docker-compose up --build
+```
 
-* **Icon Auto-Configuration**: The `FixAppIcon.cs` script intercepts the Unity build pipeline to forcefully override the default Unity splash icons with the Trailix branding, accounting for modern Android Adaptive Icon requirements.
+The server will be accessible at `http://localhost:8000`.
 
-## Team Members
+---
 
-* **Raghu C** — AI & DS, MSRIT, Bangalore, India ([1ms22ad042@msrit.edu](mailto:1ms22ad042@msrit.edu))
-* **Rudrapratap Patil** — AI & DS, MSRIT, Bangalore, India ([1ms22ad047@msrit.edu](mailto:1ms22ad047@msrit.edu))
-* **Srinidhi N S** — AI & DS, MSRIT, Bangalore, India ([1ms23ad402@msrit.edu](mailto:1ms23ad402@msrit.edu))
-* **Mallesh N** — AI & DS, MSRIT, Bangalore, India ([1ms22ad033@msrit.edu](mailto:1ms22ad033@msrit.edu))
+## Documentation
+
+Detailed guides are available in the `Documentation/` directory:
+
+| Guide | Description |
+|:---|:---|
+| [HOW_TO_RUN_PROJECT.md](Documentation/HOW_TO_RUN_PROJECT.md) | Complete setup walkthrough for both backend and client |
+| [BUILD_APK_GUIDE.md](Documentation/BUILD_APK_GUIDE.md) | Step-by-step Android APK build instructions |
+| [START_BACKEND_GUIDE.md](Documentation/START_BACKEND_GUIDE.md) | Backend-only deployment reference |
+| [INTEGRATION_TESTING_GUIDE.md](Documentation/INTEGRATION_TESTING_GUIDE.md) | End-to-end testing with QR detection and pathfinding |
+| [BUILD_PRODUCTION_SCENE.md](Documentation/BUILD_PRODUCTION_SCENE.md) | Unity production scene configuration |
+
+---
+
+## Team
+
+| Name | Program | Institution |
+|:---|:---|:---|
+| **Raghu C** | AI and Data Science | M.S. Ramaiah Institute of Technology, Bangalore |
+| **Rudrapratap Patil** | AI and Data Science | M.S. Ramaiah Institute of Technology, Bangalore |
+| **Srinidhi N S** | AI and Data Science | M.S. Ramaiah Institute of Technology, Bangalore |
+| **Mallesh N** | AI and Data Science | M.S. Ramaiah Institute of Technology, Bangalore |
 
 ---
 
 <div align="center">
-  <i>Copyright 2026. Trailix Spatial Navigation System. All Rights Reserved.</i>
+  <sub>Copyright 2026 Trailix. All rights reserved.</sub>
 </div>
